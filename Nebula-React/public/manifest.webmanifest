@@ -1,0 +1,20 @@
+{
+  "name": "灵感工作台 · Nebula",
+  "short_name": "Nebula",
+  "description": "灵感收集与查阅 · 拍照、录音、随手记录",
+  "lang": "zh-CN",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a0a1a",
+  "theme_color": "#0a0a1a",
+  "icons": [
+    {
+      "src": "/assets/svg/common/brand-mark.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
