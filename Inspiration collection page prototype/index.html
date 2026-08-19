@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<meta name="theme-color" content="#faf7f0">
+<title>灵感收集与查阅 · 界面原型方案</title>
+<style>
+:root {
+  --canvas: #f7f3ea;
+  --surface: #fffdf8;
+  --surface-2: #f4efe5;
+  --ink: #25231f;
+  --ink-2: #4a463f;
+  --ink-muted: #6f6a60;
+  --line: rgba(37, 35, 31, .12);
+  --accent-violet: #7867a8;
+  --accent-blue: #6f91aa;
+  --accent-rose: #b77b83;
+  --accent-moss: #788a6b;
+  --accent-amber: #c8956c;
+  --focus: #4f64c8;
+
+  --radius-panel: 20px;
+  --radius-card: 14px;
+  --radius-pill: 999px;
+  --shadow-soft: 0 1px 2px rgba(37, 35, 31, .04), 0 6px 20px -8px rgba(37, 35, 31, .12);
+  --shadow-lift: 0 2px 4px rgba(37, 35, 31, .06), 0 16px 32px -12px rgba(37, 35, 31, .18);
+  --ease: cubic-bezier(.2,.7,.3,1);
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+  font-size: 16px; line-height: 1.7;
+  color: var(--ink);
+  background: var(--canvas);
+  -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+a { color: var(--accent-violet); text-decoration: none; transition: all .2s var(--ease); }
+a:hover { text-decoration: underline; }
+
+.bg {
+  position: fixed; inset: 0; z-index: -1;
+  background:
+    radial-gradient(60% 50% at 20% 10%, rgba(120, 103, 168, .10), transparent 70%),
+    radial-gradient(50% 40% at 90% 30%, rgba(111, 145, 170, .10), transparent 70%),
+    radial-gradient(40% 50% at 70% 90%, rgba(183, 123, 131, .08), transparent 70%),
+    var(--canvas);
+}
+
+/* ---------- 顶部 ---------- */
+.topbar {
+  position: sticky; top: 0; z-index: 50;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 40px;
+  background: rgba(247, 243, 234, .85);
+  backdrop-filter: saturate(140%) blur(12px);
+  -webkit-backdrop-filter: saturate(140%) blur(12px);
+  border-bottom: 1px solid var(--line);
+  max-width: 1480px; margin: 0 auto;
+}
+.brand {
+  font-family: "Songti SC", "STSong", "Noto Serif SC", Georgia, serif;
+  font-size: 18px;
+}
+.brand-tag {
+  font-size: 12px;
+  color: var(--ink-muted);
+  margin-left: 12px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+.actions-bar {
+  display: flex; gap: 8px; align-items: center;
+}
+
+/* ---------- 主体 ---------- */
+.main {
+  max-width: 1400px; margin: 0 auto;
+  padding: 32px 40px 80px;
+}
+
+/* Hero */
+.hero {
+  text-align: center;
+  margin: 32px auto 56px;
+  max-width: 880px;
+}
+.hero h1 {
+  font-family: "Songti SC", "STSong", "Noto Serif SC", Georgia, serif;
+  font-size: 48px; line-height: 1.2; font-weight: 500;
+  letter-spacing: 1.5px;
+  margin: 0 0 16px;
+}
+.hero .sub {
+  font-size: 16px;
+  color: var(--ink-muted);
+  margin: 0 0 24px;
+}
+.hero .tags {
+  display: inline-flex; flex-wrap: wrap; gap: 8px;
+  justify-content: center;
+}
+.hero .tag {
+  font-size: 12px; padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--surface); color: var(--ink-2);
+  border: 1px solid var(--line);
+}
+
+/* 原则 */
+.principles {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  padding: 28px;
+  margin: 32px auto 56px;
+  max-width: 1080px;
+}
+.principles h3 {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--ink-muted);
+  margin: 0 0 16px;
+  font-weight: 500;
+}
+.principles ul {
+  list-style: none; padding: 0; margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+.principles li {
+  display: flex; align-items: flex-start; gap: 12px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.principles li::before {
+  content: ""; flex: 0 0 6px;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent-violet);
+  margin-top: 10px;
+}
+
+/* 方案网格 */
+.schemes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-bottom: 56px;
+}
+.scheme {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  transition: all .25s var(--ease);
+}
+.scheme:hover {
+  border-color: transparent;
+  box-shadow: var(--shadow-lift);
+  transform: translateY(-3px);
+}
+
+.scheme-head {
+  padding: 24px;
+  border-bottom: 1px solid var(--line);
+}
+.scheme-head .num {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 11px;
+  color: var(--ink-muted);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 12px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--canvas);
+}
+.scheme-head h2 {
+  font-family: "Songti SC", "STSong", "Noto Serif SC", Georgia, serif;
+  font-size: 24px;
+  font-weight: 500;
+  margin: 0 0 6px;
+  letter-spacing: 1px;
+}
+.scheme-head .tagline {
+  font-size: 13px;
+  color: var(--ink-muted);
+  margin: 0;
+}
+
+.scheme-preview {
+  height: 220px;
+  background: var(--canvas);
+  overflow: hidden;
+  position: relative;
+  border-bottom: 1px solid var(--line);
+}
+.scheme-preview iframe {
+  width: 100%; height: 100%;
+  border: 0;
+  pointer-events: none;
+  transform: scale(1);
+}
+.scheme-preview .badge {
+  position: absolute;
+  top: 12px; right: 12px;
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: rgba(255,255,255,.95);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  z-index: 2;
+  font-weight: 500;
+  box-shadow: var(--shadow-soft);
+}
+/* 暗色预览带的反差 */
+.scheme.B .scheme-preview { background: #0a0a1a; }
+.scheme.B .scheme-preview .badge { background: rgba(255,255,255,.95); color: var(--cosmos, #0e0c1d); }
+
+.scheme-body {
+  padding: 24px;
+  flex: 1;
+  display: flex; flex-direction: column; gap: 16px;
+}
+.scheme-section h4 {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--ink-muted);
+  font-weight: 500;
+  margin: 0 0 8px;
+}
+.scheme-section p, .scheme-section ul {
+  font-size: 14px;
+  margin: 0;
+  color: var(--ink-2);
+  line-height: 1.7;
+}
+.scheme-section ul {
+  list-style: none; padding: 0;
+}
+.scheme-section li {
+  padding-left: 14px;
+  position: relative;
+  margin-bottom: 4px;
+}
+.scheme-section li::before {
+  content: ""; position: absolute; left: 0; top: 11px;
+  width: 4px; height: 4px; border-radius: 50%;
+  background: var(--ink-muted);
+}
+
+.scheme-features {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  margin-bottom: 4px;
+}
+.scheme-features .f {
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: var(--canvas);
+  color: var(--ink-2);
+  border: 1px solid var(--line);
+}
+.scheme.B .scheme-features .f { background: #1a172a; color: rgba(255,255,255,.7); border-color: rgba(255,255,255,.1); }
+
+.scheme-pages {
+  display: flex; flex-direction: column; gap: 8px;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px dashed var(--line);
+}
+.page-link {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--canvas);
+  border-radius: var(--radius-card);
+  color: var(--ink);
+  font-size: 13px;
+  transition: all .15s var(--ease);
+  text-decoration: none;
+}
+.page-link:hover {
+  background: var(--surface);
+  color: var(--ink);
+  transform: translateX(2px);
+  text-decoration: none;
+}
+.scheme.B .page-link { background: #1a172a; color: rgba(255,255,255,.85); }
+.scheme.B .page-link:hover { background: #221d3a; color: white; }
+.page-link .name {
+  display: flex; align-items: center; gap: 8px;
+}
+.page-link .arrow {
+  opacity: .5;
+  transition: transform .15s var(--ease);
+}
+.page-link:hover .arrow {
+  opacity: 1;
+  transform: translateX(3px);
+}
+
+/* 对比表 */
+.compare {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  overflow: hidden;
+  margin-bottom: 56px;
+}
+.compare-head {
+  padding: 24px;
+  border-bottom: 1px solid var(--line);
+}
+.compare-head h2 {
+  font-family: "Songti SC", "STSong", "Noto Serif SC", Georgia, serif;
+  font-size: 22px; margin: 0 0 4px; letter-spacing: 1px;
+}
+.compare-head p { font-size: 13px; color: var(--ink-muted); margin: 0; }
+.table-scroll { overflow-x: auto; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  min-width: 720px;
+}
+th, td {
+  padding: 14px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+th {
+  background: var(--canvas);
+  font-weight: 500;
+  font-size: 13px;
+  color: var(--ink-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+th:first-child { width: 24%; }
+th:not(:first-child) { width: 25.3%; }
+tbody tr:last-child td { border-bottom: 0; }
+td:first-child { font-weight: 500; color: var(--ink); }
+td { color: var(--ink-2); line-height: 1.6; }
+.scheme-A-row { background: rgba(120, 103, 168, .03); }
+.scheme-B-row { background: rgba(183, 123, 131, .03); }
+.scheme-C-row { background: rgba(120, 138, 107, .05); }
+
+/* 设计与开发说明 */
+.notes {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  padding: 32px;
+}
+.notes h2 {
+  font-family: "Songti SC", "STSong", "Noto Serif SC", Georgia, serif;
+  font-size: 22px; margin: 0 0 16px; letter-spacing: 1px;
+}
+.notes-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+}
+.note-block h3 {
+  font-size: 14px;
+  margin: 0 0 8px;
+  color: var(--ink-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 500;
+}
+.note-block p {
+  font-size: 13px;
+  color: var(--ink-2);
+  margin: 0 0 8px;
+  line-height: 1.7;
+}
+
+/* 响应式 */
+@media (max-width: 1080px) {
+  .schemes { grid-template-columns: 1fr; }
+  .notes-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 720px) {
+  .main { padding: 24px 16px 60px; }
+  .topbar { padding: 16px 20px; }
+  .hero h1 { font-size: 32px; letter-spacing: 1px; }
+  .principles, .notes { padding: 20px; }
+  .compare-head, .scheme-head, .scheme-body { padding: 20px; }
+}
+
+.reveal { opacity: 0; transform: translateY(8px); animation: reveal .5s var(--ease) forwards; }
+.reveal.d1 { animation-delay: .1s; }
+.reveal.d2 { animation-delay: .2s; }
+.reveal.d3 { animation-delay: .3s; }
+@keyframes reveal { to { opacity: 1; transform: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+.scheme:focus-within, .page-link:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+</style>
+</head>
+<body>
+<div class="bg" aria-hidden="true"></div>
+
+<header class="topbar">
+  <div>
+    <span class="brand">小红书内容工作台</span>
+    <span class="brand-tag">灵感收集与查阅 · 界面原型</span>
+  </div>
+  <div class="actions-bar">
+    <a href="#schemes" class="brand-tag" style="color:var(--ink-2);text-decoration:none">3 套方案</a>
+    <a href="#compare" class="brand-tag" style="color:var(--ink-2);text-decoration:none">对比</a>
+    <a href="#notes" class="brand-tag" style="color:var(--ink-2);text-decoration:none">说明</a>
+  </div>
+</header>
+
+<main class="main">
+
+  <!-- Hero -->
+  <section class="hero">
+    <h1>3 套方案 · 9 个页面 · 灵感收集与查阅</h1>
+    <p class="sub">结合产品设计规范文档与三张视觉参考（深色 CAPTURA / 灵感星云 / 热点工具），按 H5 与移动端适配原则设计。</p>
+    <div class="tags">
+      <span class="tag">响应式</span>
+      <span class="tag">可交互动效</span>
+      <span class="tag">移动端适配</span>
+      <span class="tag">pure HTML/CSS/JS</span>
+      <span class="tag">无依赖</span>
+      <span class="tag">设计系统变量</span>
+    </div>
+  </section>
+
+  <!-- 设计原则 -->
+  <section class="principles reveal">
+    <h3>设计原则（贯穿 3 套方案）</h3>
+    <ul>
+      <li>calm / airy / tactile / traceable / focused — 文档原关键词</li>
+      <li>两主按钮等权重，不暗示主次操作</li>
+      <li>类型色限制为 5 个低饱和族，并叠加图标/标签</li>
+      <li>日期滚轮可独立滚动，月日联动收敛，鼠标仅影响指针所在列</li>
+      <li>白板是「有限自由布局」，贴片可拖动但有秩序</li>
+      <li>移动端白板 → 纵向贴片流 + 缩略地图</li>
+      <li>多选第一张后底部操作栏滑入；选中态除描边还要复选标记</li>
+      <li>所有主操作可由键盘完成（含类型选择器、贴片选择）</li>
+      <li>遵循 prefers-reduced-motion，关闭非必要动效</li>
+    </ul>
+  </section>
+
+  <!-- 3 套方案 -->
+  <section id="schemes" class="schemes">
+
+    <!-- 方案 A -->
+    <article class="scheme A reveal d1">
+      <div class="scheme-head">
+        <span class="num">方案 A · Calm</span>
+        <h2>奶油白基础款</h2>
+        <p class="tagline">秩序感 · 阅读舒适 · 工具气质</p>
+      </div>
+
+      <div class="scheme-preview">
+        <span class="badge">▦ 浅色 · 纸片</span>
+        <iframe src="./scheme-A-calm/timeline.html" loading="lazy" title="方案 A 预览" scrolling="no"></iframe>
+      </div>
+
+      <div class="scheme-body">
+        <div class="scheme-features">
+          <span class="f">CSS 变量</span>
+          <span class="f">纸片卡</span>
+          <span class="f">浅色网格</span>
+          <span class="f">手工感阴影</span>
+        </div>
+
+        <div class="scheme-section">
+          <h4>设计取向</h4>
+          <p>完整遵循文档推荐的"奶油白 + 低对比网格 + 大留白"骨架，颜色全部使用低饱和 #7867a8 / #6f91aa / #b77b83 等。适合长时间停留，注意可扫读性，参照 Notion / Are.na 风格。</p>
+        </div>
+
+        <div class="scheme-section">
+          <h4>差异化亮点</h4>
+          <ul>
+            <li>等权重大按钮：纸片卡 + 同色高亮 icon</li>
+            <li>日期滚轮三列独立滚动 + 居中吸附</li>
+            <li>贴片 4–8px 旋转 + 拖动后保存坐标</li>
+            <li>底部多选操作栏 slide-up 进出</li>
+          </ul>
+        </div>
+
+        <div class="scheme-section">
+          <h4>适合场景</h4>
+          <p>文档型 / 工具型工具主基调；用户长时间在桌面写作整理；和现有 Notion / 飞书 / 石墨文档视觉体系相近。</p>
+        </div>
+
+        <div class="scheme-pages">
+          <a href="./scheme-A-calm/home.html" class="page-link" target="_blank">
+            <span class="name">🏠 工作台首页</span>
+            <span class="arrow">→</span>
+          </a>
+          <a href="./scheme-A-calm/capture.html" class="page-link" target="_blank">
+            <span class="name">✏️ 灵感记录页</span>
+            <span class="arrow">→</span>
+          </a>
+          <a href="./scheme-A-calm/timeline.html" class="page-link" target="_blank">
+            <span class="name">📅 灵感库 · 日白板</span>
+            <span class="arrow">→</span>
+          </a>
+        </div>
+      </div>
+    </article>
+
+    <!-- 方案 B -->
+    <article class="scheme B reveal d2">
+      <div class="scheme-head">
+        <span class="num">方案 B · Nebula</span>
+        <h2>深色星云沉浸款</h2>
+        <p class="tagline">未来感 · 情绪化 · 灵感可视</p>
+      </div>
+
+      <div class="scheme-preview">
+        <span class="badge">✦ 深色 · 玻璃</span>
+        <iframe src="./scheme-B-nebula/timeline.html" loading="lazy" title="方案 B 预览" scrolling="no" style="background:#0a0a1a"></iframe>
+      </div>
+
+      <div class="scheme-body">
+        <div class="scheme-features">
+          <span class="f" style="background:#1a172a;color:rgba(255,255,255,.7);border-color:rgba(255,255,255,.1)">星云光晕</span>
+          <span class="f" style="background:#1a172a;color:rgba(255,255,255,.7);border-color:rgba(255,255,255,.1)">玻璃拟态</span>
+          <span class="f" style="background:#1a172a;color:rgba(255,255,255,.7);border-color:rgba(255,255,255,.1)">品牌渐变</span>
+          <span class="f" style="background:#1a172a;color:rgba(255,255,255,.7);border-color:rgba(255,255,255,.1)">星点漂移</span>
+        </div>
+
+        <div class="scheme-section">
+          <h4>设计取向</h4>
+          <p>完整复刻图一（CAPTURA 暗色 App）与图二（灵感星云）的氛围。深色基底 + 多色径向光晕 + 玻璃质感卡片 + 渐变品牌标识。适合强调"灵感宇宙"这一隐喻，给创作空间未来感。</p>
+        </div>
+
+        <div class="scheme-section">
+          <h4>差异化亮点</h4>
+          <ul>
+            <li>三层视差星点漂移（20–40s 循环）</li>
+            <li>玻璃卡 + 鼠标位置径向高光</li>
+            <li>类型色使用霓虹色 + 发光 box-shadow</li>
+            <li>白板 + 星云双视图切换（SVG 连接线）</li>
+            <li>音频波形条带动画</li>
+          </ul>
+        </div>
+
+        <div class="scheme-section">
+          <h4>适合场景</h4>
+          <p>产品重情绪与品牌识别；以浏览灵感、激发为高频路径。适合夜间使用 / 沉浸式创作时段。注意：文档提示深色背景不适合长文编辑。</p>
+        </div>
+
+        <div class="scheme-pages">
+          <a href="./scheme-B-nebula/home.html" class="page-link" target="_blank">
+            <span class="name">🏠 工作台首页</span>
+            <span class="arrow">→</span>
+          </a>
+          <a href="./scheme-B-nebula/capture.html" class="page-link" target="_blank">
+            <span class="name">✏️ 灵感记录页</span>
+            <span class="arrow">→</span>
+          </a>
+          <a href="./scheme-B-nebula/timeline.html" class="page-link" target="_blank">
+            <span class="name">✦ 灵感库 · 星云白板</span>
+            <span class="arrow">→</span>
+          </a>
+        </div>
+      </div>
+    </article>
+
+    <!-- 方案 C -->
+    <article class="scheme C reveal d3">
+      <div class="scheme-head">
+        <span class="num">方案 C · Hybrid</span>
+        <h2>混合调性</h2>
+        <p class="tagline">理性工作 · 沉浸创作</p>
+      </div>
+
+      <div class="scheme-preview">
+        <span class="badge">◐ 浅 + 深 · 可切换</span>
+        <iframe src="./scheme-C-hybrid/timeline.html" loading="lazy" title="方案 C 预览" scrolling="no"></iframe>
+      </div>
+
+      <div class="scheme-body">
+        <div class="scheme-features">
+          <span class="f">分层调色</span>
+          <span class="f">无缝过渡</span>
+          <span class="f">明/暗双主题</span>
+          <span class="f">模式引导</span>
+        </div>
+
+        <div class="scheme-section">
+          <h4>设计取向</h4>
+          <p>首页与记录页走浅色系（不易疲劳），灵感库白板走深色（沉浸感）。两套色板通过 CSS 变量集中管理，切换有 0.5s 过渡。用户保留选择权（localStorage），且永远不强制。</p>
+        </div>
+
+        <div class="scheme-section">
+          <h4>差异化亮点</h4>
+          <ul>
+            <li>首页右侧"开始创作"按钮悬停时露出深色预览带，提示即将进入沉浸模式</li>
+            <li>顶部有明/暗 ☀ / ☾ 切换器，0.5s 平滑过渡</li>
+            <li>记录页编辑器模拟"纸页"（左侧 1px 红线）</li>
+            <li>类型色用环形细描边色块，不喧宾夺主</li>
+            <li>AI 建议用"批注"左边框条</li>
+          </ul>
+        </div>
+
+        <div class="scheme-section">
+          <h4>适合场景</h4>
+          <p>用户昼夜 / 不同时段使用偏好差异大；产品希望兼顾理性工具感与创作沉浸感；同时保留用户选择权。工程实现复杂度略高，但体验最佳。</p>
+        </div>
+
+        <div class="scheme-pages">
+          <a href="./scheme-C-hybrid/home.html" class="page-link" target="_blank">
+            <span class="name">🏠 工作台首页</span>
+            <span class="arrow">→</span>
+          </a>
+          <a href="./scheme-C-hybrid/capture.html" class="page-link" target="_blank">
+            <span class="name">✏️ 灵感记录页</span>
+            <span class="arrow">→</span>
+          </a>
+          <a href="./scheme-C-hybrid/timeline.html" class="page-link" target="_blank">
+            <span class="name">🌗 灵感库 · 沉浸白板</span>
+            <span class="arrow">→</span>
+          </a>
+        </div>
+      </div>
+    </article>
+
+  </section>
+
+  <!-- 对比表 -->
+  <section id="compare" class="compare reveal">
+    <div class="compare-head">
+      <h2>三套方案对比</h2>
+      <p>按产品功能与开发成本两个维度对比</p>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>维度</th>
+            <th>A · Calm 奶油白</th>
+            <th>B · Nebula 深色</th>
+            <th>C · Hybrid 混合</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>主色调</td>
+            <td class="scheme-A-row">#f7f3ea 奶油白</td>
+            <td class="scheme-B-row">#0a0a1a 深空</td>
+            <td class="scheme-C-row">首页浅 / 白板深</td>
+          </tr>
+          <tr>
+            <td>视觉气质</td>
+            <td class="scheme-A-row">理性 · 秩序 · 工具</td>
+            <td class="scheme-B-row">情绪 · 沉浸 · 自由</td>
+            <td class="scheme-C-row">理性工作 + 沉浸创作</td>
+          </tr>
+          <tr>
+            <td>长文写作友好度</td>
+            <td class="scheme-A-row">★★★★★</td>
+            <td class="scheme-B-row">★★★</td>
+            <td class="scheme-C-row">★★★★★ (记录页浅)</td>
+          </tr>
+          <tr>
+            <td>灵感浏览 / 沉浸</td>
+            <td class="scheme-A-row">★★★</td>
+            <td class="scheme-B-row">★★★★★</td>
+            <td class="scheme-C-row">★★★★★ (白板深)</td>
+          </tr>
+          <tr>
+            <td>类型色 / 图标</td>
+            <td class="scheme-A-row">5 色低饱和 + 文字标签</td>
+            <td class="scheme-B-row">5 色霓虹 + 发光描边</td>
+            <td class="scheme-C-row">5 色细描边色块</td>
+          </tr>
+          <tr>
+            <td>白板多选</td>
+            <td class="scheme-A-row">点选 + 底部 bar 滑入</td>
+            <td class="scheme-B-row">点选 + 霓虹高亮</td>
+            <td class="scheme-C-row">点选 + 渐变高亮</td>
+          </tr>
+          <tr>
+            <td>交互动效</td>
+            <td class="scheme-A-row">淡入 + 微旋转</td>
+            <td class="scheme-B-row">星点漂移 + 玻璃变形</td>
+            <td class="scheme-C-row">主题过渡 0.5s + 其它</td>
+          </tr>
+          <tr>
+            <td>移动端适配</td>
+            <td class="scheme-A-row">白板 → 贴片流</td>
+            <td class="scheme-B-row">白板 → 贴片流 + 双图切换</td>
+            <td class="scheme-C-row">白板 → 贴片流 + 明/暗模式</td>
+          </tr>
+          <tr>
+            <td>开发工作量</td>
+            <td class="scheme-A-row">基线（1×）</td>
+            <td class="scheme-B-row">约 1.2× (动效更多)</td>
+            <td class="scheme-C-row">约 1.3× (主题切换)</td>
+          </tr>
+          <tr>
+            <td>风险</td>
+            <td class="scheme-A-row">特点不明显</td>
+            <td class="scheme-B-row">深色长文疲劳</td>
+            <td class="scheme-C-row">双主题协调</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 设计与开发说明 -->
+  <section id="notes" class="notes">
+    <h2>设计与开发说明</h2>
+    <div class="notes-grid">
+      <div class="note-block">
+        <h3>视觉差异化要点</h3>
+        <p>· 遵循文档给出的色彩规范，所有色彩使用 CSS 变量，未来可一键切换主题<br>
+          · 仅在浮动面板使用玻璃拟态，正文保持高对比度（WCAG AA）<br>
+          · 类型色限制为 5 色低饱和族群（紫 / 蓝 / 玫瑰 / 苔藓 / 琥珀），最多加"问题"红<br>
+          · 贴片永远带类型文字标签，不单独靠颜色传达信息（色盲友好）</p>
+      </div>
+      <div class="note-block">
+        <h3>交互动效要点</h3>
+        <p>· 页面主转场 180–260ms，使用 cubic-bezier(.2,.7,.3,1)<br>
+          · 星点漂移 20–40s 循环，位移不超过 12px（方案 B）<br>
+          · 贴片进入：淡入 + 4–8px 位移，禁用持续旋转<br>
+          · 多选操作栏 transform 滑入 + 0.3s 过渡<br>
+          · 主题切换使用 0.5s 同步过渡（方案 C）</p>
+      </div>
+      <div class="note-block">
+        <h3>移动端适配策略</h3>
+        <p>· viewport meta + safe-area-inset-bottom（已启用）<br>
+          · < 720px：白板的绝对定位贴片改为静态贴片流 + 缩略地图<br>
+          · 操作栏全屏宽度 + 左对齐<br>
+          · 大按钮在 < 960px 时变单列堆叠<br>
+          · 拍照 / 录音按钮置灰，hover 提示"移动端后续支持"<br>
+          · 字体 16px 起步，避免 iOS 缩放</p>
+      </div>
+      <div class="note-block">
+        <h3>技术约束</h3>
+        <p>· 纯 HTML + 内联 CSS + 少量原生 JS，零依赖、可离线打开<br>
+          · system font stack，无网络字体请求<br>
+          · 所有图片使用 SVG data URI 占位（草图 / 音频 / OCR 三态）<br>
+          · 主题状态用 localStorage 持久化（方案 C）<br>
+          · 严格遵循 prefers-reduced-motion，所有动画可降级<br>
+          · 键盘可达：Tab / Space / Enter / Esc 全部可完成主操作</p>
+      </div>
+      <div class="note-block">
+        <h3>下一步可演进</h3>
+        <p>· 进入：基于选定方案输出高保真设计稿（Figma）<br>
+          · 进入：用 React / Vue 实现真实组件，CSS 变量复用<br>
+          · 进入：补全移动端 PWA + 拍照录像 API 接入<br>
+          · 进入：AI 分类、OCR、ASR 接入；类型色与 AI 标签融合<br>
+          · 进入：白板引入网格层、坐标存储、缩略地图视图</p>
+      </div>
+      <div class="note-block">
+        <h3>文件结构</h3>
+        <p style="font-family:monospace;font-size:12px;color:var(--ink-muted)">
+          Inspiration collection page prototype/<br>
+          ├── index.html ← 当前文件（总览）<br>
+          ├── scheme-A-calm/<br>
+          │   ├── home.html · capture.html · timeline.html<br>
+          ├── scheme-B-nebula/<br>
+          │   ├── home.html · capture.html · timeline.html<br>
+          └── scheme-C-hybrid/<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;├── home.html · capture.html · timeline.html
+        </p>
+      </div>
+    </div>
+  </section>
+
+</main>
+</body>
+</html>

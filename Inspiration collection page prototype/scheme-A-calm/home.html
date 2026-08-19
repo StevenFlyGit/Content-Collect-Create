@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<meta name="theme-color" content="#f7f3ea">
+<title>灵感工作台 · Calm Edition · A</title>
+<style>
+/* ============================================================
+   Calm Edition · 方案 A
+   设计关键词：calm / airy / tactile / traceable / focused
+   ============================================================ */
+:root {
+  --canvas: #f7f3ea;
+  --surface: #fffdf8;
+  --surface-glass: rgba(255, 253, 248, 0.78);
+  --ink: #25231f;
+  --ink-muted: #6f6a60;
+  --grid: rgba(74, 69, 61, 0.06);
+  --line: rgba(74, 69, 61, 0.14);
+  --accent-violet: #7867a8;
+  --accent-blue: #6f91aa;
+  --accent-rose: #b77b83;
+  --accent-moss: #788a6b;
+  --accent-amber: #c8956c;
+  --focus: #4f64c8;
+  --danger: #b84a4a;
+  --success: #4f7f62;
+
+  --radius-panel: 20px;
+  --radius-card: 14px;
+  --radius-pill: 999px;
+
+  --shadow-soft: 0 1px 2px rgba(37, 35, 31, .04), 0 6px 20px -8px rgba(37, 35, 31, .12);
+  --shadow-lift: 0 2px 4px rgba(37, 35, 31, .06), 0 16px 32px -12px rgba(37, 35, 31, .18);
+
+  --ease: cubic-bezier(.2,.7,.3,1);
+}
+
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--ink);
+  background: var(--canvas);
+  -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; cursor: pointer; }
+
+/* ---------- 背景层：奶油白 + 极轻星云 ---------- */
+.bg {
+  position: fixed; inset: 0; z-index: -1;
+  background:
+    radial-gradient(60% 50% at 20% 10%, rgba(120, 103, 168, .10), transparent 70%),
+    radial-gradient(50% 40% at 90% 30%, rgba(111, 145, 170, .10), transparent 70%),
+    radial-gradient(40% 50% at 70% 90%, rgba(183, 123, 131, .08), transparent 70%),
+    var(--canvas);
+}
+.bg::after {
+  content: "";
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
+  pointer-events: none;
+}
+
+/* ---------- 顶部导航 ---------- */
+.nav {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 40px;
+  max-width: 1280px; margin: 0 auto;
+}
+.brand {
+  display: flex; align-items: center; gap: 10px;
+  font-family: "Songti SC", "STSong", "Noto Serif SC", Georgia, serif;
+  font-size: 20px; letter-spacing: .5px;
+}
+.brand-mark {
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--accent-violet), var(--accent-blue));
+  position: relative;
+}
+.brand-mark::after {
+  content: ""; position: absolute; inset: 6px;
+  background: var(--canvas);
+  border-radius: 50%;
+}
+.nav-links { display: flex; gap: 8px; align-items: center; }
+.nav-link {
+  padding: 8px 14px; border-radius: var(--radius-pill);
+  color: var(--ink-muted); text-decoration: none;
+  font-size: 14px; transition: all .2s var(--ease);
+}
+.nav-link:hover { color: var(--ink); background: rgba(0,0,0,.04); }
+.nav-link.active { color: var(--ink); background: var(--surface); box-shadow: var(--shadow-soft); }
+.avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent-rose), var(--accent-amber));
+  display: grid; place-items: center; color: white; font-size: 14px;
+  margin-left: 8px;
+}
+
+/* ---------- 主体布局 ---------- */
+.main {
+  max-width: 1280px; margin: 0 auto;
+  padding: 32px 40px 80px;
+}
+.hero { margin-bottom: 48px; }
+.greeting {
+  font-size: 14px; color: var(--ink-muted);
+  margin: 0 0 8px; letter-spacing: 1px;
+}
+.headline {
+  font-family: "Songti SC", "STSong", "Noto Serif SC", Georgia, serif;
+  font-size: 44px; line-height: 1.25; font-weight: 500;
+  margin: 0 0 16px; letter-spacing: 1px;
+  color: var(--ink);
+}
+.headline em {
+  font-style: normal;
+  background: linear-gradient(135deg, var(--accent-violet), var(--accent-rose));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.subline {
+  font-size: 16px; color: var(--ink-muted); margin: 0;
+  display: flex; align-items: center; gap: 10px;
+}
+.dot-pulse {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 0 0 rgba(79, 127, 98, .5);
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(79, 127, 98, .5); }
+  70% { box-shadow: 0 0 0 8px rgba(79, 127, 98, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(79, 127, 98, 0); }
+}
+
+/* ---------- 双主按钮：等权重 ---------- */
+.actions {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+  margin-bottom: 64px;
+}
+.action-card {
+  position: relative;
+  padding: 32px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  text-align: left;
+  cursor: pointer;
+  transition: all .25s var(--ease);
+  overflow: hidden;
+  display: flex; flex-direction: column; gap: 12px;
+  min-height: 180px;
+  text-decoration: none; color: inherit;
+}
+.action-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lift);
+  border-color: transparent;
+}
+.action-card .ico {
+  width: 48px; height: 48px;
+  border-radius: 14px;
+  display: grid; place-items: center;
+  font-size: 22px;
+  background: var(--canvas);
+  transition: all .3s var(--ease);
+}
+.action-card.capture .ico { color: var(--accent-violet); }
+.action-card.create  .ico { color: var(--accent-rose); }
+.action-card:hover .ico {
+  transform: scale(1.08) rotate(-3deg);
+}
+.action-card .title {
+  font-size: 22px; font-weight: 600; margin: 0;
+  display: flex; align-items: center; gap: 10px;
+}
+.action-card .arrow {
+  margin-left: auto; opacity: 0; transform: translateX(-4px);
+  transition: all .25s var(--ease);
+  color: var(--ink-muted);
+}
+.action-card:hover .arrow { opacity: 1; transform: translateX(0); }
+.action-card .desc {
+  color: var(--ink-muted); font-size: 14px; margin: 0;
+}
+.action-card .tags {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  margin-top: auto; padding-top: 12px;
+}
+.tag {
+  font-size: 12px; padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--canvas); color: var(--ink-muted);
+  border: 1px solid var(--line);
+}
+
+/* ---------- 最近项 ---------- */
+.section-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  margin-bottom: 20px;
+}
+.section-title {
+  font-size: 18px; font-weight: 600; margin: 0;
+}
+.section-link {
+  font-size: 13px; color: var(--ink-muted);
+  text-decoration: none; padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  transition: all .2s var(--ease);
+}
+.section-link:hover { color: var(--ink); background: var(--surface); }
+
+.recent-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+.note {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  padding: 16px;
+  cursor: pointer;
+  transition: all .2s var(--ease);
+  display: flex; flex-direction: column; gap: 8px;
+  min-height: 120px;
+}
+.note:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-soft);
+}
+.note .meta {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px; color: var(--ink-muted);
+}
+.note .pill {
+  font-size: 11px; padding: 2px 8px; border-radius: var(--radius-pill);
+  background: var(--canvas);
+}
+.note .pill.idea { color: var(--accent-violet); }
+.note .pill.quote { color: var(--accent-blue); }
+.note .pill.moment { color: var(--accent-rose); }
+.note .pill.task { color: var(--accent-moss); }
+.note .excerpt {
+  font-size: 14px; color: var(--ink);
+  line-height: 1.5;
+  display: -webkit-box; -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical; overflow: hidden;
+  margin: 0;
+}
+.note .footer {
+  margin-top: auto;
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px; color: var(--ink-muted);
+}
+
+/* ---------- 入场动效 ---------- */
+.reveal { opacity: 0; transform: translateY(8px); animation: reveal .6s var(--ease) forwards; }
+.reveal.d1 { animation-delay: .05s; }
+.reveal.d2 { animation-delay: .15s; }
+.reveal.d3 { animation-delay: .25s; }
+.reveal.d4 { animation-delay: .35s; }
+.reveal.d5 { animation-delay: .45s; }
+@keyframes reveal { to { opacity: 1; transform: none; } }
+
+/* ---------- 响应式 ---------- */
+@media (max-width: 960px) {
+  .nav { padding: 16px 20px; }
+  .nav-links .nav-link { display: none; }
+  .main { padding: 24px 20px 60px; }
+  .headline { font-size: 32px; }
+  .actions { grid-template-columns: 1fr; }
+  .recent-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 560px) {
+  .headline { font-size: 26px; }
+  .action-card { padding: 24px; min-height: 140px; }
+  .recent-grid { grid-template-columns: 1fr; }
+}
+
+/* ---------- 可访问性 ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+.action-card:focus-visible,
+.nav-link:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+</style>
+</head>
+<body>
+<div class="bg" aria-hidden="true"></div>
+
+<!-- 导航 -->
+<nav class="nav">
+  <a href="./home.html" class="brand" style="text-decoration:none;color:inherit">
+    <span class="brand-mark" aria-hidden="true"></span>
+    <span>Lumen · 流明</span>
+  </a>
+  <div class="nav-links">
+    <a href="./home.html" class="nav-link active">工作台</a>
+    <a href="./capture.html" class="nav-link">记录</a>
+    <a href="./timeline.html" class="nav-link">灵感库</a>
+    <a href="#" class="nav-link">热点雷达</a>
+    <a href="#" class="nav-link">项目</a>
+    <span class="avatar" title="St">S</span>
+  </div>
+</nav>
+
+<main class="main">
+
+  <!-- Hero -->
+  <section class="hero reveal">
+    <p class="greeting">下午好，St</p>
+    <h1 class="headline">把散落的灵感，<br>慢慢变成<em>可以分享</em>的作品。</h1>
+    <p class="subline"><span class="dot-pulse" aria-hidden="true"></span>今日已收集 <strong style="color:var(--ink)">3</strong> 条灵感 · 连续第 12 天</p>
+  </section>
+
+  <!-- 双主按钮：等权重 -->
+  <section class="actions reveal d1">
+    <a href="./capture.html" class="action-card capture">
+      <div class="ico" aria-hidden="true">＋</div>
+      <h2 class="title">记录灵感 <span class="arrow">→</span></h2>
+      <p class="desc">随手写下一句话、拍一张图、录一段语音。<br>不必完整，先抓住那束光。</p>
+      <div class="tags">
+        <span class="tag">文字</span>
+        <span class="tag">图片</span>
+        <span class="tag">音频</span>
+        <span class="tag" style="opacity:.5">拍照 · 录音（移动端）</span>
+      </div>
+    </a>
+
+    <a href="./timeline.html" class="action-card create">
+      <div class="ico" aria-hidden="true">✦</div>
+      <h2 class="title">开始创作 <span class="arrow">→</span></h2>
+      <p class="desc">从某一天出发，挑出今天想到的，<br>开始一段结构化的写作。</p>
+      <div class="tags">
+        <span class="tag">按日期</span>
+        <span class="tag">白板贴片</span>
+        <span class="tag">多选进入</span>
+      </div>
+    </a>
+  </section>
+
+  <!-- 最近灵感 -->
+  <section class="reveal d2">
+    <header class="section-head">
+      <h3 class="section-title">最近的灵感</h3>
+      <a href="./timeline.html" class="section-link">查看全部 →</a>
+    </header>
+
+    <div class="recent-grid">
+      <article class="note reveal d2" tabindex="0">
+        <div class="meta"><span class="pill idea">想法</span><span>17:42 · 今天</span></div>
+        <p class="excerpt">"如果按日期回看灵感，会不会更像回到当天？"</p>
+        <div class="footer"><span>🖼 2 张图</span><span>·</span><span>已存草稿</span></div>
+      </article>
+
+      <article class="note reveal d3" tabindex="0">
+        <div class="meta"><span class="pill quote">引用</span><span>11:08 · 今天</span></div>
+        <p class="excerpt">"桂花落在车座上，气味比照片更早把秋天保存下来。"</p>
+        <div class="footer"><span>🎙 01:24</span><span>·</span><span>已转写</span></div>
+      </article>
+
+      <article class="note reveal d4" tabindex="0">
+        <div class="meta"><span class="pill moment">随感</span><span>21:30 · 昨天</span></div>
+        <p class="excerpt">城市记忆短文：便利店夜班、巷口手写招牌、雨后的石板路……</p>
+        <div class="footer"><span>用于 1 个项目</span></div>
+      </article>
+
+      <article class="note reveal d5" tabindex="0">
+        <div class="meta"><span class="pill task">待办</span><span>09:15 · 昨天</span></div>
+        <p class="excerpt">周五合作视频开场：用一个"还没说清的念头"做钩子。</p>
+        <div class="footer"><span>进行中 · 还有 3 天</span></div>
+      </article>
+    </div>
+  </section>
+
+</main>
+</body>
+</html>

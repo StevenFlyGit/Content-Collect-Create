@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<meta name="theme-color" content="#f7f3ea">
+<title>灵感库 · 日白板 · Calm Edition · A</title>
+<style>
+:root {
+  --canvas: #f7f3ea;
+  --surface: #fffdf8;
+  --surface-glass: rgba(255, 253, 248, 0.78);
+  --ink: #25231f;
+  --ink-muted: #6f6a60;
+  --grid: rgba(74, 69, 61, 0.06);
+  --line: rgba(74, 69, 61, 0.14);
+  --accent-violet: #7867a8;
+  --accent-blue: #6f91aa;
+  --accent-rose: #b77b83;
+  --accent-moss: #788a6b;
+  --accent-amber: #c8956c;
+  --focus: #4f64c8;
+  --success: #4f7f62;
+  --danger: #b84a4a;
+
+  --radius-panel: 20px;
+  --radius-card: 14px;
+  --radius-pill: 999px;
+  --shadow-soft: 0 1px 2px rgba(37, 35, 31, .04), 0 6px 20px -8px rgba(37, 35, 31, .12);
+  --shadow-lift: 0 2px 4px rgba(37, 35, 31, .06), 0 16px 32px -12px rgba(37, 35, 31, .18);
+  --ease: cubic-bezier(.2,.7,.3,1);
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+  font-size: 16px; line-height: 1.7;
+  color: var(--ink); background: var(--canvas);
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+}
+button { font: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+a { color: inherit; text-decoration: none; }
+
+.bg {
+  position: fixed; inset: 0; z-index: -1;
+  background:
+    radial-gradient(50% 40% at 30% 20%, rgba(120, 103, 168, .08), transparent 70%),
+    radial-gradient(40% 40% at 80% 80%, rgba(200, 149, 108, .06), transparent 70%),
+    var(--canvas);
+}
+
+/* ---------- 顶部导航 ---------- */
+.nav {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 24px;
+  position: sticky; top: 0; z-index: 20;
+  background: var(--surface-glass);
+  backdrop-filter: saturate(140%) blur(12px);
+  -webkit-backdrop-filter: saturate(140%) blur(12px);
+  border-bottom: 1px solid var(--line);
+}
+.back {
+  display: flex; align-items: center; gap: 6px;
+  color: var(--ink-muted);
+  font-size: 14px; padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  transition: all .2s var(--ease);
+}
+.back:hover { color: var(--ink); background: rgba(0,0,0,.04); }
+.nav-title {
+  font-family: "Songti SC", "STSong", "Noto Serif SC", Georgia, serif;
+  font-size: 18px; letter-spacing: 1px;
+}
+.nav-tools { display: flex; gap: 8px; align-items: center; }
+.nav-btn {
+  padding: 8px 14px; border-radius: var(--radius-pill);
+  color: var(--ink-muted); font-size: 13px;
+  transition: all .2s var(--ease);
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.nav-btn:hover { color: var(--ink); background: var(--surface); }
+
+/* ---------- 日期滚轮区 ---------- */
+.datesec {
+  max-width: 1280px; margin: 0 auto;
+  padding: 32px 24px 16px;
+  text-align: center;
+}
+.datesec h2 {
+  font-family: "Songti SC", "STSong", "Noto Serif SC", Georgia, serif;
+  font-size: 20px; font-weight: 500;
+  margin: 0 0 6px; letter-spacing: 1px;
+}
+.datesec .sub { font-size: 13px; color: var(--ink-muted); margin: 0 0 24px; }
+
+.wheels {
+  display: inline-flex; align-items: center; gap: 24px;
+  padding: 8px 24px 20px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  box-shadow: var(--shadow-soft);
+}
+.wheel {
+  width: 90px; height: 140px;
+  position: relative;
+  overflow: hidden;
+  cursor: ns-resize;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.wheel-track {
+  position: absolute; left: 0; right: 0; top: 50%;
+  transform: translateY(-50%);
+  display: flex; flex-direction: column;
+  align-items: center;
+  transition: transform .35s var(--ease);
+}
+.wheel-item {
+  height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  color: var(--ink-muted);
+  font-variant-numeric: tabular-nums;
+  font-family: "Songti SC", "STSong", "Noto Serif SC", Georgia, serif;
+  transition: all .25s var(--ease);
+}
+.wheel-item.active {
+  font-size: 32px;
+  font-weight: 500;
+  color: var(--ink);
+  font-family: "Songti SC", "STSong", "Noto Serif SC", Georgia, serif;
+}
+.wheel-item.dim { opacity: .35; }
+.wheel-divider {
+  width: 1px; height: 80px; background: var(--line);
+}
+.wheels::before, .wheels::after {
+  content: "";
+  position: absolute; left: 0; right: 0; height: 50px;
+  pointer-events: none;
+}
+.wheels::before { top: 0; background: linear-gradient(var(--surface), transparent); }
+.wheels::after { bottom: 0; background: linear-gradient(transparent, var(--surface)); }
+.wheel-ind {
+  position: absolute; left: 8px; right: 8px; top: 50%;
+  height: 36px; transform: translateY(-50%);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  pointer-events: none;
+}
+
+.date-summary {
+  margin-top: 16px;
+  font-size: 14px; color: var(--ink);
+  display: flex; justify-content: center; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.date-summary .q {
+  font-size: 12px; padding: 4px 10px; border-radius: var(--radius-pill);
+  background: var(--canvas); color: var(--ink-muted);
+  border: 1px solid var(--line);
+}
+.date-summary .q.primary { background: var(--ink); color: var(--canvas); border-color: var(--ink); }
+.date-summary .q:hover { background: var(--surface); color: var(--ink); }
+.date-summary .q.primary:hover { background: var(--ink); color: var(--canvas); }
+
+/* ---------- 白板区 ---------- */
+.board-wrap {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 16px 24px 200px;
+}
+.board-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px;
+}
+.board-title {
+  display: flex; align-items: center; gap: 12px;
+  font-size: 14px; color: var(--ink-muted);
+}
+.board-title strong { color: var(--ink); font-weight: 500; }
+.board-actions { display: flex; gap: 8px; }
+.icon-btn {
+  width: 36px; height: 36px;
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  display: grid; place-items: center;
+  color: var(--ink-muted);
+  transition: all .2s var(--ease);
+}
+.icon-btn:hover { color: var(--ink); box-shadow: var(--shadow-soft); }
+.icon-btn.active { background: var(--ink); color: var(--canvas); border-color: var(--ink); }
+
+.board {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  min-height: 560px;
+  padding: 24px;
+  overflow: hidden;
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 32px 32px;
+  background-position: -1px -1px;
+}
+
+/* 贴片 */
+.sticky {
+  position: absolute;
+  width: 220px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  padding: 14px 16px 12px;
+  cursor: grab;
+  transition: box-shadow .2s var(--ease), transform .2s var(--ease), border-color .2s var(--ease);
+  box-shadow: var(--shadow-soft);
+  /* 初始入场 */
+  opacity: 0; transform: translateY(8px);
+  animation: placeIn .55s var(--ease) forwards;
+}
+.sticky:active { cursor: grabbing; }
+.sticky:hover {
+  transform: translateY(-3px) rotate(0deg) !important;
+  box-shadow: var(--shadow-lift);
+  border-color: transparent;
+  z-index: 2;
+}
+.sticky.selected {
+  border-color: var(--ink);
+  box-shadow: 0 0 0 1px var(--ink), var(--shadow-lift);
+  z-index: 3;
+}
+.sticky .check {
+  position: absolute; top: 10px; right: 10px;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid var(--line);
+  background: var(--surface);
+  display: grid; place-items: center;
+  color: var(--canvas);
+  font-size: 12px;
+  transition: all .2s var(--ease);
+}
+.sticky.selected .check {
+  background: var(--ink);
+  border-color: var(--ink);
+}
+.sticky .check::after { content: "✓"; opacity: 0; transition: opacity .15s var(--ease); }
+.sticky.selected .check::after { opacity: 1; }
+
+.sticky .head {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11px; color: var(--ink-muted);
+  margin-bottom: 6px;
+}
+.sticky .pill {
+  font-size: 10px; padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--canvas);
+  color: var(--ink-muted);
+}
+.sticky[data-type="想法"] .pill { color: var(--accent-violet); }
+.sticky[data-type="引用"] .pill { color: var(--accent-blue); }
+.sticky[data-type="随感"] .pill { color: var(--accent-rose); }
+.sticky[data-type="待办"] .pill { color: var(--accent-moss); }
+.sticky .text {
+  font-size: 14px; line-height: 1.6;
+  color: var(--ink);
+  margin: 0 0 8px;
+  display: -webkit-box; -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical; overflow: hidden;
+}
+.sticky .text.quote {
+  font-family: "Songti SC", "STSong", "Noto Serif SC", Georgia, serif;
+  font-style: italic;
+  border-left: 2px solid var(--accent-blue);
+  padding-left: 8px;
+}
+.sticky .attach-row {
+  display: flex; gap: 4px;
+  margin-top: 8px;
+}
+.sticky .attach-row .chip {
+  font-size: 11px; padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--canvas);
+  color: var(--ink-muted);
+  display: inline-flex; align-items: center; gap: 3px;
+}
+.sticky .ai-tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 10px; padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(120, 103, 168, .12);
+  color: var(--accent-violet);
+  margin-top: 8px;
+}
+.sticky .used {
+  font-size: 10px; color: var(--ink-muted);
+  margin-top: 6px;
+  display: flex; align-items: center; gap: 4px;
+}
+.sticky .used::before {
+  content: ""; width: 4px; height: 4px; border-radius: 50%;
+  background: var(--success);
+}
+
+@keyframes placeIn {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 4 个示例贴片位置（12 列网格） */
+.sticky.s1 { top: 28px;  left: 32px;  transform: rotate(-1.5deg); animation-delay: .1s; }
+.sticky.s2 { top: 60px;  left: 290px; transform: rotate(0.8deg);  animation-delay: .18s; width: 240px; }
+.sticky.s3 { top: 220px; left: 80px;  transform: rotate(-0.5deg); animation-delay: .26s; }
+.sticky.s4 { top: 280px; left: 360px; transform: rotate(1.2deg);  animation-delay: .34s; width: 260px; }
+.sticky.s5 { top: 440px; left: 200px; transform: rotate(-1deg);   animation-delay: .42s; }
+.sticky.s6 { top: 100px; left: 580px; transform: rotate(0.4deg);  animation-delay: .5s;  width: 200px; }
+.sticky.s7 { top: 360px; left: 660px; transform: rotate(-0.6deg); animation-delay: .58s; }
+
+/* ---------- 底部多选操作栏 ---------- */
+.selection-bar {
+  position: fixed; left: 50%; bottom: 24px;
+  transform: translateX(-50%) translateY(20px);
+  display: flex; align-items: center; gap: 16px;
+  padding: 10px 12px 10px 18px;
+  background: var(--ink);
+  color: var(--canvas);
+  border-radius: var(--radius-pill);
+  box-shadow: 0 10px 40px -10px rgba(37,35,31,.4);
+  z-index: 30;
+  opacity: 0; pointer-events: none;
+  transition: all .3s var(--ease);
+}
+.selection-bar.show {
+  opacity: 1; pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
+}
+.selection-bar .count {
+  font-size: 14px;
+  display: flex; align-items: center; gap: 8px;
+}
+.selection-bar .count strong {
+  font-family: "Songti SC", "STSong", "Noto Serif SC", Georgia, serif;
+  font-size: 18px;
+}
+.selection-bar .divider { width: 1px; height: 20px; background: rgba(255,255,255,.2); }
+.selection-bar .btn {
+  padding: 8px 14px;
+  border-radius: var(--radius-pill);
+  font-size: 14px;
+  transition: background .2s var(--ease);
+}
+.selection-bar .btn.ghost:hover { background: rgba(255,255,255,.1); }
+.selection-bar .btn.primary {
+  background: var(--canvas);
+  color: var(--ink);
+  font-weight: 500;
+}
+.selection-bar .btn.primary:hover { background: white; }
+
+/* ---------- 移动端响应：白板→贴片流 ---------- */
+@media (max-width: 720px) {
+  .datesec { padding: 20px 16px 8px; }
+  .wheels { gap: 12px; padding: 8px 12px 16px; }
+  .wheel { width: 70px; height: 120px; }
+  .wheel-item { font-size: 16px; }
+  .wheel-item.active { font-size: 24px; }
+  .board-wrap { padding: 12px 16px 200px; }
+  .board {
+    padding: 16px;
+    min-height: auto;
+    background-image: none;
+  }
+  .sticky {
+    position: relative !important;
+    top: auto !important; left: auto !important;
+    transform: none !important;
+    width: 100% !important;
+    margin-bottom: 12px;
+    animation-delay: 0s !important;
+  }
+  .selection-bar { left: 16px; right: 16px; transform: none; bottom: 16px; padding: 8px 8px 8px 14px; }
+  .selection-bar.show { transform: none; }
+  .selection-bar .count { font-size: 13px; }
+  .nav-tools .nav-btn { display: none; }
+}
+
+/* 缩略地图（移动端占位） */
+.thumb-map {
+  display: none;
+}
+@media (max-width: 720px) {
+  .thumb-map {
+    display: block;
+    margin-top: 16px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-card);
+    height: 80px;
+    position: relative;
+    overflow: hidden;
+  }
+  .thumb-map::before {
+    content: "贴片缩略图 · 1/4";
+    position: absolute; top: 6px; left: 8px;
+    font-size: 11px; color: var(--ink-muted);
+  }
+}
+
+.reveal { opacity: 0; transform: translateY(6px); animation: reveal .5s var(--ease) forwards; }
+@keyframes reveal { to { opacity: 1; transform: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+.sticky:focus-visible,
+.icon-btn:focus-visible,
+.back:focus-visible,
+.nav-btn:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+</style>
+</head>
+<body>
+<div class="bg" aria-hidden="true"></div>
+
+<!-- 顶部 -->
+<nav class="nav">
+  <a href="./home.html" class="back" aria-label="返回工作台">← 返回</a>
+  <div class="nav-title">灵感库</div>
+  <div class="nav-tools">
+    <a href="./capture.html" class="nav-btn">＋ 记录</a>
+    <button class="nav-btn" type="button" aria-label="搜索">🔍 搜索</button>
+    <button class="nav-btn" type="button" aria-label="筛选">⊕ 筛选</button>
+  </div>
+</nav>
+
+<!-- 日期滚轮 -->
+<section class="datesec reveal">
+  <h2>选择灵感发生的日期</h2>
+  <p class="sub">滚轮可独立调节 · 桌面端用鼠标，触屏滑动</p>
+
+  <div class="wheels" id="wheels">
+    <div class="wheel" data-col="year" tabindex="0" aria-label="年份">
+      <div class="wheel-track" id="track-year">
+        <div class="wheel-item dim">2024</div>
+        <div class="wheel-item">2025</div>
+        <div class="wheel-item active">2026</div>
+        <div class="wheel-item">2027</div>
+        <div class="wheel-item dim">2028</div>
+      </div>
+      <div class="wheel-ind" aria-hidden="true"></div>
+    </div>
+    <div class="wheel-divider" aria-hidden="true"></div>
+    <div class="wheel" data-col="month" tabindex="0" aria-label="月份">
+      <div class="wheel-track" id="track-month">
+        <div class="wheel-item">06</div>
+        <div class="wheel-item">07</div>
+        <div class="wheel-item active">08</div>
+        <div class="wheel-item">09</div>
+        <div class="wheel-item">10</div>
+      </div>
+      <div class="wheel-ind" aria-hidden="true"></div>
+    </div>
+    <div class="wheel-divider" aria-hidden="true"></div>
+    <div class="wheel" data-col="day" tabindex="0" aria-label="日">
+      <div class="wheel-track" id="track-day">
+        <div class="wheel-item">15</div>
+        <div class="wheel-item">16</div>
+        <div class="wheel-item">17</div>
+        <div class="wheel-item active">18</div>
+        <div class="wheel-item">19</div>
+      </div>
+      <div class="wheel-ind" aria-hidden="true"></div>
+    </div>
+  </div>
+
+  <div class="date-summary">
+    <span><strong>2026 年 8 月 18 日</strong> · 当天有 <strong>4</strong> 条灵感</span>
+    <button class="q primary">今天</button>
+    <button class="q">最近有灵感（昨天 8/17 · 6 条）</button>
+  </div>
+</section>
+
+<!-- 白板 -->
+<section class="board-wrap">
+  <header class="board-head">
+    <div class="board-title">
+      <strong>8 月 18 日</strong> 白板 · 4 条灵感
+      <span style="opacity:.5">·</span>
+      <span>共 12 条</span>
+    </div>
+    <div class="board-actions">
+      <button class="icon-btn" type="button" title="缩略地图" aria-label="缩略地图">▦</button>
+      <button class="icon-btn" type="button" title="整理白板" aria-label="整理白板">⊜</button>
+      <button class="icon-btn" type="button" title="切换视图" aria-label="切换视图">⇄</button>
+    </div>
+  </header>
+
+  <div class="board" id="board">
+
+    <article class="sticky s1" data-type="想法" tabindex="0" aria-label="灵感 1：想法">
+      <div class="check" aria-hidden="true"></div>
+      <div class="head"><span class="pill">想法</span><span>09:42</span></div>
+      <p class="text">"如果按日期回看灵感，会不会更像回到当天？"</p>
+      <div class="attach-row">
+        <span class="chip">🖼 2</span>
+        <span class="chip">🎙 01:24</span>
+      </div>
+      <div class="ai-tag">✦ AI 标签：产品 / 内容</div>
+    </article>
+
+    <article class="sticky s2" data-type="引用" tabindex="0" aria-label="灵感 2：引用">
+      <div class="check" aria-hidden="true"></div>
+      <div class="head"><span class="pill">引用</span><span>11:08</span></div>
+      <p class="text quote">"桂花落在车座上，气味比照片更早把秋天保存下来。"</p>
+      <div class="used">用于 2 个项目</div>
+    </article>
+
+    <article class="sticky s3" data-type="随感" tabindex="0" aria-label="灵感 3：随感">
+      <div class="check" aria-hidden="true"></div>
+      <div class="head"><span class="pill">随感</span><span>15:21</span></div>
+      <p class="text">便利店夜班的灯是「不要过来」还是「随时可以」？两个方向其实只差一块招牌。</p>
+      <div class="attach-row">
+        <span class="chip">🖼 1</span>
+      </div>
+    </article>
+
+    <article class="sticky s4" data-type="待办" tabindex="0" aria-label="灵感 4：待办">
+      <div class="check" aria-hidden="true"></div>
+      <div class="head"><span class="pill">待办</span><span>17:30</span></div>
+      <p class="text">周五合作视频开场：用一个"还没说清的念头"做钩子，前 8 秒留住观众。</p>
+      <div class="attach-row">
+        <span class="chip">🎙 02:11</span>
+        <span class="chip">🔗 1</span>
+      </div>
+    </article>
+
+    <article class="sticky s5" data-type="想法" tabindex="0" aria-label="灵感 5：想法">
+      <div class="check" aria-hidden="true"></div>
+      <div class="head"><span class="pill">想法</span><span>19:50</span></div>
+      <p class="text">把灵感按"光"分类：晨光（清醒的）、午后光（懒散的）、路灯（独处的）。</p>
+    </article>
+
+    <article class="sticky s6" data-type="引用" tabindex="0" aria-label="灵感 6：引用">
+      <div class="check" aria-hidden="true"></div>
+      <div class="head"><span class="pill">引用</span><span>21:14</span></div>
+      <p class="text quote">"手写招牌的失误比完美字体更记得住。"</p>
+    </article>
+
+    <article class="sticky s7" data-type="随感" tabindex="0" aria-label="灵感 7：随感">
+      <div class="check" aria-hidden="true"></div>
+      <div class="head"><span class="pill">随感</span><span>22:03</span></div>
+      <p class="text">等红灯的人不焦虑，因为知道下一秒会变绿。写作也需要这种"等红灯"的段落。</p>
+      <div class="used">用于 1 个项目</div>
+    </article>
+
+  </div>
+
+  <div class="thumb-map" aria-hidden="true"></div>
+</section>
+
+<!-- 多选操作栏 -->
+<div class="selection-bar" id="selectionBar" role="region" aria-label="已选灵感操作栏">
+  <div class="count">已选 <strong id="selCount">0</strong> 条灵感</div>
+  <div class="divider"></div>
+  <button class="btn ghost" id="clearBtn">清空</button>
+  <button class="btn primary" id="createBtn">用这些灵感创作 →</button>
+</div>
+
+<script>
+// ---------- 日期滚轮 ----------
+class WheelColumn {
+  constructor(el) {
+    this.el = el;
+    this.track = el.querySelector('.wheel-track');
+    this.items = Array.from(this.track.querySelectorAll('.wheel-item'));
+    this.idx = this.items.findIndex(i => i.classList.contains('active'));
+    this.bind();
+  }
+  bind() {
+    let startY = 0, startIdx = 0, dragging = false;
+    const move = (e) => {
+      if (!dragging) return;
+      const y = (e.touches ? e.touches[0].clientY : e.clientY);
+      const dy = y - startY;
+      const delta = Math.round(-dy / 36);
+      const newIdx = Math.max(0, Math.min(this.items.length - 1, startIdx + delta));
+      if (newIdx !== this.idx) this.set(newIdx);
+    };
+    const end = () => { dragging = false; };
+    this.el.addEventListener('mousedown', (e) => {
+      dragging = true; startY = e.clientY; startIdx = this.idx;
+      e.preventDefault();
+    });
+    this.el.addEventListener('touchstart', (e) => {
+      dragging = true; startY = e.touches[0].clientY; startIdx = this.idx;
+    }, { passive: true });
+    window.addEventListener('mousemove', move);
+    window.addEventListener('touchmove', move, { passive: true });
+    window.addEventListener('mouseup', end);
+    window.addEventListener('touchend', end);
+    this.el.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      this.set(this.idx + (e.deltaY > 0 ? 1 : -1));
+    }, { passive: false });
+  }
+  set(i) {
+    i = Math.max(0, Math.min(this.items.length - 1, i));
+    if (i === this.idx) return;
+    this.items[this.idx].classList.remove('active');
+    this.items[i].classList.add('active');
+    this.idx = i;
+    // 居中
+    this.track.style.transform = `translateY(calc(-50% + ${-i * 36}px))`;
+  }
+}
+['year','month','day'].forEach(c => new WheelColumn(document.querySelector(`[data-col="${c}"]`)));
+
+// ---------- 多选 ----------
+const stickies = document.querySelectorAll('.sticky');
+const bar = document.getElementById('selectionBar');
+const count = document.getElementById('selCount');
+let selected = new Set();
+function updateBar() {
+  count.textContent = selected.size;
+  if (selected.size > 0) bar.classList.add('show');
+  else bar.classList.remove('show');
+}
+stickies.forEach(s => {
+  s.addEventListener('click', (e) => {
+    if (e.target.classList.contains('x')) return;
+    const id = Array.from(stickies).indexOf(s);
+    if (selected.has(id)) {
+      selected.delete(id);
+      s.classList.remove('selected');
+    } else {
+      selected.add(id);
+      s.classList.add('selected');
+    }
+    updateBar();
+  });
+});
+document.getElementById('clearBtn').addEventListener('click', () => {
+  selected.clear();
+  stickies.forEach(s => s.classList.remove('selected'));
+  updateBar();
+});
+document.getElementById('createBtn').addEventListener('click', () => {
+  // 反馈
+  count.textContent = '✓';
+  setTimeout(() => updateBar(), 1200);
+});
+
+// 键盘 Esc 清空
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    selected.clear();
+    stickies.forEach(s => s.classList.remove('selected'));
+    updateBar();
+  }
+});
+</script>
+</body>
+</html>

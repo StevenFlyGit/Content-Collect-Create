@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="theme-color" content="#1A1814" />
+<title>灵感收集与查阅 · 界面原型 v2 · 三方案对比</title>
+<style>
+  :root {
+    --canvas: #FAF7F0;
+    --canvas-2: #F2EDE0;
+    --paper: #FFFCF6;
+    --paper-2: #F3EBD8;
+    --ink: #1F1B17;
+    --ink-2: #4F4A41;
+    --ink-3: #807868;
+    --line: rgba(31, 27, 23, .08);
+    --accent: #B95727;
+    --accent-2: #2D3E5F;
+
+    --radius: 18px;
+    --pill: 999px;
+    --shadow: 0 8px 24px -12px rgba(31, 27, 23, .12);
+
+    --font-serif: "Noto Serif SC", "Songti SC", "STSong", Georgia, serif;
+    --font-sans: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+    --font-mono: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+
+    --container: 1320px;
+    --pad-x: 40px;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--ink);
+    background: var(--canvas);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  a { color: inherit; text-decoration: none; }
+  button { font: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+
+  /* Topbar */
+  .topbar {
+    position: sticky; top: 0; z-index: 50;
+    backdrop-filter: saturate(140%) blur(12px);
+    background: rgba(250, 247, 240, .85);
+    border-bottom: 1px solid var(--line);
+  }
+  .topbar-inner {
+    max-width: var(--container);
+    margin: 0 auto;
+    padding: 16px var(--pad-x);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .brand {
+    font-family: var(--font-serif); font-size: 18px;
+    display: flex; align-items: baseline; gap: 10px;
+  }
+  .brand .t {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 28px; height: 28px;
+    background: var(--ink); color: var(--canvas);
+    font-family: var(--font-serif); font-weight: 600; font-size: 14px;
+    border-radius: 6px;
+    transform: translateY(4px);
+  }
+  .brand .crumb {
+    font-family: var(--font-sans);
+    font-size: 12px;
+    color: var(--ink-3);
+    letter-spacing: 1px;
+  }
+  .topbar-actions { display: flex; align-items: center; gap: 10px; }
+  .topbar-actions a {
+    padding: 8px 16px;
+    border-radius: var(--pill);
+    border: 1px solid var(--line);
+    font-size: 13px;
+    transition: all .2s ease;
+  }
+  .topbar-actions a:hover { background: var(--paper); transform: translateY(-1px); }
+
+  /* Hero */
+  .hero {
+    max-width: var(--container);
+    margin: 0 auto;
+    padding: 80px var(--pad-x) 24px;
+    text-align: center;
+  }
+  .hero .eyebrow {
+    display: inline-block;
+    padding: 6px 14px;
+    border: 1px solid var(--line);
+    border-radius: var(--pill);
+    background: var(--paper);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    color: var(--ink-3);
+    margin-bottom: 24px;
+  }
+  .hero h1 {
+    font-family: var(--font-serif);
+    font-size: clamp(40px, 5vw, 64px);
+    line-height: 1.1;
+    font-weight: 500;
+    margin: 0 0 18px;
+    letter-spacing: -.5px;
+  }
+  .hero h1 em {
+    font-style: italic;
+    color: var(--accent);
+    font-weight: 400;
+  }
+  .hero .lede {
+    font-size: 17px;
+    color: var(--ink-2);
+    max-width: 720px;
+    margin: 0 auto 32px;
+    line-height: 1.7;
+  }
+  .hero-stats {
+    display: inline-flex;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--pill);
+    padding: 6px;
+    gap: 4px;
+  }
+  .hero-stats a {
+    padding: 8px 18px;
+    border-radius: var(--pill);
+    font-size: 13px;
+    color: var(--ink-2);
+    text-decoration: none;
+  }
+  .hero-stats a:hover { background: var(--canvas); color: var(--ink); }
+
+  /* Cover grid */
+  .covers {
+    max-width: var(--container);
+    margin: 56px auto 0;
+    padding: 0 var(--pad-x);
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+  .cover {
+    position: relative;
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    aspect-ratio: 16 / 10;
+    background: var(--paper);
+    text-decoration: none;
+    color: inherit;
+    transition: all .35s ease;
+  }
+  .cover:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 24px 60px -20px rgba(31, 27, 23, .25);
+  }
+  .cover .label {
+    position: absolute;
+    top: 16px; left: 16px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    padding: 4px 10px;
+    border-radius: var(--pill);
+    background: rgba(0,0,0,.5);
+    color: #fff;
+    z-index: 3;
+  }
+  .cover.A .label { background: var(--ink); color: var(--canvas); }
+  .cover.B .label { background: #C792EA; color: #0E0B1F; }
+  .cover.C .label { background: var(--accent); color: #1F2421; }
+  .cover .number {
+    position: absolute;
+    bottom: 16px; right: 20px;
+    font-family: var(--font-serif);
+    font-size: 64px;
+    font-weight: 500;
+    line-height: .9;
+    color: rgba(0,0,0,.04);
+    z-index: 1;
+  }
+  .cover .info {
+    position: absolute;
+    bottom: 16px; left: 16px; right: 16px;
+    z-index: 3;
+  }
+  .cover .info h3 {
+    font-family: var(--font-serif);
+    font-size: 22px;
+    font-weight: 500;
+    margin: 0 0 4px;
+    color: #fff;
+    text-shadow: 0 2px 8px rgba(0,0,0,.15);
+  }
+  .cover .info .meta {
+    font-family: var(--font-sans);
+    font-size: 12px;
+    color: rgba(255,255,255,.85);
+  }
+
+  /* Mini-preview canvas inside covers */
+  .preview {
+    position: absolute; inset: 0;
+  }
+  .preview.A {
+    background: linear-gradient(135deg, #FAF6EE 0%, #F3EBD8 100%);
+    padding: 24px;
+  }
+  .preview.A .ph-eyebrow {
+    font-family: var(--font-serif); font-size: 11px;
+    color: #4F4A41; letter-spacing: 1px;
+    margin-bottom: 12px;
+  }
+  .preview.A .ph-title {
+    font-family: var(--font-serif); font-size: 32px;
+    color: #2A2825; line-height: 1.2;
+    margin-bottom: 20px;
+  }
+  .preview.A .ph-cta {
+    display: grid; grid-template-columns: 1.4fr 1fr; gap: 8px;
+  }
+  .preview.A .ph-card {
+    height: 60px; border-radius: 14px;
+    background: #2D3E5F; color: #FFFCF6;
+    padding: 10px 14px;
+    font-family: var(--font-serif); font-size: 14px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .preview.A .ph-card.warm { background: #FFFCF6; color: #2A2825; border: 1px solid #2A282514; }
+  .preview.A .ph-notes {
+    margin-top: 18px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  }
+  .preview.A .ph-note {
+    height: 50px; border-radius: 8px;
+    font-family: var(--font-serif); font-size: 11px;
+    padding: 10px 12px;
+    color: #2A2825;
+  }
+  .preview.A .ph-note.y { background: #FCE9A6; transform: rotate(-2deg); }
+  .preview.A .ph-note.r { background: #F5D0CC; transform: rotate(1deg); }
+  .preview.A .ph-note.m { background: #C5DCC8; transform: rotate(-1deg); }
+  .preview.A .ph-note.b { background: #C3D6E5; transform: rotate(2deg); }
+
+  .preview.B {
+    background: linear-gradient(135deg, #0E0B1F 0%, #1F1230 100%);
+    padding: 24px;
+  }
+  .preview.B .ph-eyebrow {
+    font-size: 11px; color: rgba(242, 234, 246, .6);
+    letter-spacing: 1px; margin-bottom: 12px;
+  }
+  .preview.B .ph-title {
+    font-size: 24px; font-weight: 700;
+    color: #F2EAF6; line-height: 1.1;
+    margin-bottom: 12px;
+  }
+  .preview.B .ph-title em {
+    font-style: normal;
+    background: linear-gradient(90deg, #C792EA, #82E1CB);
+    -webkit-background-clip: text; background-clip: text;
+    color: transparent;
+  }
+  .preview.B .ph-cta {
+    display: grid; grid-template-columns: 1.4fr 1fr; gap: 8px;
+  }
+  .preview.B .ph-card {
+    height: 60px; border-radius: 14px;
+    background: linear-gradient(135deg, rgba(199,146,234,.25), rgba(130,225,203,.18));
+    border: 1px solid rgba(199,146,234,.4);
+    backdrop-filter: blur(8px);
+    padding: 10px 14px;
+    font-size: 13px; color: #fff;
+    display: flex; align-items: center;
+    position: relative;
+  }
+  .preview.B .ph-card.warm {
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.1);
+  }
+  .preview.B .ph-card .dot {
+    width: 16px; height: 16px; border-radius: 50%;
+    background: linear-gradient(135deg, #C792EA, #82E1CB);
+    margin-right: 8px; box-shadow: 0 0 12px #C792EA;
+  }
+  .preview.B .ph-notes {
+    margin-top: 18px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  }
+  .preview.B .ph-note {
+    height: 50px; border-radius: 14px;
+    font-size: 10px;
+    padding: 10px 12px;
+    background: rgba(20,16,42,.6);
+    border: 1px solid rgba(255,255,255,.08);
+    color: #F2EAF6;
+    backdrop-filter: blur(8px);
+  }
+  .preview.B .ph-glow {
+    position: absolute; right: -20px; top: -20px;
+    width: 140px; height: 140px;
+    background: radial-gradient(circle, rgba(199,146,234,.5), transparent 60%);
+    border-radius: 50%; filter: blur(20px);
+  }
+
+  .preview.C {
+    background: linear-gradient(180deg, #F1EEE8 0%, #E6E1D6 100%);
+    padding: 24px;
+  }
+  .preview.C .ph-eyebrow {
+    font-family: var(--font-mono); font-size: 10px;
+    color: #8A8B82; letter-spacing: 2px;
+    margin-bottom: 12px;
+  }
+  .preview.C .ph-title {
+    font-family: "Georgia", serif; font-size: 28px;
+    color: #1F2421; line-height: 1.15;
+    margin-bottom: 16px;
+    font-style: italic;
+  }
+  .preview.C .ph-cta {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  }
+  .preview.C .ph-card {
+    height: 56px; border-radius: 10px;
+    background: #1F2421; color: #F1EEE8;
+    padding: 10px 14px;
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 13px;
+  }
+  .preview.C .ph-card.warm {
+    background: #FBF9F4; color: #1F2421;
+    border: 1px solid #1F242114;
+  }
+  .preview.C .ph-cta .ph-card > span {
+    font-family: var(--font-mono); font-size: 10px; opacity: .7;
+  }
+  .preview.C .ph-notes {
+    margin-top: 18px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  }
+  .preview.C .ph-note {
+    height: 52px; border-radius: 8px;
+    background: #FBF9F4;
+    border: 1px solid #1F24210a;
+    font-family: "Georgia", serif;
+    font-size: 11px;
+    padding: 10px 12px;
+    color: #1F2421;
+  }
+
+  /* Compare table */
+  .compare {
+    max-width: var(--container);
+    margin: 80px auto;
+    padding: 0 var(--pad-x);
+  }
+  .compare h2 {
+    font-family: var(--font-serif); font-size: 36px;
+    margin: 0 0 32px; font-weight: 500;
+    text-align: center; letter-spacing: -.3px;
+  }
+  .compare-grid {
+    display: grid;
+    grid-template-columns: 220px repeat(3, 1fr);
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .compare-grid > div {
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--line);
+    font-size: 14px;
+  }
+  .compare-grid > div:last-child,
+  .compare-grid > div:nth-last-child(-n+4) {
+    border-bottom: none;
+  }
+  .compare-grid .row-head {
+    background: var(--canvas-2);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: var(--ink-3);
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .compare-grid .col-head {
+    background: var(--canvas-2);
+    font-family: var(--font-serif);
+    font-size: 16px;
+    font-weight: 500;
+    text-align: center;
+  }
+  .compare-grid .cell {
+    line-height: 1.5;
+  }
+  .compare-grid .cell-yes {
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  /* Pages matrix */
+  .pages-matrix {
+    max-width: var(--container);
+    margin: 80px auto 0;
+    padding: 0 var(--pad-x);
+  }
+  .pages-matrix h2 {
+    font-family: var(--font-serif); font-size: 36px;
+    margin: 0 0 32px; font-weight: 500;
+    text-align: center; letter-spacing: -.3px;
+  }
+  .matrix {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+  .scheme {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: all .25s ease;
+  }
+  .scheme:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
+  .scheme-header {
+    padding: 24px;
+    border-bottom: 1px solid var(--line);
+  }
+  .scheme-header .name {
+    font-family: var(--font-serif); font-size: 22px;
+    margin: 0 0 6px;
+  }
+  .scheme-header .desc {
+    color: var(--ink-2);
+    font-size: 14px;
+    margin: 0 0 12px;
+  }
+  .scheme-header .pages {
+    display: flex; gap: 8px;
+  }
+  .scheme-header .pages a {
+    flex: 1;
+    text-align: center;
+    padding: 9px 8px;
+    background: var(--canvas);
+    border-radius: 8px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: var(--ink-2);
+    transition: all .2s ease;
+    text-decoration: none;
+  }
+  .scheme-header .pages a:hover { background: var(--ink); color: var(--canvas); }
+  .scheme-body {
+    padding: 22px 24px 24px;
+  }
+  .scheme-body h4 {
+    margin: 0 0 12px;
+    font-size: 12px;
+    color: var(--ink-3);
+    font-family: var(--font-mono);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  .pill-row {
+    display: flex; gap: 6px; flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .pill-row span {
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: var(--pill);
+    background: var(--canvas);
+    color: var(--ink-2);
+    border: 1px solid var(--line);
+  }
+
+  /* Recommendations */
+  .rec {
+    max-width: 920px;
+    margin: 80px auto 60px;
+    padding: 32px 36px;
+    background: var(--ink);
+    color: var(--canvas);
+    border-radius: 24px;
+  }
+  .rec h3 {
+    font-family: var(--font-serif);
+    font-size: 24px;
+    margin: 0 0 12px;
+    font-weight: 500;
+  }
+  .rec h3 em {
+    font-style: italic;
+    color: var(--accent);
+    font-weight: 400;
+  }
+  .rec p {
+    margin: 0 0 12px;
+    color: rgba(250, 247, 240, .8);
+    line-height: 1.6;
+  }
+  .rec ul { padding-left: 18px; }
+  .rec li { color: rgba(250, 247, 240, .8); margin-bottom: 4px; }
+
+  .footer {
+    text-align: center;
+    padding: 32px 24px 60px;
+    color: var(--ink-3);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 2px;
+  }
+
+  /* Mobile */
+  @media (max-width: 960px) {
+    :root { --pad-x: 20px; }
+    .covers { grid-template-columns: 1fr; }
+    .compare-grid {
+      grid-template-columns: 1fr;
+      font-size: 13px;
+    }
+    .compare-grid .col-head, .compare-grid .row-head { grid-column: 1; }
+    .matrix { grid-template-columns: 1fr; }
+    .hero { padding: 48px var(--pad-x) 24px; }
+    .hero h1 { font-size: 36px; }
+  }
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="#">
+        <span class="t">光</span>
+        <span>灵感收集 · v2</span>
+        <span class="crumb">三方案对比</span>
+      </a>
+      <div class="topbar-actions">
+        <a href="README.md">📋 README</a>
+        <a href="#compare">⚖ 对比</a>
+      </div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <span class="eyebrow">PROTOTYPE · v2 · AUG 2026</span>
+    <h1>灵感收集与查阅，<em>三套可对比</em>的方向。</h1>
+    <p class="lede">基于图一（图一纸感）与图二（图二极光）的视觉感知，结合 README 决策摘要的产品原则，三种风格平行落地——每套都含完整的<strong>主页 · 记录页 · 日期白板</strong>三页，覆盖桌面端与移动端响应式。</p>
+    <div class="hero-stats">
+      <a href="#scheme-A">A · 纸感</a>
+      <a href="#scheme-B">B · 极光</a>
+      <a href="#scheme-C">C · 和声</a>
+      <a href="#compare">⚖ 对比</a>
+    </div>
+  </section>
+
+  <section class="covers">
+    <a class="cover A" id="scheme-A" href="scheme-A-papercraft/home.html">
+      <div class="label">A · PAPERCRAFT</div>
+      <div class="number">01</div>
+      <div class="preview A">
+        <div class="ph-eyebrow">opening flow</div>
+        <div class="ph-title">先别急着<br/>写稿，<span style="color:var(--accent-warm);">让闪念</span><br/>先有位置。</div>
+        <div class="ph-cta">
+          <div class="ph-card">记录灵感<span>→</span></div>
+          <div class="ph-card warm">开始创作<span>→</span></div>
+        </div>
+        <div class="ph-notes">
+          <div class="ph-note y">"工具真的能省时间吗？"</div>
+          <div class="ph-note r">开头结构截图</div>
+          <div class="ph-note m">把灵感变成选题</div>
+          <div class="ph-note b">小红书算法之问</div>
+        </div>
+      </div>
+      <div class="info">
+        <h3>方案 A · 纸感</h3>
+        <div class="meta">米白 · 衬线 · 暖橙强调 · 便签纸</div>
+      </div>
+    </a>
+
+    <a class="cover B" id="scheme-B" href="scheme-B-aurora/home.html">
+      <div class="label">B · AURORA</div>
+      <div class="number">02</div>
+      <div class="preview B">
+        <div class="ph-glow"></div>
+        <div class="ph-eyebrow">OPENING FLOW</div>
+        <div class="ph-title">抓住闪念<br/>让灵感<em>在夜里发光</em>。</div>
+        <div class="ph-cta">
+          <div class="ph-card"><span class="dot"></span>记录灵感</div>
+          <div class="ph-card warm">开始创作</div>
+        </div>
+        <div class="ph-notes">
+          <div class="ph-note">"工具真的能省时间吗？"</div>
+          <div class="ph-note">开头结构截图</div>
+          <div class="ph-note">把灵感变成选题</div>
+          <div class="ph-note">小红书算法之问</div>
+        </div>
+      </div>
+      <div class="info">
+        <h3 style="text-shadow: 0 2px 16px rgba(199,146,234,.5);">方案 B · 极光</h3>
+        <div class="meta">深紫 · 玻璃态 · 紫青粉辉光 · 星河</div>
+      </div>
+    </a>
+
+    <a class="cover C" id="scheme-C" href="scheme-C-harmonic/home.html">
+      <div class="label">C · HARMONIC</div>
+      <div class="number">03</div>
+      <div class="preview C">
+        <div class="ph-eyebrow">OPENING FLOW</div>
+        <div class="ph-title">你的工作台，<br/>可以只是<em style="color:var(--accent-clay);">一张桌子。</em></div>
+        <div class="ph-cta">
+          <div class="ph-card">记录灵感<span>→</span></div>
+          <div class="ph-card warm">开始创作<span>→</span></div>
+        </div>
+        <div class="ph-notes">
+          <div class="ph-note">"工具真的能省时间吗？"</div>
+          <div class="ph-note">开头结构截图</div>
+          <div class="ph-note">把灵感变成选题</div>
+          <div class="ph-note">小红书算法之问</div>
+        </div>
+      </div>
+      <div class="info">
+        <h3 style="color:var(--ink); text-shadow:none;">方案 C · 和声</h3>
+        <div class="meta" style="color:var(--ink-2);">暖灰 · 编辑感 · 衬线 + 等宽 · 杂志气质</div>
+      </div>
+    </a>
+  </section>
+
+  <section class="compare" id="compare">
+    <h2>差异对比</h2>
+    <div class="compare-grid">
+      <div class="row-head col-head" style="background:transparent;"></div>
+      <div class="col-head">A · 纸感</div>
+      <div class="col-head">B · 极光</div>
+      <div class="col-head">C · 和声</div>
+
+      <div class="row-head">调性</div>
+      <div class="cell">暖白 + 便签纸 + 复古手写</div>
+      <div class="cell">深紫黑 + 玻璃态 + 紫青粉辉光</div>
+      <div class="cell">中性暖灰 + 编辑感 + 杂志气质</div>
+
+      <div class="row-head">字体</div>
+      <div class="cell">衬线 标题<br/>系统 正文</div>
+      <div class="cell">Inter / 系统<br/>等粗 数字</div>
+      <div class="cell">衬线 标题 + 系统 + 等宽<br/>（多字体融合）</div>
+
+      <div class="row-head">强调色</div>
+      <div class="cell">#B95727 暖橙</div>
+      <div class="cell">#C792EA → #82E1CB<br/>紫 → 青渐变</div>
+      <div class="cell">#B68764 黏土棕<br/>+ #586E51 苔藓</div>
+
+      <div class="row-head">卡片样式</div>
+      <div class="cell">多色便签 · 微旋转 · 纸质阴影</div>
+      <div class="cell">玻璃态浮岛 · 顶部光条</div>
+      <div class="cell">白卡 + 虚线分界 · 编辑款</div>
+
+      <div class="row-head">桌面 fixed</div>
+      <div class="cell">右下浮岛（暖橙 FAB）</div>
+      <div class="cell">右下玻璃浮岛 + 紫渐变 FAB</div>
+      <div class="cell">右下小圈组</div>
+
+      <div class="row-head">移动端</div>
+      <div class="cell">底部胶囊条 + 米白纸感</div>
+      <div class="cell">底部胶囊条 + 紫渐变主按钮</div>
+      <div class="cell">底部胶囊条 + 深色墨 CTA</div>
+
+      <div class="row-head">日期滚轮</div>
+      <div class="cell">纸张底 · 衬线数字 · 米色虚线</div>
+      <div class="cell">玻璃底 · Inter · 紫青焦点</div>
+      <div class="cell">米色底 · 衬线 + 等宽月份简写</div>
+
+      <div class="row-head">动效偏好</div>
+      <div class="cell">轻拂 · 渐显 · 浮动</div>
+      <div class="cell">漂浮 · 极光辉光 · 玻璃模糊</div>
+      <div class="cell">克制 · 入场式 · 卡片浮起</div>
+
+      <div class="row-head">气质关键词</div>
+      <div class="cell">笔记 / 日记 / 日常</div>
+      <div class="cell">夜读 / 灵感闪念 / 仪式感</div>
+      <div class="cell">工作坊 / 编辑 / 慢节奏</div>
+
+      <div class="row-head">适合谁</div>
+      <div class="cell">强调亲笔感的个人创作者</div>
+      <div class="cell">工具感强、夜间写作型</div>
+      <div class="cell">编辑型 · 杂志感偏好</div>
+    </div>
+  </section>
+
+  <section class="pages-matrix">
+    <h2>进入方案页面</h2>
+    <div class="matrix">
+      <div class="scheme" id="scheme-A">
+        <div class="scheme-header">
+          <h3 class="name">方案 A · 纸感</h3>
+          <p class="desc">米白 + 便签 + 衬线，像翻一本笔记本。</p>
+          <div class="pages">
+            <a href="scheme-A-papercraft/home.html">HOME</a>
+            <a href="scheme-A-papercraft/capture.html">CAPTURE</a>
+            <a href="scheme-A-papercraft/timeline.html">TIMELINE</a>
+          </div>
+        </div>
+        <div class="scheme-body">
+          <h4>气质</h4>
+          <div class="pill-row">
+            <span>笔记气质</span><span>手写感</span><span>留白充足</span>
+          </div>
+          <h4>主色</h4>
+          <div class="pill-row">
+            <span style="background:#FAF6EE; color:#2A2825;">#FAF6EE 暖白</span>
+            <span style="background:#FCE9A6; color:#2A2825;">#FCE9A6 便签</span>
+            <span style="background:#B95727; color:#fff;">#B95727 暖橙</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="scheme" id="scheme-B">
+        <div class="scheme-header">
+          <h3 class="name">方案 B · 极光</h3>
+          <p class="desc">深紫黑 + 玻璃态 + 紫青辉光，气质前卫。</p>
+          <div class="pages">
+            <a href="scheme-B-aurora/home.html">HOME</a>
+            <a href="scheme-B-aurora/capture.html">CAPTURE</a>
+            <a href="scheme-B-aurora/timeline.html">TIMELINE</a>
+          </div>
+        </div>
+        <div class="scheme-body">
+          <h4>气质</h4>
+          <div class="pill-row">
+            <span>夜间模式</span><span>玻璃态</span><span>辉光</span>
+          </div>
+          <h4>主色</h4>
+          <div class="pill-row">
+            <span style="background:#0E0B1F; color:#C792EA;">#0E0B1F 紫黑</span>
+            <span style="background:#C792EA; color:#0E0B1F;">#C792EA 紫</span>
+            <span style="background:#82E1CB; color:#0E0B1F;">#82E1CB 青</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="scheme" id="scheme-C">
+        <div class="scheme-header">
+          <h3 class="name">方案 C · 和声</h3>
+          <p class="desc">中性暖灰 + 多字体编辑感，像在做杂志工作。</p>
+          <div class="pages">
+            <a href="scheme-C-harmonic/home.html">HOME</a>
+            <a href="scheme-C-harmonic/capture.html">CAPTURE</a>
+            <a href="scheme-C-harmonic/timeline.html">TIMELINE</a>
+          </div>
+        </div>
+        <div class="scheme-body">
+          <h4>气质</h4>
+          <div class="pill-row">
+            <span>编辑感</span><span>杂志气质</span><span>多字体</span>
+          </div>
+          <h4>主色</h4>
+          <div class="pill-row">
+            <span style="background:#F1EEE8; color:#1F2421;">#F1EEE8 暖灰</span>
+            <span style="background:#B68764; color:#fff;">#B68764 黏土</span>
+            <span style="background:#586E51; color:#fff;">#586E51 苔藓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rec">
+      <h3>主理人 <em>推荐</em> · 一句话总结</h3>
+      <p>三套都遵循统一的<strong>信息架构</strong>与<strong>交互骨架</strong>（双 CTA + 年/月/日轮 + 当日白板 + 多选进创作），差异主要落在视觉气质上。</p>
+      <ul>
+        <li><strong>想要"笔记感"最浓的伙伴</strong> —— 选 A · 纸感；最接近图一。</li>
+        <li><strong>想要"夜间创作"仪式感的伙伴</strong> —— 选 B · 极光；最接近图二，且仍有 SVG 图标 + 玻璃态实现，不依赖图片资源。</li>
+        <li><strong>想要"工作坊 / 编辑感"的伙伴</strong> —— 选 C · 和声；是图一与图二的中性调和，节奏更克制。</li>
+      </ul>
+      <p style="margin-top:14px;">如果三选仍有偏好，建议优先挑气质，再以<strong>主色</strong>做次轮决策（暖橙 / 紫青渐变 / 黏土棕）。</p>
+    </div>
+  </section>
+
+  <div class="footer">
+    PROTOTYPE · V2 · INSPIRATION FLOW · AUG 2026
+  </div>
+</body>
+</html>

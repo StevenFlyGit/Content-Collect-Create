@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<meta name="theme-color" content="#faf7f0">
+<title>灵感工作台 · Hybrid Edition · C</title>
+<style>
+/* ============================================================
+   Hybrid Edition · 方案 C
+   工作台浅色（不易疲劳） / 白板深色（沉浸）
+   设计关键词：分层 / 切换 / 实用 / 流畅
+   ============================================================ */
+:root {
+  --canvas: #faf7f0;
+  --surface: #fffefa;
+  --surface-2: #f4efe5;
+  --ink: #2a2622;
+  --ink-2: #4a463f;
+  --ink-muted: #807a6e;
+  --line: rgba(42, 38, 34, .12);
+  --line-soft: rgba(42, 38, 34, .06);
+
+  --accent-teal: #4a6b80;
+  --accent-violet: #6c63a3;
+  --accent-rose: #c08575;
+  --accent-moss: #6b8266;
+  --accent-amber: #c8956c;
+  --accent-ink: #2a2622;
+
+  --focus: #4a6b80;
+  --success: #4f7f62;
+  --danger: #b84a4a;
+
+  --radius-panel: 24px;
+  --radius-card: 16px;
+  --radius-pill: 999px;
+
+  --shadow-soft: 0 1px 2px rgba(42, 38, 34, .04), 0 6px 20px -8px rgba(42, 38, 34, .10);
+  --shadow-lift: 0 2px 4px rgba(42, 38, 34, .06), 0 16px 40px -16px rgba(42, 38, 34, .20);
+  --ease: cubic-bezier(.2,.7,.3,1);
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+  font-size: 16px; line-height: 1.7;
+  color: var(--ink); background: var(--canvas);
+  -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+a { color: inherit; text-decoration: none; }
+
+/* ---------- 浅色背景 + 极轻纹理 ---------- */
+.bg {
+  position: fixed; inset: 0; z-index: -1;
+  background: var(--canvas);
+}
+.bg::before {
+  content: ""; position: absolute; inset: 0;
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(42,38,34,.05) 1px, transparent 0);
+  background-size: 24px 24px;
+  mask-image: radial-gradient(ellipse at top, black 0%, transparent 70%);
+  opacity: .8;
+}
+.bg::after {
+  content: ""; position: absolute;
+  top: -10%; right: -10%; width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(108, 99, 163, .10), transparent 60%);
+  filter: blur(60px);
+  pointer-events: none;
+}
+
+/* ---------- 顶部导航 ---------- */
+.nav {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 40px;
+  max-width: 1320px; margin: 0 auto;
+}
+.brand {
+  display: flex; align-items: center; gap: 12px;
+  font-family: "Songti SC", "STSong", "Noto Serif SC", Georgia, serif;
+  font-size: 20px; letter-spacing: 1.5px;
+}
+.brand-mark {
+  width: 32px; height: 32px;
+  position: relative;
+  display: grid; place-items: center;
+}
+.brand-mark svg { width: 100%; height: 100%; }
+.nav-links { display: flex; gap: 6px; align-items: center; }
+.nav-link {
+  padding: 8px 14px; border-radius: var(--radius-pill);
+  color: var(--ink-muted); font-size: 14px;
+  transition: all .2s var(--ease);
+}
+.nav-link:hover { color: var(--ink); background: var(--surface-2); }
+.nav-link.active { color: var(--ink); background: var(--surface); box-shadow: var(--shadow-soft); }
+.theme-toggle {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px; border-radius: var(--radius-pill);
+  background: var(--surface-2); border: 1px solid var(--line);
+  font-size: 12px;
+}
+.theme-toggle button {
+  padding: 4px 12px; border-radius: var(--radius-pill);
+  color: var(--ink-muted);
+  transition: all .2s var(--ease);
+}
+.theme-toggle button.active {
+  background: var(--surface); color: var(--ink); box-shadow: var(--shadow-soft);
+}
+.avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent-rose), var(--accent-amber));
+  display: grid; place-items: center; color: white; font-size: 14px;
+  margin-left: 8px;
+}
+
+/* ---------- 主体 ---------- */
+.main {
+  max-width: 1320px; margin: 0 auto;
+  padding: 32px 40px 80px;
+}
+.hero { margin-bottom: 40px; max-width: 800px; }
+.breadcrumb {
+  font-size: 12px; color: var(--ink-muted);
+  margin: 0 0 12px; letter-spacing: 1.5px; text-transform: uppercase;
+}
+.headline {
+  font-family: "Songti SC", "STSong", "Noto Serif SC", Georgia, serif;
+  font-size: 48px; line-height: 1.25; font-weight: 500;
+  margin: 0 0 20px; letter-spacing: 1.5px;
+}
+.headline em {
+  font-style: normal;
+  background: linear-gradient(135deg, var(--accent-teal), var(--accent-violet));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.subline {
+  font-size: 15px; color: var(--ink-2);
+  display: flex; align-items: center; gap: 10px;
+}
+.dot-pulse {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--accent-moss);
+  position: relative;
+}
+.dot-pulse::after {
+  content: ""; position: absolute; inset: -4px;
+  border-radius: 50%; border: 2px solid var(--accent-moss);
+  opacity: 0; animation: ringPulse 2.4s infinite;
+}
+@keyframes ringPulse {
+  0% { transform: scale(.5); opacity: .8; }
+  100% { transform: scale(2); opacity: 0; }
+}
+
+/* ---------- 主按钮区：差异化设计（精致大卡片） ---------- */
+.actions {
+  display: grid; grid-template-columns: 1.15fr 1fr; gap: 24px;
+  margin-bottom: 56px;
+}
+.action-card {
+  position: relative;
+  padding: 36px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  text-align: left;
+  cursor: pointer;
+  transition: all .3s var(--ease);
+  overflow: hidden;
+  display: flex; flex-direction: column; gap: 14px;
+  text-decoration: none; color: inherit;
+  min-height: 220px;
+}
+/* 主按钮有微妙左侧色条 */
+.action-card::before {
+  content: "";
+  position: absolute;
+  top: 24px; bottom: 24px; left: 0;
+  width: 4px;
+  border-radius: 0 4px 4px 0;
+}
+.action-card.capture::before { background: linear-gradient(to bottom, var(--accent-violet), var(--accent-teal)); }
+.action-card.create::before  { background: linear-gradient(to bottom, var(--accent-rose), var(--accent-amber)); }
+
+.action-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lift);
+  border-color: transparent;
+}
+.action-card .ico {
+  width: 52px; height: 52px;
+  border-radius: 14px;
+  display: grid; place-items: center;
+  font-size: 24px;
+  background: var(--surface-2);
+  transition: all .3s var(--ease);
+}
+.action-card.capture .ico { color: var(--accent-violet); }
+.action-card.create  .ico { color: var(--accent-rose); }
+.action-card:hover .ico {
+  transform: rotate(-6deg) scale(1.05);
+}
+.action-card .title {
+  font-family: "Songti SC", "STSong", "Noto Serif SC", Georgia, serif;
+  font-size: 26px; font-weight: 500; margin: 0;
+  display: flex; align-items: center; gap: 10px;
+  letter-spacing: 1px;
+}
+.action-card .arrow {
+  margin-left: auto; opacity: .5; transform: translateX(-4px);
+  transition: all .25s var(--ease);
+  font-size: 20px;
+}
+.action-card:hover .arrow { opacity: 1; transform: translateX(4px); }
+.action-card .desc {
+  color: var(--ink-2); font-size: 15px; margin: 0;
+  line-height: 1.7;
+}
+.action-card .meta {
+  margin-top: auto;
+  display: flex; gap: 16px; flex-wrap: wrap;
+  font-size: 12px; color: var(--ink-muted);
+}
+.action-card .meta-item {
+  display: flex; align-items: center; gap: 6px;
+}
+.action-card .meta-item .dot {
+  width: 6px; height: 6px; border-radius: 50%; background: currentColor;
+}
+
+/* "创作"卡片特有：暗色预览带 */
+.action-card.create .preview-band {
+  position: absolute; top: 0; right: 0; bottom: 0;
+  width: 30%;
+  background: linear-gradient(135deg, #2a2622, #4a463f);
+  border-radius: 0 var(--radius-panel) var(--radius-panel) 0;
+  display: grid; place-items: center;
+  color: rgba(255,255,255,.4);
+  font-size: 32px;
+  opacity: 0; transform: translateX(20px);
+  transition: all .4s var(--ease);
+  pointer-events: none;
+}
+.action-card.create:hover .preview-band {
+  opacity: 1; transform: translateX(0);
+}
+.action-card.create .preview-band::before {
+  content: ""; position: absolute; inset: 0;
+  background:
+    radial-gradient(circle at 30% 40%, rgba(167, 139, 250, .25), transparent 50%),
+    radial-gradient(circle at 70% 70%, rgba(125, 211, 252, .15), transparent 50%);
+}
+
+/* ---------- 最近项 ---------- */
+.section-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  margin-bottom: 20px;
+}
+.section-title {
+  font-size: 16px; font-weight: 600; margin: 0;
+  letter-spacing: 1px;
+}
+.section-link {
+  font-size: 13px; color: var(--ink-muted);
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--line);
+  transition: all .2s var(--ease);
+}
+.section-link:hover { background: var(--surface); color: var(--ink); }
+
+.recent-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+.note {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  padding: 20px;
+  cursor: pointer;
+  transition: all .2s var(--ease);
+  display: flex; flex-direction: column; gap: 10px;
+  min-height: 140px;
+}
+.note:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-soft);
+  border-color: transparent;
+}
+.note .meta {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px; color: var(--ink-muted);
+}
+.note .pill {
+  font-size: 11px; padding: 3px 8px; border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  letter-spacing: .5px;
+}
+.note .pill.idea { color: var(--accent-violet); }
+.note .pill.quote { color: var(--accent-teal); }
+.note .pill.moment { color: var(--accent-rose); }
+.note .pill.task { color: var(--accent-moss); }
+.note .excerpt {
+  font-size: 15px; color: var(--ink);
+  line-height: 1.6;
+  display: -webkit-box; -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical; overflow: hidden;
+  margin: 0;
+}
+.note .footer {
+  margin-top: auto;
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px; color: var(--ink-muted);
+}
+
+/* 入场动效 */
+.reveal { opacity: 0; transform: translateY(8px); animation: reveal .6s var(--ease) forwards; }
+.reveal.d1 { animation-delay: .08s; }
+.reveal.d2 { animation-delay: .16s; }
+.reveal.d3 { animation-delay: .24s; }
+.reveal.d4 { animation-delay: .32s; }
+.reveal.d5 { animation-delay: .4s; }
+@keyframes reveal { to { opacity: 1; transform: none; } }
+
+/* 响应式 */
+@media (max-width: 960px) {
+  .nav { padding: 16px 20px; }
+  .nav-links .nav-link:not(.active) { display: none; }
+  .main { padding: 24px 20px 60px; }
+  .headline { font-size: 36px; letter-spacing: 1px; }
+  .actions { grid-template-columns: 1fr; }
+  .recent-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 560px) {
+  .headline { font-size: 28px; }
+  .action-card { padding: 24px; min-height: 170px; }
+  .action-card.create .preview-band { display: none; }
+  .recent-grid { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+.action-card:focus-visible,
+.nav-link:focus-visible,
+.theme-toggle button:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+</style>
+</head>
+<body>
+<div class="bg" aria-hidden="true"></div>
+
+<nav class="nav">
+  <a href="./home.html" class="brand" style="text-decoration:none;color:inherit">
+    <span class="brand-mark" aria-hidden="true">
+      <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="bgrad" x1="0" x2="1" y1="0" y2="1">
+            <stop offset="0" stop-color="#6c63a3"/>
+            <stop offset="1" stop-color="#c08575"/>
+          </linearGradient>
+        </defs>
+        <circle cx="16" cy="16" r="13" fill="none" stroke="url(#bgrad)" stroke-width="2"/>
+        <circle cx="16" cy="16" r="6" fill="url(#bgrad)"/>
+        <circle cx="16" cy="4" r="1.5" fill="#c08575"/>
+      </svg>
+    </span>
+    <span>Halo · 光晕</span>
+  </a>
+  <div class="nav-links">
+    <div class="theme-toggle" role="group" aria-label="主题切换">
+      <button class="active" data-theme="light" title="浅色">☀</button>
+      <button data-theme="dark" title="深色">☾</button>
+    </div>
+    <a href="./home.html" class="nav-link active">工作台</a>
+    <a href="./capture.html" class="nav-link">记录</a>
+    <a href="./timeline.html" class="nav-link">灵感库</a>
+    <a href="#" class="nav-link">热点</a>
+    <a href="#" class="nav-link">项目</a>
+    <span class="avatar" title="St">S</span>
+  </div>
+</nav>
+
+<main class="main">
+  <section class="hero reveal">
+    <p class="breadcrumb">今天 · 下午好</p>
+    <h1 class="headline">先<em>随手记下</em>，<br>再挑一天慢慢展开。</h1>
+    <p class="subline">
+      <span class="dot-pulse" aria-hidden="true"></span>
+      今日已收集 <strong style="color:var(--ink)">3</strong> 条灵感 · 连续第 12 天
+    </p>
+  </section>
+
+  <section class="actions reveal d1">
+    <a href="./capture.html" class="action-card capture">
+      <div class="ico" aria-hidden="true">＋</div>
+      <h2 class="title">记录灵感 <span class="arrow">→</span></h2>
+      <p class="desc">文字 / 图片 / 音频 / 组合输入。<br>不必完整，先抓住那束光。</p>
+      <div class="meta">
+        <span class="meta-item"><span class="dot" style="color:var(--accent-violet)"></span>文字</span>
+        <span class="meta-item"><span class="dot" style="color:var(--accent-teal)"></span>图片</span>
+        <span class="meta-item"><span class="dot" style="color:var(--accent-moss)"></span>音频</span>
+      </div>
+    </a>
+
+    <a href="./timeline.html" class="action-card create">
+      <div class="preview-band" aria-hidden="true">✦</div>
+      <div class="ico" aria-hidden="true">✦</div>
+      <h2 class="title">开始创作 <span class="arrow">→</span></h2>
+      <p class="desc">从某一天出发，进入沉浸式白板模式。<br>挑出想写的，开始结构化整理。</p>
+      <div class="meta">
+        <span class="meta-item"><span class="dot" style="color:var(--accent-rose)"></span>按日期</span>
+        <span class="meta-item"><span class="dot" style="color:var(--accent-amber)"></span>白板贴片</span>
+        <span class="meta-item"><span class="dot" style="color:var(--accent-teal)"></span>切换深色</span>
+      </div>
+    </a>
+  </section>
+
+  <section class="reveal d2">
+    <header class="section-head">
+      <h3 class="section-title">最近的灵感</h3>
+      <a href="./timeline.html" class="section-link">查看全部 →</a>
+    </header>
+
+    <div class="recent-grid">
+      <article class="note reveal d2" tabindex="0">
+        <div class="meta"><span class="pill idea">想法</span><span>17:42 · 今天</span></div>
+        <p class="excerpt">"如果按日期回看灵感，会不会更像回到当天？"</p>
+        <div class="footer"><span>🖼 2 张图</span><span>·</span><span>已存草稿</span></div>
+      </article>
+
+      <article class="note reveal d3" tabindex="0">
+        <div class="meta"><span class="pill quote">引用</span><span>11:08 · 今天</span></div>
+        <p class="excerpt">"桂花落在车座上，气味比照片更早把秋天保存下来。"</p>
+        <div class="footer"><span>🎙 01:24</span><span>·</span><span>已转写</span></div>
+      </article>
+
+      <article class="note reveal d4" tabindex="0">
+        <div class="meta"><span class="pill moment">随感</span><span>21:30 · 昨天</span></div>
+        <p class="excerpt">城市记忆短文：便利店夜班、巷口手写招牌、雨后的石板路……</p>
+        <div class="footer"><span>用于 1 个项目</span></div>
+      </article>
+    </div>
+  </section>
+</main>
+
+<script>
+// 主题切换预览
+document.querySelectorAll('.theme-toggle button').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('.theme-toggle button').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    if (b.dataset.theme === 'dark') {
+      // 模拟过渡到深色
+      document.documentElement.style.transition = 'background .6s';
+      window.location.href = './timeline.html';
+    }
+  });
+});
+
+// 创作卡预览带跟随鼠标
+const createCard = document.querySelector('.action-card.create');
+createCard.addEventListener('mousemove', (e) => {
+  const r = createCard.getBoundingClientRect();
+  const x = ((e.clientX - r.left) / r.width) * 100;
+  createCard.style.setProperty('--mx', x + '%');
+});
+</script>
+</body>
+</html>

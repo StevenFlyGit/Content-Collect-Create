@@ -1,0 +1,78 @@
+/* ---------- 类型选择 ---------- */
+.action-row { display: flex; align-items: center; gap: 12px; }
+.type-select { position: relative; }
+
+.type-trigger {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--line);
+  background: var(--surface-strong);
+  color: var(--ink);
+  font-size: 13px;
+  transition: all .2s var(--ease);
+}
+.type-trigger:hover { border-color: rgba(255,255,255,.2); box-shadow: 0 0 16px rgba(167, 139, 250, .2); }
+.type-trigger .swatch {
+  width: 10px; height: 10px; border-radius: 50%;
+  box-shadow: 0 0 8px currentColor;
+}
+.type-trigger .caret { opacity: .7; }
+
+.type-menu {
+  position: absolute; bottom: calc(100% + 8px); left: 0;
+  min-width: 160px;
+  background: var(--cosmos-2);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  padding: 6px;
+  box-shadow: var(--shadow-lift);
+  display: none;
+  z-index: 12;
+}
+.type-menu.open { display: block; animation: rise .18s var(--ease); }
+@keyframes rise { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+.type-item {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%; text-align: left;
+  padding: 8px 10px;
+  border-radius: 8px;
+  color: var(--ink);
+  font-size: 14px;
+  transition: background .15s var(--ease);
+}
+.type-item:hover { background: var(--surface); }
+.type-item .swatch {
+  width: 10px; height: 10px; border-radius: 50%;
+  box-shadow: 0 0 8px currentColor;
+}
+
+/* 保存按钮推到右侧 */
+.primary {
+  margin-left: auto;
+  padding: 10px 18px;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(135deg, var(--nebula-violet), var(--nebula-rose));
+  color: var(--cosmos-deep);
+  font-size: 14px; font-weight: 600;
+  transition: all .25s var(--ease);
+  border: 0;
+  display: inline-flex; align-items: center; gap: 6px;
+  box-shadow: 0 0 24px rgba(167, 139, 250, .4);
+}
+.primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 32px -4px rgba(167, 139, 250, .6);
+}
+
+@media (max-width: 720px) {
+  .action-row { gap: 8px; }
+  .primary { padding: 10px 14px; }
+}
+.type-trigger .caret { opacity: .7; color: var(--ink-muted); font-size: 10px; }
+.type-trigger.pulse { animation: typePulse .2s var(--ease); }
+@keyframes typePulse { from { transform: scale(1.05); } to { transform: scale(1); } }
+

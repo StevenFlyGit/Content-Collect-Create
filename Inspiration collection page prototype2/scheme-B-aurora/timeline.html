@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0E0B1F" />
+<title>方案 B · 极光 · 按日期翻阅</title>
+<style>
+  :root {
+    --bg: #0E0B1F;
+    --bg-2: #15102E;
+    --glass: rgba(255, 255, 255, .05);
+    --glass-2: rgba(255, 255, 255, .08);
+    --glass-border: rgba(255, 255, 255, .08);
+    --ink: #F2EAF6;
+    --ink-2: rgba(242, 234, 246, .72);
+    --ink-3: rgba(242, 234, 246, .42);
+    --line: rgba(255, 255, 255, .08);
+    --line-2: rgba(255, 255, 255, .16);
+    --violet: #C792EA;
+    --teal: #82E1CB;
+    --pink: #F8A9D2;
+    --peach: #FFC998;
+    --indigo: #8FA0F5;
+    --gold: #FFD583;
+
+    --radius-panel: 24px;
+    --radius-card: 18px;
+    --radius-pill: 999px;
+
+    --shadow-1: 0 6px 24px -8px rgba(0, 0, 0, .55);
+    --shadow-2: 0 16px 48px -12px rgba(0, 0, 0, .65);
+    --shadow-3: 0 24px 80px -16px rgba(199, 146, 234, .25);
+
+    --font-sans: -apple-system, BlinkMacSystemFont, "Inter", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+    --ease: cubic-bezier(.2, .7, .3, 1);
+    --ease-out: cubic-bezier(.16, .84, .44, 1);
+
+    --container: 1280px;
+    --pad-x: 32px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-sans); font-size: 16px; line-height: 1.7;
+    color: var(--ink); background: var(--bg);
+    -webkit-font-smoothing: antialiased; overflow-x: hidden; min-height: 100vh;
+  }
+  a { color: inherit; text-decoration: none; }
+  button { font: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+  ::selection { background: var(--violet); color: var(--bg); }
+
+  .stars {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden;
+  }
+  .stars::before {
+    content: ""; position: absolute; inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 25% 15%, rgba(255,255,255,.5), transparent 50%),
+      radial-gradient(1px 1px at 70% 35%, rgba(255,255,255,.3), transparent 50%),
+      radial-gradient(2px 2px at 40% 70%, rgba(199, 146, 234, .4), transparent 50%),
+      radial-gradient(1px 1px at 85% 80%, rgba(130, 225, 203, .35), transparent 50%);
+    background-size: 600px 600px;
+    animation: drift 120s linear infinite;
+    opacity: .8;
+  }
+  @keyframes drift {
+    100% { transform: translate(-300px, -150px); }
+  }
+  .ambient {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+  }
+  .ambient::before {
+    content: ""; position: absolute; width: 700px; height: 700px;
+    right: -100px; top: -200px;
+    background: radial-gradient(circle, rgba(199, 146, 234, .2), transparent 60%);
+    filter: blur(50px);
+  }
+  .ambient::after {
+    content: ""; position: absolute; width: 600px; height: 600px;
+    left: -100px; bottom: -200px;
+    background: radial-gradient(circle, rgba(130, 225, 203, .18), transparent 60%);
+    filter: blur(50px);
+  }
+
+  /* Topbar */
+  .topbar {
+    position: sticky; top: 0; z-index: 50;
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    background: rgba(14, 11, 31, .7);
+    border-bottom: 1px solid transparent;
+  }
+  .topbar.scrolled { border-bottom-color: var(--glass-border); }
+  .topbar-inner {
+    max-width: var(--container);
+    margin: 0 auto;
+    padding: 14px var(--pad-x);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .brand {
+    display: flex; align-items: center; gap: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: .3px;
+  }
+  .brand .logo {
+    width: 32px; height: 32px;
+    border-radius: 9px;
+    background: linear-gradient(135deg, var(--violet), var(--teal));
+    display: inline-flex; align-items: center; justify-content: center;
+    color: var(--bg); font-weight: 700; font-size: 14px;
+    box-shadow: 0 8px 24px -8px rgba(199, 146, 234, .65);
+  }
+  .topbar-actions { display: flex; align-items: center; gap: 8px; }
+  .icon-btn {
+    width: 38px; height: 38px; border-radius: 12px;
+    background: var(--glass); border: 1px solid var(--glass-border);
+    display: inline-flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(10px);
+    transition: all .25s var(--ease);
+  }
+  .icon-btn:hover { background: var(--glass-2); transform: translateY(-1px); }
+  .icon-btn svg { width: 17px; height: 17px; stroke: var(--ink-2); fill: none; stroke-width: 1.6; }
+  .avatar {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--violet), var(--pink));
+    display: inline-flex; align-items: center; justify-content: center;
+    font-weight: 700; color: var(--bg);
+  }
+  .badge-soft {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 7px 14px;
+    border-radius: var(--radius-pill);
+    background: var(--glass); border: 1px solid var(--glass-border);
+    font-size: 12px; color: var(--ink-2);
+    backdrop-filter: blur(10px);
+  }
+  .badge-soft .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--teal); box-shadow: 0 0 8px var(--teal);
+  }
+
+  /* Page head */
+  .page-head {
+    position: relative; z-index: 1;
+    max-width: var(--container);
+    margin: 0 auto;
+    padding: 32px var(--pad-x) 0;
+    display: flex; align-items: end; justify-content: space-between;
+    gap: 20px;
+  }
+  .page-head h1 {
+    font-size: 32px;
+    font-weight: 700;
+    margin: 0 0 6px;
+    letter-spacing: -.5px;
+  }
+  .page-head .sub {
+    color: var(--ink-3);
+    font-size: 13px;
+    max-width: 540px;
+  }
+  .view-switch {
+    display: inline-flex;
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-pill);
+    padding: 4px;
+    gap: 4px;
+    backdrop-filter: blur(10px);
+  }
+  .view-switch button {
+    padding: 7px 14px;
+    border-radius: var(--radius-pill);
+    font-size: 13px;
+    color: var(--ink-2);
+    transition: all .2s var(--ease);
+  }
+  .view-switch button.active {
+    background: linear-gradient(135deg, var(--violet), var(--teal));
+    color: var(--bg);
+    font-weight: 600;
+  }
+
+  /* Picker */
+  .picker {
+    position: relative; z-index: 1;
+    max-width: var(--container);
+    margin: 28px auto 0;
+    padding: 24px var(--pad-x);
+    background: rgba(20, 16, 42, .55);
+    border-radius: var(--radius-panel);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(20px);
+    box-shadow: var(--shadow-1);
+    overflow: hidden;
+  }
+  .picker::before {
+    content: ""; position: absolute;
+    width: 400px; height: 400px;
+    left: 30%; top: -150px;
+    background: radial-gradient(circle, rgba(199, 146, 234, .12) 0%, transparent 60%);
+    filter: blur(40px);
+  }
+  .picker-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1.2fr;
+    gap: 28px;
+    align-items: center;
+    position: relative;
+  }
+  .picker-info {
+    padding-right: 16px;
+    border-right: 1px dashed var(--glass-border);
+  }
+  .picker-info .eyebrow {
+    font-size: 11px;
+    color: var(--ink-3);
+    letter-spacing: 1.5px;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+  }
+  .picker-info .date-big {
+    font-size: 48px;
+    font-weight: 700;
+    line-height: 1;
+    margin: 0;
+    letter-spacing: -1px;
+  }
+  .picker-info .date-big .y { font-size: 18px; color: var(--ink-3); display: block; margin-bottom: 4px; }
+  .picker-info .date-big .d-num {
+    background: linear-gradient(135deg, var(--violet), var(--teal));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .picker-info .date-big .m-d {
+    font-size: 18px; color: var(--ink-3); margin-left: 8px;
+  }
+  .picker-info .meta {
+    margin-top: 12px;
+    display: flex; gap: 16px;
+    font-size: 12px;
+    color: var(--ink-3);
+  }
+  .picker-info .meta strong { color: var(--ink); font-weight: 600; }
+
+  .wheel-col { text-align: center; }
+  .wheel-col .label {
+    font-size: 11px;
+    color: var(--ink-3);
+    letter-spacing: 1.5px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+  .wheel {
+    position: relative;
+    height: 220px;
+    overflow: hidden;
+    border-radius: 16px;
+    background: rgba(14, 11, 31, .7);
+    border: 1px solid var(--glass-border);
+    cursor: ns-resize;
+    user-select: none;
+    touch-action: pan-y;
+  }
+  .wheel::before, .wheel::after {
+    content: "";
+    position: absolute; left: 0; right: 0;
+    height: 70px;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .wheel::before {
+    top: 0;
+    background: linear-gradient(180deg, var(--bg) 0%, transparent 100%);
+  }
+  .wheel::after {
+    bottom: 0;
+    background: linear-gradient(0deg, var(--bg) 0%, transparent 100%);
+  }
+  .wheel-line {
+    position: absolute; left: 0; right: 0;
+    top: 50%;
+    height: 36px;
+    margin-top: -18px;
+    border-top: 1px dashed var(--line-2);
+    border-bottom: 1px dashed var(--line-2);
+    pointer-events: none;
+    z-index: 1;
+  }
+  .wheel-track {
+    position: absolute; left: 0; right: 0;
+    top: 50%; transform: translateY(-50%);
+    height: 36px;
+    line-height: 36px;
+    text-align: center;
+  }
+  .wheel-item {
+    height: 36px;
+    line-height: 36px;
+    text-align: center;
+    font-size: 18px;
+    color: var(--ink-2);
+    transition: all .25s var(--ease);
+    cursor: pointer;
+    position: absolute;
+    left: 0; right: 0;
+    top: 50%;
+  }
+  .wheel-item.dim { opacity: .35; font-size: 14px; }
+  .wheel-item.focal {
+    font-size: 24px;
+    color: var(--ink);
+    font-weight: 700;
+    opacity: 1;
+  }
+  .wheel-item.focal .num {
+    background: linear-gradient(135deg, var(--violet), var(--teal));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .picker-hint {
+    text-align: center;
+    margin-top: 14px;
+    color: var(--ink-3);
+    font-size: 12px;
+    letter-spacing: 1px;
+  }
+  .picker-hint kbd {
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    padding: 1px 7px;
+    border-radius: 6px;
+    font-size: 11px;
+    color: var(--ink-2);
+    margin: 0 2px;
+  }
+
+  /* Toolbar */
+  .toolbar {
+    position: relative; z-index: 1;
+    max-width: var(--container);
+    margin: 16px auto 0;
+    padding: 0 var(--pad-x);
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .toolbar .left, .toolbar .right { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .chip {
+    padding: 8px 16px;
+    border-radius: var(--radius-pill);
+    background: transparent;
+    border: 1px solid var(--glass-border);
+    font-size: 13px;
+    color: var(--ink-2);
+    cursor: pointer;
+    transition: all .2s var(--ease);
+  }
+  .chip:hover { background: var(--glass-2); }
+  .chip.active {
+    background: linear-gradient(135deg, var(--violet), var(--teal));
+    color: var(--bg);
+    border-color: transparent;
+    font-weight: 600;
+  }
+  .search-inline {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 14px;
+    border-radius: var(--radius-pill);
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    font-size: 13px;
+    color: var(--ink-3);
+    min-width: 220px;
+    backdrop-filter: blur(10px);
+  }
+  .search-inline svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.6; }
+
+  .select-count {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 14px;
+    border-radius: var(--radius-pill);
+    background: linear-gradient(135deg, rgba(199, 146, 234, .15), rgba(130, 225, 203, .12));
+    color: var(--violet);
+    border: 1px solid rgba(199, 146, 234, .3);
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .select-count b {
+    font-size: 14px;
+    background: linear-gradient(135deg, var(--violet), var(--teal));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Board */
+  .board-wrap {
+    position: relative; z-index: 1;
+    max-width: var(--container);
+    margin: 24px auto 80px;
+    padding: 0 var(--pad-x);
+  }
+  .board {
+    position: relative;
+    background: rgba(20, 16, 42, .35);
+    border-radius: var(--radius-panel);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(12px);
+    padding: 40px;
+    min-height: 540px;
+    overflow: hidden;
+  }
+  .board::before {
+    content: ""; position: absolute;
+    width: 600px; height: 600px;
+    left: 20%; top: -100px;
+    background: radial-gradient(circle, rgba(199, 146, 234, .08) 0%, transparent 60%);
+    filter: blur(40px);
+  }
+
+  .card {
+    position: absolute;
+    width: 220px;
+    padding: 22px;
+    border-radius: 16px;
+    background: rgba(20, 16, 42, .65);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(16px);
+    box-shadow: var(--shadow-2);
+    cursor: grab;
+    transition: all .35s var(--ease);
+    color: var(--ink);
+  }
+  .card::before {
+    content: ""; position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--violet), transparent);
+    transform: scaleX(0);
+    transform-origin: center;
+    transition: transform .35s var(--ease);
+  }
+  .card.selected {
+    box-shadow: 0 0 0 2px var(--violet), 0 20px 60px -16px rgba(199, 146, 234, .55);
+    transform: scale(1.04);
+    border-color: var(--violet);
+  }
+  .card.selected::before { transform: scaleX(1); }
+  .card:hover { transform: translateY(-4px); border-color: rgba(199, 146, 234, .35); }
+  .card:hover::before { transform: scaleX(1); }
+
+  .card .meta {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 10px;
+    color: var(--ink-3);
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .card .meta .tag {
+    padding: 2px 8px;
+    border-radius: var(--radius-pill);
+    background: rgba(255, 255, 255, .06);
+    color: var(--ink-2);
+    border: 1px solid var(--glass-border);
+    font-weight: 500;
+  }
+  .card .body {
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--ink);
+    word-break: break-word;
+  }
+  .card .check {
+    position: absolute; top: 8px; right: 8px;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, .1);
+    border: 1px solid var(--glass-border);
+    display: inline-flex; align-items: center; justify-content: center;
+    opacity: 0;
+    transition: opacity .2s var(--ease);
+    color: var(--ink);
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .card:hover .check { opacity: 1; }
+  .card.selected .check {
+    opacity: 1;
+    background: linear-gradient(135deg, var(--violet), var(--teal));
+    color: var(--bg);
+    border-color: transparent;
+  }
+  .card .media {
+    height: 80px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    background: linear-gradient(135deg, rgba(199, 146, 234, .3), rgba(130, 225, 203, .3));
+    border: 1px solid var(--glass-border);
+    position: relative;
+    overflow: hidden;
+  }
+  .card .media::after {
+    content: "📷"; position: absolute; right: 8px; bottom: 6px; font-size: 14px;
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,.3));
+  }
+  .card.wide { width: 280px; }
+
+  .compose-fab {
+    position: fixed;
+    right: 28px; bottom: 28px;
+    z-index: 70;
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--violet), var(--teal));
+    color: var(--bg);
+    display: inline-flex; align-items: center; justify-content: center;
+    box-shadow: 0 16px 40px -8px rgba(199, 146, 234, .65);
+    transition: transform .3s var(--ease);
+    cursor: pointer;
+  }
+  .compose-fab:hover { transform: rotate(8deg) scale(1.05); }
+  .compose-fab svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+  .mobile-bar { display: none; }
+
+  @media (max-width: 960px) {
+    :root { --pad-x: 20px; }
+    .picker-grid { grid-template-columns: 1fr; gap: 18px; }
+    .picker-info { padding-right: 0; padding-bottom: 16px; border-right: none; border-bottom: 1px dashed var(--glass-border); }
+    .page-head { flex-direction: column; align-items: stretch; }
+    .board { padding: 24px; min-height: 480px; }
+    .card { width: 180px; padding: 16px; }
+  }
+  @media (max-width: 640px) {
+    body { padding-bottom: 76px; }
+    .topbar-inner { padding: 12px 16px; }
+    .page-head { padding: 20px 16px 0; }
+    .picker { padding: 18px 16px; }
+    .picker-info .date-big { font-size: 40px; }
+    .board-wrap { padding: 0 12px; }
+    .board { padding: 18px; min-height: 420px; }
+    .toolbar { padding: 0 16px; }
+    .card { width: 150px; }
+    .card .body { font-size: 13px; }
+    .mobile-bar {
+      display: flex;
+      position: fixed; left: 12px; right: 12px; bottom: 12px;
+      z-index: 70;
+      background: rgba(20, 16, 42, .85);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-pill);
+      box-shadow: 0 16px 40px -12px rgba(0, 0, 0, .55);
+      padding: 6px;
+      backdrop-filter: blur(20px);
+    }
+    .mobile-bar a {
+      flex: 1; text-align: center;
+      padding: 10px 8px;
+      border-radius: var(--radius-pill);
+      font-size: 13px; font-weight: 500;
+    }
+    .mobile-bar a.primary {
+      background: linear-gradient(135deg, var(--violet), var(--teal));
+      color: var(--bg);
+    }
+    .mobile-bar a.secondary { color: var(--ink); background: transparent; }
+  }
+</style>
+</head>
+<body>
+  <div class="ambient"></div>
+  <div class="stars"></div>
+
+  <header class="topbar" id="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="home.html">
+        <span class="logo">光</span>
+        <span>个人自媒体工作台</span>
+      </a>
+      <div class="topbar-actions">
+        <span class="badge-soft"><span class="dot"></span>8 月 14 日 · 12 条灵感</span>
+        <button class="icon-btn" aria-label="搜索">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        </button>
+        <button class="icon-btn" aria-label="切换">
+          <svg viewBox="0 0 24 24"><path d="M3 7h18M6 12h12M9 17h6"/></svg>
+        </button>
+        <span class="avatar">光</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <header class="page-head">
+      <div>
+        <h1>那一天的白板</h1>
+        <p class="sub">年 · 月 · 日 三档依次到位，每一档都只允许落到 <strong>单一具体日期</strong>。</p>
+      </div>
+      <div style="display: flex; gap: 10px; align-items: center;">
+        <span class="badge-soft">step 02 · ready layer</span>
+        <div class="view-switch">
+          <button class="active">按日期</button>
+          <button>按主题</button>
+          <button>按类型</button>
+        </div>
+      </div>
+    </header>
+
+    <section class="picker">
+      <div class="picker-grid">
+        <div class="picker-info">
+          <div class="eyebrow">已选定 · ready layer</div>
+          <h2 class="date-big">
+            <span class="y">2026</span>
+            <span class="d-num">14</span>
+            <span class="m-d">· 八月</span>
+            <span class="m-d" style="font-size:14px;">· 周四</span>
+          </h2>
+          <div class="meta">
+            <span><strong>12</strong> 条灵感</span>
+            <span><strong>3</strong> 来自语音</span>
+            <span><strong>2</strong> 来自图片</span>
+          </div>
+        </div>
+
+        <div class="wheel-col" data-axis="year">
+          <div class="label">年 · Year</div>
+          <div class="wheel" data-wheel>
+            <div class="wheel-line"></div>
+            <div class="wheel-track"></div>
+          </div>
+        </div>
+        <div class="wheel-col" data-axis="month">
+          <div class="label">月 · Month</div>
+          <div class="wheel" data-wheel>
+            <div class="wheel-line"></div>
+            <div class="wheel-track"></div>
+          </div>
+        </div>
+        <div class="wheel-col" data-axis="day">
+          <div class="label">日 · Day</div>
+          <div class="wheel" data-wheel>
+            <div class="wheel-line"></div>
+            <div class="wheel-track"></div>
+          </div>
+        </div>
+      </div>
+      <div class="picker-hint">
+        滚动到具体单一日期后回车 · <kbd>J</kbd><kbd>K</kbd> 在日间跳转 · <kbd>⌘ N</kbd> 当天新增
+      </div>
+    </section>
+
+    <section class="toolbar">
+      <div class="left">
+        <span class="select-count"><b id="countSel">0</b> 条被选中 · 多选进入创作</span>
+        <button class="chip active">全部</button>
+        <button class="chip">文字</button>
+        <button class="chip">语音</button>
+        <button class="chip">图片</button>
+        <button class="chip">链接</button>
+      </div>
+      <div class="right">
+        <span class="search-inline">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          输入关键字、按类型、按来源……
+        </span>
+        <button class="chip" style="background: linear-gradient(135deg, var(--violet), var(--teal)); color: var(--bg); border-color: transparent; font-weight: 600;">
+          ✓ 开始创作
+        </button>
+      </div>
+    </section>
+
+    <section class="board-wrap">
+      <div class="board" id="board">
+        <article class="card" style="top:30px; left:30px; transform: rotate(-2deg);">
+          <span class="check">✓</span>
+          <div class="meta"><span class="tag">CHAT</span> 09:42 · 文字</div>
+          <div class="body">「这个工具能不能真的帮我省时间？」</div>
+        </article>
+        <article class="card wide" style="top:60px; left:300px; transform: rotate(1.5deg);">
+          <span class="check">✓</span>
+          <div class="meta"><span class="tag">BROWSER</span> 10:18 · 图片</div>
+          <div class="media"></div>
+          <div class="body" style="font-size:13px;color:var(--ink-2);">对智能账号开头结构的截图分析</div>
+        </article>
+        <article class="card" style="top:40px; left:640px; transform: rotate(-1deg);">
+          <span class="check">✓</span>
+          <div class="meta"><span class="tag">FEISHU</span> 11:06 · 语音 0:42</div>
+          <div class="body">把灵感整理成一个选题</div>
+        </article>
+        <article class="card wide" style="top:240px; left:60px; transform: rotate(.8deg);">
+          <span class="check">✓</span>
+          <div class="meta"><span class="tag">DESKTOP</span> 13:27 · 文字</div>
+          <div class="body">历史脚本和录屏素材，散落的 .md 和 .mp4，先别合并，先链接。</div>
+        </article>
+        <article class="card wide" style="top:230px; left:390px; transform: rotate(-1.6deg);">
+          <span class="check">✓</span>
+          <div class="meta"><span class="tag">DESKTOP</span> 15:08 · 文字</div>
+          <div class="body">小红书算法真的能识别 App 内的真实停留吗？还是只看曝光与点击？</div>
+        </article>
+        <article class="card wide" style="top:380px; left:90px; transform: rotate(1.2deg);">
+          <span class="check">✓</span>
+          <div class="meta"><span class="tag">CAMERA</span> 17:02 · 图片</div>
+          <div class="media" style="background: linear-gradient(135deg, rgba(248, 169, 210, .3), rgba(255, 201, 152, .3));"></div>
+          <div class="body" style="font-size:13px;color:var(--ink-2);">窗外那张蓝得发愣的傍晚。适合做封面的色彩配比。</div>
+        </article>
+        <article class="card" style="top:430px; left:430px; transform: rotate(-2.4deg);">
+          <span class="check">✓</span>
+          <div class="meta"><span class="tag">DESKTOP</span> 22:15 · 文字</div>
+          <div class="body">《别急着写稿》的另一种切入：把工作台和家分开一半工作时间。</div>
+        </article>
+        <article class="card" style="top:300px; left:680px; transform: rotate(2deg);">
+          <span class="check">✓</span>
+          <div class="meta"><span class="tag">BROWSER</span> 23:40 · 文字</div>
+          <div class="body">卡兹克的 aihot 用公开接口拉热点列表，先评估再用。</div>
+        </article>
+        <article class="card" style="top:440px; left:740px; transform: rotate(-1deg);">
+          <span class="check">✓</span>
+          <div class="meta"><span class="tag">CAMERA</span> 17:48 · 图片</div>
+          <div class="media" style="background: linear-gradient(135deg, rgba(130, 225, 203, .3), rgba(199, 146, 234, .3));"></div>
+          <div class="body" style="font-size:13px;color:var(--ink-2);">列了一个选题，开始卡在前三句。</div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <a class="compose-fab" href="capture.html" aria-label="新增灵感">
+    <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+  </a>
+
+  <nav class="mobile-bar">
+    <a class="secondary" href="home.html">🏠 入口</a>
+    <a class="primary" href="capture.html">＋ 记一条</a>
+  </nav>
+
+<script>
+  const topbar = document.getElementById('topbar');
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 16) topbar.classList.add('scrolled');
+    else topbar.classList.remove('scrolled');
+  }, { passive: true });
+
+  const STATE = { year: 2026, month: 8, day: 14 };
+  const WHEEL_DATA = {
+    year: { values: [2024, 2025, 2026, 2027, 2028] },
+    month: { values: [1,2,3,4,5,6,7,8,9,10,11,12] },
+    day: { values: Array.from({length: 31}, (_, i) => i + 1) },
+  };
+  document.querySelectorAll('[data-axis]').forEach((col) => {
+    const axis = col.dataset.axis;
+    const data = WHEEL_DATA[axis];
+    let idx = data.values.indexOf(STATE[axis]);
+    if (idx < 0) idx = 0;
+    const wheel = col.querySelector('[data-wheel]');
+    const track = col.querySelector('.wheel-track');
+    function render() {
+      track.innerHTML = '';
+      const total = data.values.length;
+      for (let off = -5; off <= 5; off++) {
+        const pos = (idx + off + total) % total;
+        const v = data.values[pos];
+        const el = document.createElement('div');
+        el.className = 'wheel-item' + (off === 0 ? ' focal' : ' dim');
+        el.style.transform = `translateY(calc(-50% + ${off * 36}px))`;
+        const label = axis === 'month' ? (v + ' 月') : (axis === 'day' ? (v + ' 日') : (v + ' 年'));
+        el.innerHTML = off === 0 ? `<span class="num">${label}</span>` : label;
+        if (off === 0) {
+          STATE[axis] = v;
+          el.addEventListener('click', () => confirm());
+        }
+        track.appendChild(el);
+      }
+      const up = document.createElement('div');
+      up.style.cssText = 'position:absolute;left:50%;top:6px;transform:translateX(-50%);width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--ink-3);z-index:3;cursor:pointer;';
+      up.textContent = '↑';
+      up.addEventListener('click', (e) => { e.stopPropagation(); idx = (idx - 1 + total) % total; render(); });
+      const dn = document.createElement('div');
+      dn.style.cssText = up.style.cssText; dn.style.top = 'auto'; dn.style.bottom = '6px';
+      dn.textContent = '↓';
+      dn.addEventListener('click', (e) => { e.stopPropagation(); idx = (idx + 1) % total; render(); });
+      wheel.appendChild(up); wheel.appendChild(dn);
+    }
+    function confirm() {
+      const big = document.querySelector('.picker-info .date-big');
+      big.innerHTML = `
+        <span class="y">${STATE.year}</span>
+        <span class="d-num">${STATE.day}</span>
+        <span class="m-d">· ${STATE.month} 月</span>
+        <span class="m-d" style="font-size:14px;">· 周${'日一二三四五六'[new Date(STATE.year, STATE.month-1, STATE.day).getDay()]}</span>
+      `;
+    }
+    let dragging = false, startY = 0;
+    wheel.addEventListener('mousedown', (e) => { dragging = true; startY = e.clientY; });
+    window.addEventListener('mouseup', () => dragging = false);
+    window.addEventListener('mousemove', (e) => {
+      if (!dragging) return;
+      const dy = e.clientY - startY;
+      if (Math.abs(dy) > 18) {
+        idx = (idx + (-Math.sign(dy)) + data.values.length) % data.values.length;
+        startY = e.clientY;
+        render();
+      }
+    });
+    wheel.addEventListener('touchstart', (e) => { dragging = true; startY = e.touches[0].clientY; }, { passive: true });
+    wheel.addEventListener('touchmove', (e) => {
+      if (!dragging) return;
+      const dy = e.touches[0].clientY - startY;
+      if (Math.abs(dy) > 18) {
+        idx = (idx + (-Math.sign(dy)) + data.values.length) % data.values.length;
+        startY = e.touches[0].clientY;
+        render();
+      }
+    }, { passive: true });
+    wheel.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      idx = (idx + (e.deltaY > 0 ? 1 : -1) + data.values.length) % data.values.length;
+      render();
+    }, { passive: false });
+    render();
+  });
+
+  const board = document.getElementById('board');
+  const countEl = document.getElementById('countSel');
+  board.querySelectorAll('.card').forEach((n) => {
+    n.addEventListener('click', () => {
+      n.classList.toggle('selected');
+      document.getElementById('countSel').textContent = document.querySelectorAll('.card.selected').length;
+    });
+  });
+
+  document.querySelectorAll('.toolbar .left .chip, .view-switch button').forEach((c) => {
+    c.addEventListener('click', () => {
+      c.parentElement.querySelectorAll(c.classList.contains('chip') ? '.chip' : 'button').forEach((x) => x.classList.remove('active'));
+      c.classList.add('active');
+    });
+  });
+
+  setTimeout(() => {
+    document.querySelectorAll('.card').forEach((n, i) => {
+      n.style.opacity = '0';
+      const t = getComputedStyle(n).transform;
+      n.style.transform = (t === 'none' ? '' : t) + ' translateY(20px)';
+      setTimeout(() => {
+        n.style.transition = 'opacity .6s ease, transform .6s cubic-bezier(.2,.7,.3,1)';
+        n.style.opacity = '1';
+        const t2 = getComputedStyle(n).transform;
+        n.style.transform = t2.replace(' translateY(20px)', '');
+      }, 80 * i);
+    });
+  }, 200);
+</script>
+</body>
+</html>

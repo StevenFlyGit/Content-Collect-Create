@@ -1,0 +1,147 @@
+/* ---------- 主体 ---------- */
+.main { max-width: 1280px; margin: 0 auto; padding: 32px 32px 80px; }
+.hero { margin-bottom: 48px; max-width: 720px; }
+.greeting {
+  font-size: 13px; color: var(--ink-muted);
+  margin: 0 0 12px; letter-spacing: 2px; text-transform: uppercase;
+}
+.headline {
+  font-family: "Songti SC", "STSong", "Noto Serif SC", Georgia, serif;
+  font-size: 52px; line-height: 1.2; font-weight: 500;
+  margin: 0 0 24px; letter-spacing: 2px;
+}
+.headline em {
+  font-style: normal;
+  background: linear-gradient(135deg, var(--nebula-violet) 0%, var(--nebula-rose) 50%, var(--nebula-amber) 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 0 24px rgba(167, 139, 250, .4));
+}
+.subline { font-size: 15px; color: var(--ink-soft); display: flex; align-items: center; gap: 10px; }
+.dot-pulse {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--nebula-mint);
+  box-shadow: 0 0 12px var(--nebula-mint);
+  animation: pulse 2.4s infinite;
+}
+@keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .5; transform: scale(.8); } }
+
+/* ---------- 双主按钮：玻璃质感 + 等权重 ---------- */
+.actions { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 64px; }
+.action-card {
+  position: relative;
+  padding: 32px;
+  background: var(--surface);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  text-align: left;
+  cursor: pointer;
+  transition: all .3s var(--ease);
+  overflow: hidden;
+  display: flex; flex-direction: column; gap: 12px;
+  min-height: 200px;
+  text-decoration: none; color: inherit;
+}
+.action-card::before {
+  content: "";
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(255,255,255,.06), transparent 50%);
+  opacity: 0; transition: opacity .3s var(--ease);
+  pointer-events: none;
+}
+.action-card:hover::before { opacity: 1; }
+.action-card:hover { transform: translateY(-3px); border-color: rgba(255,255,255,.18); box-shadow: var(--shadow-lift); }
+.action-card.capture { background: linear-gradient(135deg, rgba(167,139,250,.12), rgba(125,211,252,.04)); border-color: rgba(167,139,250,.25); }
+.action-card.create  { background: linear-gradient(135deg, rgba(249,168,212,.10), rgba(252,211,77,.04)); border-color: rgba(249,168,212,.25); }
+.action-card .ico {
+  width: 56px; height: 56px; border-radius: 16px;
+  display: grid; place-items: center;
+  background: var(--surface-strong);
+  border: 1px solid var(--line);
+  transition: all .3s var(--ease);
+}
+.action-card.capture .ico { color: var(--nebula-violet); box-shadow: 0 0 24px rgba(167,139,250,.35); }
+.action-card.create .ico  { color: var(--nebula-rose);   box-shadow: 0 0 24px rgba(249,168,212,.35); }
+.action-card:hover .ico { transform: scale(1.08) rotate(-3deg); }
+.action-card .title {
+  font-family: "Songti SC", "STSong", "Noto Serif SC", Georgia, serif;
+  font-size: 24px; font-weight: 500; margin: 0;
+  display: flex; align-items: center; gap: 10px; letter-spacing: 1px;
+}
+.action-card .arrow { margin-left: auto; opacity: .5; transform: translateX(-4px); transition: all .25s var(--ease); color: var(--ink-soft); }
+.action-card:hover .arrow { opacity: 1; transform: translateX(0); }
+.action-card .desc { color: var(--ink-soft); font-size: 14px; margin: 0; line-height: 1.7; }
+.action-card .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; padding-top: 12px; }
+.tag {
+  font-size: 12px; padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--surface); color: var(--ink-soft);
+  border: 1px solid var(--line-soft);
+}
+.tag.muted { opacity: .5; }
+
+/* ---------- 最近灵感 ---------- */
+.section-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 20px; }
+.section-title { font-size: 14px; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 2px; margin: 0; font-weight: 500; }
+.section-link {
+  font-size: 13px; color: var(--ink-soft);
+  padding: 6px 14px; border-radius: var(--radius-pill);
+  border: 1px solid var(--line); transition: all .2s var(--ease);
+}
+.section-link:hover { background: var(--surface); color: var(--ink); }
+
+.recent-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.note {
+  position: relative;
+  background: var(--surface);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  padding: 16px; cursor: pointer;
+  transition: all .25s var(--ease);
+  display: flex; flex-direction: column; gap: 8px;
+  min-height: 130px; overflow: hidden;
+}
+.note::before {
+  content: "";
+  position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--nebula-violet), transparent);
+  opacity: .5;
+}
+.note:hover { transform: translateY(-2px); border-color: var(--line); background: var(--surface-strong); box-shadow: 0 12px 32px -12px rgba(0,0,0,.5); }
+.note .meta { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--ink-muted); letter-spacing: 1px; text-transform: uppercase; }
+.note .pill { font-size: 10px; padding: 2px 8px; border-radius: 4px; background: var(--surface-strong); letter-spacing: 1px; border: 1px solid var(--line-soft); }
+.note .pill.idea   { color: var(--nebula-violet); border-color: rgba(167,139,250,.3); }
+.note .pill.quote  { color: var(--nebula-blue);   border-color: rgba(125,211,252,.3); }
+.note .pill.moment { color: var(--nebula-rose);   border-color: rgba(249,168,212,.3); }
+.note .pill.task   { color: var(--nebula-mint);   border-color: rgba(134,239,172,.3); }
+.note .excerpt { font-size: 14px; color: var(--ink); line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; margin: 0; }
+.note .footer { margin-top: auto; display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--ink-muted); letter-spacing: .5px; }
+
+.reveal { opacity: 0; transform: translateY(8px); animation: reveal .6s var(--ease) forwards; }
+.reveal.d1 { animation-delay: .08s; }
+.reveal.d2 { animation-delay: .16s; }
+.reveal.d3 { animation-delay: .24s; }
+.reveal.d4 { animation-delay: .32s; }
+.reveal.d5 { animation-delay: .40s; }
+@keyframes reveal { to { opacity: 1; transform: none; } }
+
+/* ---------- 响应式 ---------- */
+@media (max-width: 960px) {
+  .main { padding: 24px 20px 60px; }
+  .headline { font-size: 36px; letter-spacing: 1px; }
+  .actions { grid-template-columns: 1fr; }
+  .recent-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 560px) {
+  .headline { font-size: 28px; }
+  .action-card { padding: 24px; min-height: 160px; }
+  .recent-grid { grid-template-columns: 1fr; }
+}
+.action-card:focus-visible, .nav-link:focus-visible, .note:focus-visible {
+  outline: 2px solid var(--focus); outline-offset: 3px;
+}
+/* 方案 B 使用字符箭头；图标容器沿用原型的字号与光晕表现 */
+.action-card .ico { font-size: 28px; line-height: 1; }
+.action-card .arrow { font-size: 20px; }

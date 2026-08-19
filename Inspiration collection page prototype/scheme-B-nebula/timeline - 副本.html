@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<meta name="theme-color" content="#0a0a1a">
+<title>灵感库 · Nebula Edition · B</title>
+<style>
+:root {
+  --cosmos-deep: #07060f;
+  --cosmos: #0e0c1d;
+  --cosmos-2: #16142a;
+  --surface: rgba(255, 255, 255, 0.04);
+  --surface-glass: rgba(255, 255, 255, 0.06);
+  --surface-strong: rgba(255, 255, 255, 0.09);
+  --line: rgba(255, 255, 255, 0.10);
+  --line-soft: rgba(255, 255, 255, 0.06);
+
+  --ink: #f5f3ed;
+  --ink-soft: #d8d4c8;
+  --ink-muted: #8d8879;
+
+  --nebula-violet: #a78bfa;
+  --nebula-blue:   #7dd3fc;
+  --nebula-rose:   #f9a8d4;
+  --nebula-mint:   #86efac;
+  --nebula-amber:  #fcd34d;
+
+  --focus: #93c5fd;
+  --success: #86efac;
+
+  --radius-panel: 20px;
+  --radius-card: 14px;
+  --radius-pill: 999px;
+  --shadow-soft: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -12px rgba(0,0,0,.5);
+  --shadow-lift: 0 2px 4px rgba(0,0,0,.4), 0 24px 48px -16px rgba(0,0,0,.6);
+  --ease: cubic-bezier(.2,.7,.3,1);
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+  font-size: 16px; line-height: 1.7;
+  color: var(--ink);
+  background: var(--cosmos-deep);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  overscroll-behavior: none;
+}
+button { font: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+a { color: inherit; text-decoration: none; }
+
+.cosmos {
+  position: fixed; inset: 0; z-index: -2;
+  background:
+    radial-gradient(ellipse 70% 60% at 30% 30%, rgba(167, 139, 250, .25), transparent 60%),
+    radial-gradient(ellipse 60% 50% at 80% 70%, rgba(125, 211, 252, .14), transparent 60%),
+    radial-gradient(ellipse 40% 40% at 50% 90%, rgba(249, 168, 212, .12), transparent 60%),
+    var(--cosmos-deep);
+}
+.cosmos::before, .cosmos::after {
+  content: ""; position: absolute; inset: -20%;
+  background:
+    radial-gradient(2px 2px at 20% 30%, rgba(255,255,255,.5), transparent),
+    radial-gradient(1px 1px at 60% 20%, rgba(255,255,255,.4), transparent),
+    radial-gradient(1.5px 1.5px at 80% 60%, rgba(255,255,255,.5), transparent),
+    radial-gradient(1px 1px at 30% 80%, rgba(255,255,255,.35), transparent),
+    radial-gradient(2px 2px at 90% 10%, rgba(255,255,255,.5), transparent),
+    radial-gradient(1px 1px at 10% 50%, rgba(255,255,255,.4), transparent),
+    radial-gradient(1.5px 1.5px at 50% 90%, rgba(255,255,255,.4), transparent);
+  background-size: 600px 600px;
+  animation: drift 50s linear infinite;
+  pointer-events: none;
+}
+.cosmos::after { background-size: 900px 900px; animation-duration: 80s; animation-direction: reverse; opacity: .5; }
+@keyframes drift {
+  from { transform: translate(0, 0); }
+  to { transform: translate(-60px, -60px); }
+}
+
+/* ---------- 顶部：外层 sticky + 内层居中 ---------- */
+.nav {
+  position: sticky; top: 0; z-index: 20;
+  background: linear-gradient(to bottom, rgba(14, 12, 29, .85), rgba(14, 12, 29, 0));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
+}
+.nav-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 16px 24px;
+  display: flex; align-items: center; gap: 16px;
+}
+.back {
+  display: flex; align-items: center; gap: 6px;
+  color: var(--ink-muted);
+  font-size: 14px; padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  transition: all .2s var(--ease);
+  border: 1px solid transparent;
+  flex-shrink: 0;
+}
+.back:hover { color: var(--ink); background: var(--surface); border-color: var(--line); }
+.nav-title {
+  font-family: "Songti SC", "STSong", "Noto Serif SC", Georgia, serif;
+  font-size: 18px; letter-spacing: 2px;
+  flex: 1; text-align: center;
+}
+.nav-tools { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+.nav-btn {
+  padding: 8px 14px; border-radius: var(--radius-pill);
+  color: var(--ink-soft); font-size: 13px;
+  transition: all .2s var(--ease);
+  display: inline-flex; align-items: center; gap: 6px;
+  border: 1px solid transparent;
+}
+.nav-btn:hover { background: var(--surface); border-color: var(--line); }
+
+/* ---------- 日期区 ---------- */
+.datesec {
+  max-width: 1280px; margin: 0 auto;
+  padding: 28px 24px 12px;
+  text-align: center;
+}
+.datesec h2 {
+  font-family: "Songti SC", "STSong", "Noto Serif SC", Georgia, serif;
+  font-size: 18px; font-weight: 500;
+  margin: 0 0 18px; letter-spacing: 2px;
+  color: var(--ink);
+}
+
+/* 日期滚轮容器：宽度自适应列数，默认三列并排 */
+.wheels {
+  display: inline-flex; align-items: center; gap: 20px;
+  padding: 6px 24px 14px;
+  background: var(--surface);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  box-shadow: var(--shadow-soft);
+}
+
+/* 单列：高度 180px，顶部和底部 72px 渐隐遮罩，
+   中间一条 36px 高的"指针条"刚好对齐一个 item */
+.wheel {
+  --item-h: 36px;
+  --pad: 72px;
+  position: relative;
+  width: 96px;
+  height: 180px;
+  cursor: ns-resize;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black var(--pad), black calc(100% - var(--pad)), transparent 100%);
+          mask-image: linear-gradient(to bottom, transparent 0%, black var(--pad), black calc(100% - var(--pad)), transparent 100%);
+}
+.wheel-track {
+  position: absolute; left: 0; right: 0; top: 50%;
+  display: flex; flex-direction: column;
+  align-items: center;
+  transition: transform .35s var(--ease);
+  will-change: transform;
+}
+/* 每个 item 高度对齐 36px，行高内嵌以便和 --pad 计算对得上 */
+.wheel-item {
+  height: var(--item-h);
+  flex: 0 0 var(--item-h);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  color: var(--ink-muted);
+  font-variant-numeric: tabular-nums;
+  font-family: "Songti SC", "STSong", "Noto Serif SC", Georgia, serif;
+  letter-spacing: 1px;
+  transition: font-size .25s var(--ease), color .25s var(--ease);
+  pointer-events: none; /* 拖动由 wheel 容器处理 */
+}
+.wheel-item.active {
+  font-size: 30px;
+  font-weight: 500;
+  color: var(--ink);
+  text-shadow: 0 0 22px rgba(167, 139, 250, .55);
+}
+.wheel-item.dim { opacity: .35; }
+/* 指针条：上下两条 1px 横线，指示"对齐"位置 */
+.wheel::before, .wheel::after {
+  content: "";
+  position: absolute; left: 8px; right: 8px;
+  height: 1px;
+  background: var(--line);
+  pointer-events: none;
+}
+.wheel::before { top: calc(50% - 18px - 1px); }
+.wheel::after  { top: calc(50% + 18px); }
+.wheel-divider { width: 1px; height: 84px; background: var(--line); flex-shrink: 0; }
+
+/* ---------- 日期汇总 & 视图切换 ---------- */
+.date-summary {
+  margin-top: 16px;
+  font-size: 13px; color: var(--ink-soft);
+  display: flex; justify-content: center; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.date-summary strong { color: var(--ink); font-weight: 500; }
+.date-summary .q {
+  font-size: 12px; padding: 4px 12px; border-radius: var(--radius-pill);
+  background: var(--surface); color: var(--ink-soft);
+  border: 1px solid var(--line);
+  letter-spacing: 1px;
+  transition: all .2s var(--ease);
+}
+.date-summary .q:hover { color: var(--ink); border-color: rgba(255,255,255,.22); }
+
+.view-switch {
+  display: inline-flex;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  padding: 4px;
+  margin-bottom: 16px;
+}
+.view-switch button {
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  color: var(--ink-muted);
+  transition: all .2s var(--ease);
+}
+.view-switch button.active {
+  background: var(--ink);
+  color: var(--cosmos-deep);
+}
+
+/* ---------- 白板区 ---------- */
+.board-wrap {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 8px 24px 200px;
+}
+.board-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px;
+  max-width: 1280px; margin: 0 auto 16px;
+}
+.board-title {
+  display: flex; align-items: center; gap: 12px;
+  font-size: 13px; color: var(--ink-muted);
+  letter-spacing: 1px; text-transform: uppercase;
+}
+.board-title strong { color: var(--ink); font-weight: 500; letter-spacing: 1px; }
+.board-actions { display: flex; gap: 8px; }
+.icon-btn {
+  width: 36px; height: 36px;
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  display: grid; place-items: center;
+  color: var(--ink-muted);
+  transition: all .2s var(--ease);
+}
+.icon-btn:hover { color: var(--ink); border-color: rgba(255,255,255,.2); }
+.icon-btn.active { background: var(--nebula-violet); color: var(--cosmos-deep); border-color: var(--nebula-violet); box-shadow: 0 0 16px rgba(167, 139, 250, .5); }
+
+.board {
+  position: relative;
+  background: var(--surface);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  min-height: 560px;
+  padding: 24px;
+  overflow: hidden;
+}
+.board::before {
+  content: ""; position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+  background-size: 32px 32px;
+  pointer-events: none;
+}
+
+/* 贴片 */
+.sticky {
+  position: absolute;
+  width: 220px;
+  background: var(--cosmos-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  padding: 14px 16px 12px;
+  cursor: grab;
+  transition: box-shadow .2s var(--ease), transform .2s var(--ease), border-color .2s var(--ease);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  opacity: 0; transform: translateY(8px);
+  animation: placeIn .55s var(--ease) forwards;
+}
+.sticky:active { cursor: grabbing; }
+.sticky:hover {
+  transform: translateY(-3px) rotate(0deg) !important;
+  box-shadow: 0 0 0 1px rgba(167, 139, 250, .5), 0 20px 40px -8px rgba(167, 139, 250, .3);
+  border-color: rgba(167, 139, 250, .4);
+  z-index: 2;
+}
+.sticky.selected {
+  border-color: var(--nebula-violet);
+  box-shadow: 0 0 0 1px var(--nebula-violet), 0 0 24px -4px var(--nebula-violet), var(--shadow-lift);
+  z-index: 3;
+}
+.sticky .check {
+  position: absolute; top: 10px; right: 10px;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid var(--line);
+  background: var(--cosmos-2);
+  display: grid; place-items: center;
+  color: var(--cosmos-deep);
+  font-size: 12px;
+  transition: all .2s var(--ease);
+}
+.sticky.selected .check {
+  background: var(--nebula-violet);
+  border-color: var(--nebula-violet);
+  box-shadow: 0 0 12px var(--nebula-violet);
+}
+.sticky .check::after { content: "✓"; opacity: 0; transition: opacity .15s var(--ease); }
+.sticky.selected .check::after { opacity: 1; }
+
+.sticky .head {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11px; color: var(--ink-muted);
+  margin-bottom: 6px;
+  letter-spacing: 1px;
+}
+.sticky .pill {
+  font-size: 10px; padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--surface-strong);
+  border: 1px solid var(--line-soft);
+  letter-spacing: 1px;
+}
+.sticky[data-type="想法"] .pill { color: var(--nebula-violet); border-color: rgba(167, 139, 250, .3); }
+.sticky[data-type="引用"] .pill { color: var(--nebula-blue);   border-color: rgba(125, 211, 252, .3); }
+.sticky[data-type="随感"] .pill { color: var(--nebula-rose);   border-color: rgba(249, 168, 212, .3); }
+.sticky[data-type="待办"] .pill { color: var(--nebula-mint);   border-color: rgba(134, 239, 172, .3); }
+.sticky .text {
+  font-size: 14px; line-height: 1.6;
+  color: var(--ink);
+  margin: 0 0 8px;
+  display: -webkit-box; -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical; overflow: hidden;
+}
+.sticky .text.quote {
+  font-family: "Songti SC", "STSong", "Noto Serif SC", Georgia, serif;
+  font-style: italic;
+  border-left: 2px solid var(--nebula-blue);
+  padding-left: 8px;
+}
+.sticky .attach-row { display: flex; gap: 4px; margin-top: 8px; flex-wrap: wrap; }
+.sticky .attach-row .chip {
+  font-size: 11px; padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--surface-strong);
+  color: var(--ink-soft);
+  display: inline-flex; align-items: center; gap: 3px;
+}
+.sticky .ai-tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 10px; padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(167, 139, 250, .12);
+  color: var(--nebula-violet);
+  margin-top: 8px;
+}
+.sticky .used {
+  font-size: 10px; color: var(--ink-muted);
+  margin-top: 6px;
+  display: flex; align-items: center; gap: 4px;
+}
+.sticky .used::before {
+  content: ""; width: 4px; height: 4px; border-radius: 50%;
+  background: var(--nebula-mint);
+  box-shadow: 0 0 6px var(--nebula-mint);
+}
+
+@keyframes placeIn { to { opacity: 1; transform: translateY(0); } }
+
+.sticky.s1 { top: 28px;  left: 32px;  transform: rotate(-1.5deg); animation-delay: .1s; }
+.sticky.s2 { top: 60px;  left: 290px; transform: rotate(0.8deg);  animation-delay: .18s; width: 240px; }
+.sticky.s3 { top: 220px; left: 80px;  transform: rotate(-0.5deg); animation-delay: .26s; }
+.sticky.s4 { top: 280px; left: 360px; transform: rotate(1.2deg);  animation-delay: .34s; width: 260px; }
+.sticky.s5 { top: 440px; left: 200px; transform: rotate(-1deg);   animation-delay: .42s; }
+.sticky.s6 { top: 100px; left: 580px; transform: rotate(0.4deg);  animation-delay: .5s;  width: 200px; }
+.sticky.s7 { top: 360px; left: 660px; transform: rotate(-0.6deg); animation-delay: .58s; }
+
+/* ---------- 星云视图 ---------- */
+.nebula-view {
+  position: relative;
+  background: var(--surface);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  min-height: 560px;
+  padding: 24px;
+  overflow: hidden;
+  display: none;
+}
+.nebula-view.on { display: block; }
+.nebula-view svg {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  pointer-events: none;
+}
+.cluster {
+  position: absolute;
+  display: flex; align-items: center; gap: 8px;
+}
+.cluster .core {
+  width: 12px; height: 12px; border-radius: 50%;
+  background: var(--nebula-violet);
+  box-shadow: 0 0 16px var(--nebula-violet);
+  cursor: pointer;
+}
+.cluster .label {
+  font-size: 13px; color: var(--ink);
+  background: var(--cosmos-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  padding: 4px 10px;
+  white-space: nowrap;
+}
+.cluster.selected .label {
+  border-color: var(--nebula-violet);
+  box-shadow: 0 0 16px rgba(167, 139, 250, .4);
+}
+.cluster.c1 .core { background: var(--nebula-violet); box-shadow: 0 0 16px var(--nebula-violet); }
+.cluster.c2 .core { background: var(--nebula-blue);   box-shadow: 0 0 16px var(--nebula-blue); }
+.cluster.c3 .core { background: var(--nebula-rose);   box-shadow: 0 0 16px var(--nebula-rose); }
+.cluster.c4 .core { background: var(--nebula-amber);  box-shadow: 0 0 16px var(--nebula-amber); }
+.cluster.c5 .core { background: var(--nebula-mint);   box-shadow: 0 0 16px var(--nebula-mint); }
+
+/* ---------- 底部多选操作栏 ---------- */
+.selection-bar {
+  position: fixed; left: 50%; bottom: 24px;
+  transform: translateX(-50%) translateY(20px);
+  display: flex; align-items: center; gap: 16px;
+  padding: 10px 12px 10px 18px;
+  background: var(--cosmos-2);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  border-radius: var(--radius-pill);
+  box-shadow: 0 10px 40px -10px rgba(167, 139, 250, .4), 0 0 24px -4px rgba(167, 139, 250, .3);
+  z-index: 30;
+  opacity: 0; pointer-events: none;
+  transition: all .3s var(--ease);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+.selection-bar.show {
+  opacity: 1; pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
+}
+.selection-bar .count {
+  font-size: 14px;
+  display: flex; align-items: center; gap: 8px;
+}
+.selection-bar .count strong {
+  font-family: "Songti SC", "STSong", "Noto Serif SC", Georgia, serif;
+  font-size: 18px;
+}
+.selection-bar .divider { width: 1px; height: 20px; background: var(--line); }
+.selection-bar .btn {
+  padding: 8px 14px;
+  border-radius: var(--radius-pill);
+  font-size: 14px;
+  transition: background .2s var(--ease);
+}
+.selection-bar .btn.ghost:hover { background: var(--surface); }
+.selection-bar .btn.primary {
+  background: linear-gradient(135deg, var(--nebula-violet), var(--nebula-rose));
+  color: var(--cosmos-deep);
+  font-weight: 600;
+}
+.selection-bar .btn.primary:hover { filter: brightness(1.1); }
+
+/* 缩略地图 */
+.thumb-map {
+  display: none;
+  margin-top: 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  height: 80px;
+  position: relative;
+  overflow: hidden;
+}
+.thumb-map::before {
+  content: "贴片缩略图 · 1/4";
+  position: absolute; top: 6px; left: 8px;
+  font-size: 11px; color: var(--ink-muted);
+}
+
+@media (max-width: 720px) {
+  .nav-inner { padding: 12px 16px; gap: 8px; }
+  .datesec { padding: 20px 16px 8px; }
+  .wheels { gap: 12px; padding: 4px 12px 12px; }
+  .wheel { width: 76px; --pad: 60px; }
+  .wheel-item { font-size: 18px; }
+  .wheel-item.active { font-size: 24px; }
+  .wheel-divider { height: 72px; }
+  .board-wrap { padding: 8px 16px 200px; }
+  .board {
+    padding: 16px;
+    min-height: auto;
+  }
+  .board::before { display: none; }
+  .sticky {
+    position: relative !important;
+    top: auto !important; left: auto !important;
+    transform: none !important;
+    width: 100% !important;
+    margin-bottom: 12px;
+    animation-delay: 0s !important;
+  }
+  .selection-bar { left: 16px; right: 16px; transform: none; bottom: 16px; padding: 8px 8px 8px 14px; }
+  .selection-bar.show { transform: none; }
+  .selection-bar .count { font-size: 13px; }
+  .nav-tools .nav-btn { display: none; }
+  .thumb-map { display: block; }
+}
+
+.reveal { opacity: 0; transform: translateY(6px); animation: reveal .5s var(--ease) forwards; }
+@keyframes reveal { to { opacity: 1; transform: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+.sticky:focus-visible,
+.cluster:focus-visible,
+.icon-btn:focus-visible,
+.back:focus-visible,
+.nav-btn:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+</style>
+</head>
+<body>
+<div class="cosmos" aria-hidden="true"></div>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="./home.html" class="back" aria-label="返回工作台">← 返回</a>
+    <div class="nav-title">灵感库</div>
+    <div class="nav-tools">
+      <a href="./capture.html" class="nav-btn">＋ 记录</a>
+      <button class="nav-btn" type="button" aria-label="搜索">🔍 搜索</button>
+      <button class="nav-btn" type="button" aria-label="筛选">⊕ 筛选</button>
+    </div>
+  </div>
+</nav>
+
+<section class="datesec reveal">
+  <h2>选择灵感发生的日期</h2>
+
+  <div class="wheels" id="wheels">
+    <div class="wheel" data-col="year" tabindex="0" aria-label="年份滚轮">
+      <div class="wheel-track" id="track-year"></div>
+    </div>
+    <div class="wheel-divider" aria-hidden="true"></div>
+    <div class="wheel" data-col="month" tabindex="0" aria-label="月份滚轮">
+      <div class="wheel-track" id="track-month"></div>
+    </div>
+    <div class="wheel-divider" aria-hidden="true"></div>
+    <div class="wheel" data-col="day" tabindex="0" aria-label="日滚轮">
+      <div class="wheel-track" id="track-day"></div>
+    </div>
+  </div>
+
+  <div class="date-summary" style="margin-top: 18px;">
+    <span><strong id="fullDate">2026 年 8 月 18 日</strong> · 当天有 <strong id="dayCount">4</strong> 条灵感</span>
+    <button class="q" id="btnToday" type="button">今天</button>
+    <button class="q" id="btnRecent" type="button">最近有灵感（昨天 8/17 · 6 条）</button>
+  </div>
+
+  <div style="text-align:center; margin-top: 20px;">
+    <div class="view-switch" role="tablist">
+      <button class="active" data-view="board" role="tab" aria-selected="true">▦ 白板</button>
+      <button data-view="nebula" role="tab" aria-selected="false">✦ 星云</button>
+    </div>
+  </div>
+</section>
+
+<section class="board-wrap">
+  <header class="board-head">
+    <div class="board-title">
+      <strong>8 月 18 日</strong> 白板 · 4 条灵感
+      <span style="opacity:.5">·</span>
+      <span>共 12 条</span>
+    </div>
+    <div class="board-actions">
+      <button class="icon-btn" type="button" title="缩略地图" aria-label="缩略地图">▦</button>
+      <button class="icon-btn" type="button" title="整理白板" aria-label="整理白板">⊜</button>
+    </div>
+  </header>
+
+  <!-- 白板视图 -->
+  <div class="board" id="board">
+
+    <article class="sticky s1" data-type="想法" tabindex="0" aria-label="灵感 1：想法">
+      <div class="check" aria-hidden="true"></div>
+      <div class="head"><span class="pill">想法</span><span>09:42</span></div>
+      <p class="text">"如果按日期回看灵感，会不会更像回到当天？"</p>
+      <div class="attach-row">
+        <span class="chip">🖼 2</span>
+        <span class="chip">🎙 01:24</span>
+      </div>
+      <div class="ai-tag">✦ AI 标签：产品 / 内容</div>
+    </article>
+
+    <article class="sticky s2" data-type="引用" tabindex="0" aria-label="灵感 2：引用">
+      <div class="check" aria-hidden="true"></div>
+      <div class="head"><span class="pill">引用</span><span>11:08</span></div>
+      <p class="text quote">"桂花落在车座上，气味比照片更早把秋天保存下来。"</p>
+      <div class="used">用于 2 个项目</div>
+    </article>
+
+    <article class="sticky s3" data-type="随感" tabindex="0" aria-label="灵感 3：随感">
+      <div class="check" aria-hidden="true"></div>
+      <div class="head"><span class="pill">随感</span><span>15:21</span></div>
+      <p class="text">便利店夜班的灯是「不要过来」还是「随时可以」？两个方向其实只差一块招牌。</p>
+      <div class="attach-row">
+        <span class="chip">🖼 1</span>
+      </div>
+    </article>
+
+    <article class="sticky s4" data-type="待办" tabindex="0" aria-label="灵感 4：待办">
+      <div class="check" aria-hidden="true"></div>
+      <div class="head"><span class="pill">待办</span><span>17:30</span></div>
+      <p class="text">周五合作视频开场：用一个"还没说清的念头"做钩子，前 8 秒留住观众。</p>
+      <div class="attach-row">
+        <span class="chip">🎙 02:11</span>
+        <span class="chip">🔗 1</span>
+      </div>
+    </article>
+
+    <article class="sticky s5" data-type="想法" tabindex="0" aria-label="灵感 5：想法">
+      <div class="check" aria-hidden="true"></div>
+      <div class="head"><span class="pill">想法</span><span>19:50</span></div>
+      <p class="text">把灵感按"光"分类：晨光、午后光、路灯。</p>
+    </article>
+
+    <article class="sticky s6" data-type="引用" tabindex="0" aria-label="灵感 6：引用">
+      <div class="check" aria-hidden="true"></div>
+      <div class="head"><span class="pill">引用</span><span>21:14</span></div>
+      <p class="text quote">"手写招牌的失误比完美字体更记得住。"</p>
+    </article>
+
+    <article class="sticky s7" data-type="随感" tabindex="0" aria-label="灵感 7：随感">
+      <div class="check" aria-hidden="true"></div>
+      <div class="head"><span class="pill">随感</span><span>22:03</span></div>
+      <p class="text">等红灯的人不焦虑，因为知道下一秒会变绿。写作也需要这种"等红灯"的段落。</p>
+      <div class="used">用于 1 个项目</div>
+    </article>
+
+  </div>
+
+  <!-- 星云视图 -->
+  <div class="nebula-view" id="nebulaView" role="tabpanel">
+    <!-- 连接线 -->
+    <svg viewBox="0 0 1000 600" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="grad1" x1="0" x2="1" y1="0" y2="0">
+          <stop offset="0" stop-color="#a78bfa" stop-opacity=".0"/>
+          <stop offset=".5" stop-color="#a78bfa" stop-opacity=".4"/>
+          <stop offset="1" stop-color="#f9a8d4" stop-opacity=".0"/>
+        </linearGradient>
+        <linearGradient id="grad2" x1="0" x2="1" y1="0" y2="0">
+          <stop offset="0" stop-color="#7dd3fc" stop-opacity=".0"/>
+          <stop offset=".5" stop-color="#7dd3fc" stop-opacity=".4"/>
+          <stop offset="1" stop-color="#a78bfa" stop-opacity=".0"/>
+        </linearGradient>
+      </defs>
+      <path d="M 200,150 Q 400,80 500,280" stroke="url(#grad1)" stroke-width="1.2" fill="none"/>
+      <path d="M 500,280 Q 650,400 820,200" stroke="url(#grad2)" stroke-width="1.2" fill="none"/>
+      <path d="M 250,420 Q 400,360 500,280" stroke="url(#grad1)" stroke-width="1.2" fill="none"/>
+      <path d="M 500,280 Q 700,200 800,440" stroke="url(#grad2)" stroke-width="1.2" fill="none"/>
+    </svg>
+
+    <div class="cluster c1" style="top:25%;left:20%">
+      <span class="core" tabindex="0"></span>
+      <span class="label">"桂花落在车座上…"</span>
+    </div>
+    <div class="cluster c2" style="top:18%;left:50%">
+      <span class="core" tabindex="0"></span>
+      <span class="label">"按日期回看 = 回到当天？"</span>
+    </div>
+    <div class="cluster c3" style="top:46%;left:42%">
+      <span class="core" tabindex="0"></span>
+      <span class="label">主题 · 写作</span>
+    </div>
+    <div class="cluster c4" style="top:65%;left:25%">
+      <span class="core" tabindex="0"></span>
+      <span class="label">"便利店夜班的灯…"</span>
+    </div>
+    <div class="cluster c5" style="top:33%;left:78%">
+      <span class="core" tabindex="0"></span>
+      <span class="label">"周五合作视频开场"</span>
+    </div>
+    <div class="cluster c1" style="top:75%;left:78%">
+      <span class="core" tabindex="0"></span>
+      <span class="label">"等红灯的段落"</span>
+    </div>
+  </div>
+
+  <div class="thumb-map" aria-hidden="true"></div>
+</section>
+
+<div class="selection-bar" id="selectionBar" role="region" aria-label="已选灵感操作栏">
+  <div class="count">已选 <strong id="selCount">0</strong> 条灵感</div>
+  <div class="divider"></div>
+  <button class="btn ghost" id="clearBtn">清空</button>
+  <button class="btn primary" id="createBtn">用这些灵感创作 →</button>
+</div>
+
+<script>
+/* =====================================================================
+   日期滚轮：DateWheel 类（动态值列表 + 拖动 + 滚轮 + 自动回弹）
+   - 单一指针指向视觉中线
+   - 鼠标滚轮一次只走一格（防卡顿）
+   - 拖动按拖动距离换算成步数，释放时吸附到最近的有效格
+   ===================================================================== */
+class DateWheel {
+  constructor(container, values, initialValue, onChange) {
+    this.container = container;
+    this.values = values;
+    this.ITEM_H = 36;
+    this.PAD = 72; // 与 .wheel CSS 上的 --pad 保持一致
+    this.idx = values.indexOf(initialValue);
+    if (this.idx < 0) this.idx = 0;
+    this.onChange = onChange;
+    this.build();
+    this.bind();
+    this.applyTransform(true);
+    this.refreshDimStates();
+  }
+
+  build() {
+    this.track = this.container.querySelector('.wheel-track');
+    this.track.innerHTML = '';
+    const topPad = document.createElement('div');
+    topPad.style.height = this.PAD + 'px';
+    topPad.style.flex = '0 0 ' + this.PAD + 'px';
+    this.track.appendChild(topPad);
+
+    this.items = this.values.map((v) => {
+      const el = document.createElement('div');
+      el.className = 'wheel-item';
+      el.textContent = v;
+      el.dataset.value = String(v);
+      this.track.appendChild(el);
+      return el;
+    });
+
+    const botPad = document.createElement('div');
+    botPad.style.height = this.PAD + 'px';
+    botPad.style.flex = '0 0 ' + this.PAD + 'px';
+    this.track.appendChild(botPad);
+  }
+
+  applyTransform(immediate = false) {
+    const offsetY = -this.idx * this.ITEM_H;
+    if (immediate) this.track.style.transition = 'none';
+    this.track.style.transform =
+      `translateY(calc(-50% - ${this.PAD}px + ${offsetY}px))`;
+    if (immediate) {
+      requestAnimationFrame(() => {
+        this.track.style.transition = '';
+      });
+    }
+  }
+
+  refreshDimStates() {
+    this.items.forEach((el, i) => {
+      const dist = Math.abs(i - this.idx);
+      el.classList.toggle('active', i === this.idx);
+      el.classList.toggle('dim', dist > 1 && dist <= 3);
+    });
+  }
+
+  set(i, { bounce = false } = {}) {
+    const clamped = Math.max(0, Math.min(this.values.length - 1, i));
+    if (clamped !== this.idx) {
+      this.idx = clamped;
+      this.applyTransform();
+      this.refreshDimStates();
+      if (this.onChange) this.onChange(this.values[this.idx], this.idx);
+    } else if (bounce) {
+      // 触顶/触底时的轻微回弹反馈
+      this.applyTransform();
+    }
+  }
+
+  bind() {
+    /* 鼠标滚轮：单步推进 + 防抖，避免一次滚动触发多个 step */
+    let wheelLock = false;
+    this.container.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      if (wheelLock) return;
+      wheelLock = true;
+      const dir = e.deltaY > 0 ? 1 : -1;
+      this.set(this.idx + dir, { bounce: true });
+      setTimeout(() => { wheelLock = false; }, 180);
+    }, { passive: false });
+
+    /* 拖动：拖动期间跟随手指/鼠标，松手时按 36px = 1 step 吸附 */
+    let dragging = false, startY = 0;
+    const padPx = this.PAD;
+
+    const onMove = (e) => {
+      if (!dragging) return;
+      const y = e.touches ? e.touches[0].clientY : e.clientY;
+      const dy = y - startY;
+      this.track.style.transition = 'none';
+      this.track.style.transform =
+        `translateY(calc(-50% - ${padPx}px + ${-this.idx * this.ITEM_H + dy}px))`;
+    };
+    const onEnd = (e) => {
+      if (!dragging) return;
+      dragging = false;
+      this.track.style.transition = '';
+      const y = (e.changedTouches && e.changedTouches[0])
+        ? e.changedTouches[0].clientY
+        : e.clientY;
+      const dy = y - startY;
+      // 拖动 36px = 1 step，方向相反（向上拖 → 值递增）
+      const stepDelta = Math.round(-dy / this.ITEM_H);
+      this.set(this.idx + stepDelta, { bounce: true });
+    };
+
+    this.container.addEventListener('mousedown', (e) => {
+      dragging = true;
+      startY = e.clientY;
+      e.preventDefault();
+    });
+    this.container.addEventListener('touchstart', (e) => {
+      dragging = true;
+      startY = e.touches[0].clientY;
+    }, { passive: true });
+
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('touchmove', onMove, { passive: true });
+    window.addEventListener('mouseup', onEnd);
+    window.addEventListener('touchend', onEnd);
+  }
+}
+
+/* ---------- 构造三列滚轮 ---------- */
+const TODAY = new Date(2026, 7, 18); // 注意：月份 0-index，这里 = 8 月 18 日
+const yearValues  = Array.from({length: 11}, (_, i) => 2020 + i); // 2020 ~ 2030
+const monthValues = Array.from({length: 12}, (_, i) => String(i + 1).padStart(2, '0'));
+const daysIn = (y, m) => new Date(y, m, 0).getDate(); // m 1-12
+let dayValues = Array.from({length: daysIn(TODAY.getFullYear(), TODAY.getMonth() + 1)},
+                            (_, i) => String(i + 1).padStart(2, '0'));
+
+const fullDateEl = document.getElementById('fullDate');
+const dayCountEl = document.getElementById('dayCount');
+
+const state = {
+  year:  TODAY.getFullYear(),
+  month: TODAY.getMonth() + 1,
+  day:   TODAY.getDate()
+};
+
+const fmtDate = (y, m, d) => `${y} 年 ${m} 月 ${d} 日`;
+
+function syncDayWheel() {
+  const totalDays = daysIn(state.year, state.month);
+  const newValues = Array.from({length: totalDays}, (_, i) => String(i + 1).padStart(2, '0'));
+  dayWheel.values = newValues;
+  dayWheel.items = null;
+  dayWheel.track.innerHTML = '';
+  const topPad = document.createElement('div');
+  topPad.style.height = dayWheel.PAD + 'px';
+  topPad.style.flex = '0 0 ' + dayWheel.PAD + 'px';
+  dayWheel.track.appendChild(topPad);
+  newValues.forEach((v) => {
+    const el = document.createElement('div');
+    el.className = 'wheel-item';
+    el.textContent = v;
+    el.dataset.value = String(v);
+    dayWheel.track.appendChild(el);
+  });
+  const botPad = document.createElement('div');
+  botPad.style.height = dayWheel.PAD + 'px';
+  botPad.style.flex = '0 0 ' + dayWheel.PAD + 'px';
+  dayWheel.track.appendChild(botPad);
+  dayWheel.items = Array.from(dayWheel.track.querySelectorAll('.wheel-item'));
+  // clamp day index + 同步 state，避免 selected 超过当月天数时不一致
+  const targetIdx = Math.max(0, Math.min(totalDays - 1, state.day - 1));
+  dayWheel.idx = targetIdx;
+  state.day = targetIdx + 1;
+  dayWheel.applyTransform(true);
+  dayWheel.refreshDimStates();
+}
+
+function syncSummary() {
+  fullDateEl.textContent = fmtDate(state.year, state.month, state.day);
+  // 简单的"每天灵感数"示例值（真实接入时按接口返回）
+  const seed = (state.year * 100 + state.month * 31 + state.day) % 7;
+  dayCountEl.textContent = Math.max(0, seed);
+}
+
+const yearWheel = new DateWheel(
+  document.querySelector('[data-col="year"]'),
+  yearValues,
+  state.year,
+  (v) => { state.year = Number(v); syncSummary(); syncDayWheel(); }
+);
+
+const monthWheel = new DateWheel(
+  document.querySelector('[data-col="month"]'),
+  monthValues,
+  String(state.month).padStart(2, '0'),
+  (v) => { state.month = Number(v); syncSummary(); syncDayWheel(); }
+);
+
+const dayWheel = new DateWheel(
+  document.querySelector('[data-col="day"]'),
+  dayValues,
+  String(state.day).padStart(2, '0'),
+  (v) => { state.day = Number(v); syncSummary(); }
+);
+
+syncSummary();
+
+/* ---------- 快捷键：跳转到今天 / 昨天 ---------- */
+document.getElementById('btnToday').addEventListener('click', () => {
+  yearWheel.set(yearValues.indexOf(TODAY.getFullYear()));
+  monthWheel.set(TODAY.getMonth());
+  dayWheel.set(TODAY.getDate() - 1);
+});
+document.getElementById('btnRecent').addEventListener('click', () => {
+  const y = TODAY.getFullYear();
+  const m = TODAY.getMonth() + 1;
+  const d = TODAY.getDate() - 1;
+  yearWheel.set(yearValues.indexOf(y));
+  monthWheel.set(m - 1);
+  state.day = d; syncSummary();
+  if (dayValues.length >= d) dayWheel.set(d - 1);
+  else syncDayWheel();
+});
+
+/* ---------- 视图切换 ---------- */
+const swBtns = document.querySelectorAll('.view-switch button');
+const board = document.getElementById('board');
+const nebula = document.getElementById('nebulaView');
+swBtns.forEach(b => {
+  b.addEventListener('click', () => {
+    swBtns.forEach(x => { x.classList.remove('active'); x.setAttribute('aria-selected', 'false'); });
+    b.classList.add('active');
+    b.setAttribute('aria-selected', 'true');
+    if (b.dataset.view === 'board') {
+      board.style.display = 'block';
+      nebula.classList.remove('on');
+    } else {
+      board.style.display = 'none';
+      nebula.classList.add('on');
+    }
+  });
+});
+
+/* ---------- 白板多选 ---------- */
+const stickies = document.querySelectorAll('.sticky');
+const bar = document.getElementById('selectionBar');
+const selCount = document.getElementById('selCount');
+let selected = new Set();
+function updateBar() {
+  selCount.textContent = selected.size;
+  if (selected.size > 0) bar.classList.add('show');
+  else bar.classList.remove('show');
+}
+stickies.forEach((s, idx) => {
+  s.addEventListener('click', () => {
+    if (selected.has(idx)) {
+      selected.delete(idx);
+      s.classList.remove('selected');
+    } else {
+      selected.add(idx);
+      s.classList.add('selected');
+    }
+    updateBar();
+  });
+});
+
+/* ---------- 星云视图多选 ---------- */
+document.querySelectorAll('.cluster').forEach((c, idx) => {
+  c.addEventListener('click', () => {
+    if (selected.has(idx + 100)) {
+      selected.delete(idx + 100);
+      c.classList.remove('selected');
+    } else {
+      selected.add(idx + 100);
+      c.classList.add('selected');
+    }
+    updateBar();
+  });
+});
+
+document.getElementById('clearBtn').addEventListener('click', () => {
+  selected.clear();
+  stickies.forEach(s => s.classList.remove('selected'));
+  document.querySelectorAll('.cluster').forEach(c => c.classList.remove('selected'));
+  updateBar();
+});
+document.getElementById('createBtn').addEventListener('click', () => {
+  selCount.textContent = '✓';
+  setTimeout(() => updateBar(), 1200);
+});
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    selected.clear();
+    stickies.forEach(s => s.classList.remove('selected'));
+    document.querySelectorAll('.cluster').forEach(c => c.classList.remove('selected'));
+    updateBar();
+  }
+});
+</script>
+</body>
+</html>

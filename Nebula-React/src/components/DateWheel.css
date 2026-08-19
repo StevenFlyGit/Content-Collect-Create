@@ -1,0 +1,70 @@
+/* ---------- 日期滚轮容器 ---------- */
+.wheels {
+  display: inline-flex; align-items: center; gap: 20px;
+  padding: 6px 24px 14px;
+  background: var(--surface);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  box-shadow: var(--shadow-soft);
+}
+
+/* 单列：高度 180px，顶部/底部渐隐遮罩，中线一条 36px 指针条 */
+.wheel {
+  --item-h: 36px;
+  --pad: 72px;
+  position: relative;
+  width: 96px;
+  height: 180px;
+  cursor: ns-resize;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black var(--pad), black calc(100% - var(--pad)), transparent 100%);
+          mask-image: linear-gradient(to bottom, transparent 0%, black var(--pad), black calc(100% - var(--pad)), transparent 100%);
+}
+.wheel-track {
+  position: absolute; left: 0; right: 0; top: 50%;
+  display: flex; flex-direction: column;
+  align-items: center;
+  transition: transform .35s var(--ease);
+  will-change: transform;
+}
+.wheel-pad { height: var(--pad); flex: 0 0 var(--pad); }
+.wheel-item {
+  height: var(--item-h);
+  flex: 0 0 var(--item-h);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  color: var(--ink-muted);
+  font-variant-numeric: tabular-nums;
+  font-family: "Songti SC", "STSong", "Noto Serif SC", Georgia, serif;
+  letter-spacing: 1px;
+  transition: font-size .25s var(--ease), color .25s var(--ease);
+  pointer-events: none;
+}
+.wheel-item.active {
+  font-size: 30px; font-weight: 500;
+  color: var(--ink);
+  text-shadow: 0 0 22px rgba(167, 139, 250, .55);
+}
+.wheel-item.dim { opacity: .35; }
+.wheel::before, .wheel::after {
+  content: ""; position: absolute; left: 8px; right: 8px;
+  height: 1px; background: var(--line);
+  pointer-events: none;
+}
+.wheel::before { top: calc(50% - 18px - 1px); }
+.wheel::after  { top: calc(50% + 18px); }
+.wheel-divider { width: 1px; height: 84px; background: var(--line); flex-shrink: 0; }
+
+@media (max-width: 720px) {
+  .wheels { gap: 12px; padding: 4px 12px 12px; }
+  .wheel { width: 76px; --pad: 60px; }
+  .wheel-item { font-size: 18px; }
+  .wheel-item.active { font-size: 24px; }
+  .wheel-divider { height: 72px; }
+}
+/* scheme-B 的日期项需要支持直接点击；拖动仍由 wheel 容器统一处理 */
+.wheel-item { pointer-events: auto; cursor: pointer; }

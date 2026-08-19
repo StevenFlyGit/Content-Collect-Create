@@ -1,0 +1,53 @@
+/* ============================================================
+   Nebula Edition · 设计令牌（Design Tokens）
+   ------------------------------------------------------------
+   本文件是「设计侧 → 工程侧」的唯一变量来源。
+   变量名与设计稿（scheme-B-nebula/*.html 的 :root）完全一致，
+   组件内可直接粘贴 var(--nebula-violet) 等，零翻译、零映射。
+   ============================================================ */
+:root {
+  /* 宇宙底色 */
+  --cosmos-deep: #07060f;
+  --cosmos: #0e0c1d;
+  --cosmos-2: #16142a;
+
+  /* 玻璃表面 */
+  --surface: rgba(255, 255, 255, 0.04);
+  --surface-glass: rgba(255, 255, 255, 0.06);
+  --surface-strong: rgba(255, 255, 255, 0.09);
+
+  /* 描边 */
+  --line: rgba(255, 255, 255, 0.10);
+  --line-soft: rgba(255, 255, 255, 0.06);
+
+  /* 文本 */
+  --ink: #f5f3ed;
+  --ink-soft: #d8d4c8;
+  --ink-muted: #8d8879;
+
+  /* 星云色系（类型色 + 强调） */
+  --nebula-violet: #a78bfa;
+  --nebula-blue:   #7dd3fc;
+  --nebula-rose:   #f9a8d4;
+  --nebula-mint:   #86efac;
+  --nebula-amber:  #fcd34d;
+
+  /* 语义色 */
+  /* 键盘焦点环：品牌紫（取代默认浏览器蓝，避免误以为是系统蓝框） */
+  --focus: #a78bfa;
+  --focus-soft: rgba(167, 139, 250, .35);
+  --success: #86efac;
+  --danger: #fca5a5;
+
+  /* 圆角 */
+  --radius-panel: 20px;
+  --radius-card: 14px;
+  --radius-pill: 999px;
+
+  /* 阴影 */
+  --shadow-soft: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -12px rgba(0,0,0,.5);
+  --shadow-lift: 0 2px 4px rgba(0,0,0,.4), 0 24px 48px -16px rgba(0,0,0,.6);
+
+  /* 缓动 */
+  --ease: cubic-bezier(.2,.7,.3,1);
+}

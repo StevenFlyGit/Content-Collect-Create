@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#FAF6EE" />
+<title>方案 A · 纸感 · 按日期翻阅 / 灵感白板</title>
+<style>
+  :root {
+    --canvas: #FAF6EE;
+    --canvas-2: #F4ECDA;
+    --paper: #FFFCF6;
+    --paper-2: #F3EBD8;
+    --ink: #2A2825;
+    --ink-2: #4F4A41;
+    --ink-3: #807868;
+    --line: rgba(42, 40, 37, .08);
+    --line-2: rgba(42, 40, 37, .14);
+    --accent-ink: #2D3E5F;
+    --accent-warm: #B95727;
+
+    --note-yellow: #FCE9A6;
+    --note-rose:   #F5D0CC;
+    --note-mint:   #C5DCC8;
+    --note-blue:   #C3D6E5;
+    --note-lilac:  #DED3E5;
+    --note-peach:  #F3D4B8;
+    --note-clay:   #E5CFC2;
+
+    --radius-panel: 28px;
+    --radius-card: 18px;
+    --radius-pill: 999px;
+
+    --shadow-1: 0 1px 2px rgba(42, 40, 37, .04), 0 6px 18px -8px rgba(42, 40, 37, .12);
+    --shadow-2: 0 2px 4px rgba(42, 40, 37, .06), 0 16px 36px -14px rgba(42, 40, 37, .18);
+    --shadow-3: 0 4px 8px rgba(42, 40, 37, .08), 0 24px 60px -16px rgba(42, 40, 37, .22);
+
+    --font-serif: "Noto Serif SC", "Songti SC", "STSong", Georgia, serif;
+    --font-sans: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+    --ease: cubic-bezier(.2, .7, .3, 1);
+    --ease-out: cubic-bezier(.16, .84, .44, 1);
+
+    --container: 1280px;
+    --pad-x: 32px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--ink);
+    background: var(--canvas);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  a { color: inherit; text-decoration: none; }
+  button { font: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+  ::selection { background: var(--note-yellow); color: var(--ink); }
+
+  .paper-noise {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: .35;
+    background-image:
+      radial-gradient(circle at 20% 20%, rgba(185, 87, 39, .04) 0%, transparent 40%),
+      radial-gradient(circle at 80% 70%, rgba(45, 62, 95, .04) 0%, transparent 40%);
+  }
+  .paper-noise::after {
+    content: ""; position: absolute; inset: 0;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.16 0 0 0 0 0.16 0 0 0 0 0.14 0 0 0 0.035 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    opacity: .55; mix-blend-mode: multiply;
+  }
+
+  /* Topbar (compact) */
+  .topbar {
+    position: sticky; top: 0; z-index: 50;
+    backdrop-filter: saturate(160%) blur(12px);
+    -webkit-backdrop-filter: saturate(160%) blur(12px);
+    background: linear-gradient(180deg, rgba(250, 246, 238, .88) 0%, rgba(250, 246, 238, .68) 100%);
+    border-bottom: 1px solid transparent;
+  }
+  .topbar.scrolled { border-bottom-color: var(--line); background: rgba(250, 246, 238, .92); }
+  .topbar-inner {
+    max-width: var(--container);
+    margin: 0 auto;
+    padding: 14px var(--pad-x);
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px;
+  }
+  .brand {
+    display: flex; align-items: baseline; gap: 10px;
+    font-family: var(--font-serif);
+    font-size: 17px;
+    font-weight: 500;
+  }
+  .brand .t {
+    width: 26px; height: 26px; border-radius: 7px;
+    background: var(--ink); color: var(--canvas);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px;
+    transform: translateY(4px);
+  }
+  .topbar-actions { display: flex; align-items: center; gap: 8px; }
+  .icon-btn {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: var(--paper); border: 1px solid var(--line);
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: all .25s var(--ease);
+  }
+  .icon-btn:hover { transform: translateY(-1px); box-shadow: var(--shadow-1); }
+  .icon-btn svg { width: 17px; height: 17px; stroke: var(--ink-2); fill: none; stroke-width: 1.6; stroke-linecap: round; }
+
+  /* Page header */
+  .page-head {
+    position: relative; z-index: 1;
+    max-width: var(--container);
+    margin: 0 auto;
+    padding: 32px var(--pad-x) 0;
+    display: flex; align-items: end; justify-content: space-between;
+    gap: 20px;
+  }
+  .page-head .left h1 {
+    font-family: var(--font-serif);
+    font-size: 32px;
+    font-weight: 500;
+    margin: 0 0 6px;
+    letter-spacing: .5px;
+  }
+  .page-head .left .sub {
+    color: var(--ink-3);
+    font-size: 13px;
+  }
+  .page-head .right {
+    display: flex; align-items: center; gap: 10px;
+  }
+  .view-switch {
+    display: inline-flex;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-pill);
+    padding: 4px;
+    gap: 4px;
+  }
+  .view-switch button {
+    padding: 7px 14px;
+    border-radius: var(--radius-pill);
+    font-size: 13px;
+    color: var(--ink-2);
+    transition: all .2s var(--ease);
+  }
+  .view-switch button.active {
+    background: var(--ink);
+    color: var(--canvas);
+  }
+  .badge-soft {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 12px;
+    border-radius: var(--radius-pill);
+    background: var(--paper);
+    border: 1px solid var(--line);
+    font-size: 12px;
+    color: var(--ink-2);
+  }
+  .badge-soft .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent-warm); }
+
+  /* Date picker */
+  .picker {
+    position: relative; z-index: 1;
+    max-width: var(--container);
+    margin: 28px auto 0;
+    padding: 24px var(--pad-x);
+    background: var(--paper);
+    border-radius: var(--radius-panel);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow-1);
+  }
+  .picker-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1.2fr;
+    gap: 28px;
+    align-items: center;
+  }
+  .picker-info {
+    padding-right: 16px;
+    border-right: 1px dashed var(--line-2);
+  }
+  .picker-info .eyebrow {
+    font-size: 11px;
+    color: var(--ink-3);
+    letter-spacing: 1.5px;
+    margin-bottom: 6px;
+  }
+  .picker-info .date-big {
+    font-family: var(--font-serif);
+    font-size: 44px;
+    font-weight: 500;
+    line-height: 1.05;
+    margin: 0;
+    letter-spacing: 1px;
+  }
+  .picker-info .date-big .y { font-size: 22px; color: var(--ink-3); display: block; margin-bottom: 2px; }
+  .picker-info .date-big .d-num { color: var(--accent-warm); }
+  .picker-info .meta {
+    margin-top: 12px;
+    display: flex; gap: 16px;
+    font-size: 12px;
+    color: var(--ink-3);
+  }
+  .picker-info .meta strong { color: var(--ink-2); font-weight: 600; }
+
+  .wheel-col {
+    text-align: center;
+  }
+  .wheel-col .label {
+    font-size: 11px;
+    color: var(--ink-3);
+    letter-spacing: 1.5px;
+    margin-bottom: 8px;
+  }
+  .wheel {
+    position: relative;
+    height: 220px;
+    overflow: hidden;
+    border-radius: 14px;
+    background: var(--canvas);
+    border: 1px solid var(--line);
+    cursor: ns-resize;
+    user-select: none;
+    touch-action: pan-y;
+  }
+  .wheel::before, .wheel::after {
+    content: "";
+    position: absolute; left: 0; right: 0;
+    height: 70px;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .wheel::before {
+    top: 0;
+    background: linear-gradient(180deg, var(--canvas) 0%, transparent 100%);
+  }
+  .wheel::after {
+    bottom: 0;
+    background: linear-gradient(0deg, var(--canvas) 0%, transparent 100%);
+  }
+  .wheel-line {
+    position: absolute; left: 0; right: 0;
+    top: 50%;
+    height: 36px;
+    margin-top: -18px;
+    border-top: 1px dashed var(--line-2);
+    border-bottom: 1px dashed var(--line-2);
+    pointer-events: none;
+    z-index: 1;
+  }
+  .wheel-track {
+    position: absolute; left: 0; right: 0;
+    top: 50%; transform: translateY(-50%);
+    height: 36px;
+    line-height: 36px;
+    text-align: center;
+    transition: transform .3s var(--ease);
+  }
+  .wheel-item {
+    height: 36px;
+    line-height: 36px;
+    text-align: center;
+    font-family: var(--font-serif);
+    font-size: 18px;
+    color: var(--ink-2);
+    transition: all .25s var(--ease);
+    cursor: pointer;
+  }
+  .wheel-item.dim { opacity: .35; font-size: 14px; }
+  .wheel-item.focal {
+    font-size: 24px;
+    color: var(--ink);
+    font-weight: 500;
+    opacity: 1;
+  }
+
+  .picker-hint {
+    text-align: center;
+    margin-top: 14px;
+    color: var(--ink-3);
+    font-size: 12px;
+    letter-spacing: 1px;
+  }
+  .picker-hint kbd {
+    background: var(--canvas);
+    border: 1px solid var(--line);
+    padding: 1px 7px;
+    border-radius: 6px;
+    font-size: 11px;
+    color: var(--ink-2);
+  }
+
+  /* Toolbar under picker */
+  .toolbar {
+    position: relative; z-index: 1;
+    max-width: var(--container);
+    margin: 16px auto 0;
+    padding: 0 var(--pad-x);
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .toolbar .left, .toolbar .right { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .chip {
+    padding: 8px 16px;
+    border-radius: var(--radius-pill);
+    background: transparent;
+    border: 1px solid var(--line);
+    font-size: 13px;
+    color: var(--ink-2);
+    cursor: pointer;
+    transition: all .2s var(--ease);
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .chip::before {
+    content: "";
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--accent-warm); opacity: .35;
+  }
+  .chip:hover { transform: translateY(-1px); box-shadow: var(--shadow-1); }
+  .chip.active {
+    background: var(--ink); color: var(--canvas); border-color: var(--ink);
+  }
+  .chip.active::before { background: var(--accent-warm); opacity: 1; }
+  .search-inline {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 14px;
+    border-radius: var(--radius-pill);
+    background: var(--paper);
+    border: 1px solid var(--line);
+    font-size: 13px;
+    color: var(--ink-3);
+    min-width: 220px;
+  }
+  .search-inline svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.6; }
+
+  .select-count {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 14px;
+    border-radius: var(--radius-pill);
+    background: rgba(45, 62, 95, .08);
+    color: var(--accent-ink);
+    font-size: 12px;
+  }
+  .select-count b { font-family: var(--font-serif); font-size: 14px; }
+
+  /* Board */
+  .board-wrap {
+    position: relative; z-index: 1;
+    max-width: var(--container);
+    margin: 24px auto 80px;
+    padding: 0 var(--pad-x);
+  }
+  .board {
+    position: relative;
+    background: var(--paper);
+    border-radius: var(--radius-panel);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow-1);
+    padding: 40px;
+    min-height: 540px;
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(42, 40, 37, .03) 1px, transparent 0);
+    background-size: 24px 24px;
+  }
+  .board-empty {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ink-3);
+    font-size: 13px;
+    pointer-events: none;
+    display: none;
+  }
+  .board.no-notes .board-empty { display: flex; }
+
+  .note {
+    position: absolute;
+    width: 220px;
+    padding: 22px;
+    border-radius: 12px;
+    background: var(--note-yellow);
+    box-shadow: var(--shadow-2);
+    cursor: grab;
+    transition: transform .35s var(--ease), box-shadow .35s var(--ease);
+    color: var(--ink);
+  }
+  .note.selected {
+    box-shadow: 0 0 0 3px var(--accent-ink), var(--shadow-3);
+    transform: scale(1.04);
+  }
+  .note:active { cursor: grabbing; }
+  .note:hover {
+    transform: translateY(-4px) rotate(0deg) !important;
+    box-shadow: var(--shadow-3);
+    z-index: 4;
+  }
+  .note .meta {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 10px;
+    color: rgba(42, 40, 37, .55);
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .note .meta .tag {
+    padding: 2px 7px;
+    border-radius: var(--radius-pill);
+    background: rgba(42, 40, 37, .08);
+    color: rgba(42, 40, 37, .8);
+    font-weight: 500;
+  }
+  .note .body {
+    font-family: var(--font-serif);
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--ink);
+    word-break: break-word;
+  }
+  .note .check {
+    position: absolute; top: 8px; right: 8px;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, .6);
+    border: 1px solid rgba(42, 40, 37, .1);
+    display: inline-flex; align-items: center; justify-content: center;
+    opacity: 0;
+    transition: opacity .2s var(--ease);
+    color: var(--accent-ink);
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .note:hover .check { opacity: 1; }
+  .note.selected .check {
+    opacity: 1;
+    background: var(--accent-ink);
+    color: var(--canvas);
+    border-color: var(--accent-ink);
+  }
+  .note .img-thumb {
+    height: 80px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    border: 1px solid rgba(0,0,0,.08);
+    position: relative;
+    overflow: hidden;
+  }
+  .note .img-thumb::after {
+    content: "📷"; position: absolute; right: 8px; bottom: 6px; font-size: 14px;
+  }
+
+  .note.yellow { background: var(--note-yellow); }
+  .note.rose   { background: var(--note-rose);   }
+  .note.mint   { background: var(--note-mint);   }
+  .note.blue   { background: var(--note-blue);   }
+  .note.lilac  { background: var(--note-lilac);  }
+  .note.peach  { background: var(--note-peach);  }
+  .note.clay   { background: var(--note-clay);   }
+  .note.wide   { width: 280px; }
+
+  /* Quick compose */
+  .compose-fab {
+    position: fixed;
+    right: 28px; bottom: 28px;
+    z-index: 70;
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    background: var(--accent-warm); color: var(--canvas);
+    display: inline-flex; align-items: center; justify-content: center;
+    box-shadow: 0 12px 30px -8px rgba(185, 87, 39, .55);
+    transition: transform .3s var(--ease);
+    cursor: pointer;
+  }
+  .compose-fab:hover { transform: rotate(8deg) scale(1.05); }
+  .compose-fab svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
+
+  /* Fixed bottom on mobile */
+  .mobile-bar { display: none; }
+
+  @media (max-width: 960px) {
+    :root { --pad-x: 20px; }
+    .picker-grid { grid-template-columns: 1fr; gap: 18px; }
+    .picker-info { padding-right: 0; padding-bottom: 16px; border-right: none; border-bottom: 1px dashed var(--line-2); }
+    .page-head { flex-direction: column; align-items: stretch; }
+    .board { padding: 24px; min-height: 480px; }
+    .note { width: 180px; padding: 16px; }
+  }
+  @media (max-width: 640px) {
+    body { padding-bottom: 76px; }
+    .topbar-inner { padding: 12px 16px; }
+    .page-head { padding: 20px 16px 0; }
+    .picker { padding: 18px 16px; }
+    .picker-info .date-big { font-size: 36px; }
+    .picker-info .date-big .y { font-size: 16px; }
+    .board-wrap { padding: 0 12px; }
+    .board { padding: 18px; min-height: 420px; }
+    .toolbar { padding: 0 16px; }
+    .note { width: 150px; }
+    .note .body { font-size: 13px; }
+    .mobile-bar {
+      display: flex;
+      position: fixed; left: 12px; right: 12px; bottom: 12px;
+      z-index: 70;
+      background: var(--paper); border: 1px solid var(--line);
+      border-radius: var(--radius-pill);
+      box-shadow: 0 16px 40px -12px rgba(42, 40, 37, .28);
+      padding: 6px;
+      align-items: center; gap: 6px;
+    }
+    .mobile-bar a {
+      flex: 1; text-align: center;
+      padding: 10px 8px;
+      border-radius: var(--radius-pill);
+      font-size: 13px; font-weight: 500;
+    }
+    .mobile-bar a.primary { background: var(--ink); color: var(--canvas); }
+    .mobile-bar a.secondary { color: var(--ink); }
+  }
+</style>
+</head>
+<body>
+  <div class="paper-noise" aria-hidden="true"></div>
+
+  <header class="topbar" id="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="home.html">
+        <span class="t">自</span>
+        <span>个人自媒体工作台</span>
+      </a>
+      <div class="topbar-actions">
+        <span class="badge-soft"><span class="dot"></span>8 月 14 日 · 12 条灵感</span>
+        <button class="icon-btn" aria-label="搜索">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        </button>
+        <button class="icon-btn" aria-label="切换">
+          <svg viewBox="0 0 24 24"><path d="M3 7h18M6 12h12M9 17h6"/></svg>
+        </button>
+        <span style="width: 38px; height: 38px; border-radius: 50%; display:inline-flex; align-items:center; justify-content:center; background: linear-gradient(135deg, var(--note-yellow), var(--note-rose)); border: 1px solid var(--line); font-family: var(--font-serif); font-weight: 600;">光</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <header class="page-head">
+      <div class="left">
+        <h1>那一天的白板</h1>
+        <p class="sub">年 · 月 · 日 三档依次到位，每一档都只允许落到 <strong>单一具体日期</strong>。</p>
+      </div>
+      <div class="right">
+        <span class="badge-soft">step 02 · ready layer</span>
+        <div class="view-switch">
+          <button class="active">按日期</button>
+          <button>按主题</button>
+          <button>按类型</button>
+        </div>
+      </div>
+    </header>
+
+    <section class="picker" aria-label="日期选择">
+      <div class="picker-grid">
+        <div class="picker-info">
+          <div class="eyebrow">已选定 · ready layer</div>
+          <h2 class="date-big">
+            <span class="y">2026</span>
+            <span class="d-num">14</span>
+            <span style="font-size: 18px; color: var(--ink-3); margin-left: 8px;">八月</span>
+            <span style="font-size: 16px; color: var(--ink-3);">· 周四</span>
+          </h2>
+          <div class="meta">
+            <span><strong>12</strong> 条灵感</span>
+            <span><strong>3</strong> 条来自语音</span>
+            <span><strong>2</strong> 条来自图片</span>
+          </div>
+        </div>
+
+        <div class="wheel-col" data-axis="year">
+          <div class="label">年 · Year</div>
+          <div class="wheel" data-wheel>
+            <div class="wheel-line"></div>
+            <div class="wheel-track"></div>
+          </div>
+        </div>
+        <div class="wheel-col" data-axis="month">
+          <div class="label">月 · Month</div>
+          <div class="wheel" data-wheel>
+            <div class="wheel-line"></div>
+            <div class="wheel-track"></div>
+          </div>
+        </div>
+        <div class="wheel-col" data-axis="day">
+          <div class="label">日 · Day</div>
+          <div class="wheel" data-wheel>
+            <div class="wheel-line"></div>
+            <div class="wheel-track"></div>
+          </div>
+        </div>
+      </div>
+      <div class="picker-hint">
+        滚动到具体单一日期后回车 · <kbd>J</kbd> <kbd>K</kbd> 在日间跳转 · <kbd>⌘ N</kbd> 当天新增
+      </div>
+    </section>
+
+    <section class="toolbar">
+      <div class="left">
+        <span class="select-count">
+          <b id="countSel">0</b> 条被选中 · 多选进入创作
+        </span>
+        <button class="chip active">全部</button>
+        <button class="chip">文字</button>
+        <button class="chip">语音</button>
+        <button class="chip">图片</button>
+        <button class="chip">链接</button>
+      </div>
+      <div class="right">
+        <span class="search-inline">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          输入关键字、按类型、按来源……
+        </span>
+        <button class="chip" style="background:var(--ink); color:var(--canvas); border-color:var(--ink);">
+          ✓ 开始创作
+        </button>
+      </div>
+    </section>
+
+    <section class="board-wrap">
+      <div class="board" id="board">
+        <div class="board-empty">这一天还没有任何记录 —— 记一笔，板子就会长出东西。</div>
+
+        <article class="note yellow" style="top:30px; left:30px; transform: rotate(-2deg);">
+          <span class="check">✓</span>
+          <div class="meta"><span class="tag">CHAT</span> 09:42 · 文字</div>
+          <div class="body">“这个工具能不能真的帮我省时间？”</div>
+        </article>
+        <article class="note blue wide" style="top:60px; left:300px; transform: rotate(1.5deg);">
+          <span class="check">✓</span>
+          <div class="meta"><span class="tag">BROWSER</span> 10:18 · 图片</div>
+          <div class="img-thumb" style="background: linear-gradient(135deg, var(--note-blue), var(--note-mint));"></div>
+          <div class="body" style="font-size:13px;color:var(--ink-2);">对智能账号开头结构的截图分析</div>
+        </article>
+        <article class="note mint" style="top:40px; left:640px; transform: rotate(-1deg);">
+          <span class="check">✓</span>
+          <div class="meta"><span class="tag">FEISHU</span> 11:06 · 语音 0:42</div>
+          <div class="body">把灵感整理成一个选题</div>
+        </article>
+        <article class="note peach wide" style="top:240px; left:60px; transform: rotate(.8deg);">
+          <span class="check">✓</span>
+          <div class="meta"><span class="tag">DESKTOP</span> 13:27 · 文字</div>
+          <div class="body">历史脚本和录屏素材，散落的 .md 和 .mp4，先别合并，先链接。</div>
+        </article>
+        <article class="note lilac wide" style="top:230px; left:390px; transform: rotate(-1.6deg);">
+          <span class="check">✓</span>
+          <div class="meta"><span class="tag">DESKTOP</span> 15:08 · 文字</div>
+          <div class="body">小红书算法真的能识别 App 内的真实停留吗？还是只看曝光与点击？</div>
+        </article>
+        <article class="note rose wide" style="top:380px; left:90px; transform: rotate(1.2deg);">
+          <span class="check">✓</span>
+          <div class="meta"><span class="tag">CAMERA</span> 17:02 · 图片</div>
+          <div class="img-thumb" style="background: linear-gradient(135deg, var(--note-rose), var(--note-peach));"></div>
+          <div class="body" style="font-size:13px;color:var(--ink-2);">窗外那张蓝得发愣的傍晚。适合做封面的色彩配比。</div>
+        </article>
+        <article class="note clay" style="top:430px; left:430px; transform: rotate(-2.4deg);">
+          <span class="check">✓</span>
+          <div class="meta"><span class="tag">DESKTOP</span> 22:15 · 文字</div>
+          <div class="body">《别急着写稿》的另一种切入：把工作台和家分开一半工作时间。</div>
+        </article>
+        <article class="note yellow" style="top:300px; left:680px; transform: rotate(2deg);">
+          <span class="check">✓</span>
+          <div class="meta"><span class="tag">BROWSER</span> 23:40 · 文字</div>
+          <div class="body">卡兹克的 aihot 用的是公开接口拉热点列表，先评估再用。</div>
+        </article>
+        <article class="note mint" style="top:440px; left:740px; transform: rotate(-1deg);">
+          <span class="check">✓</span>
+          <div class="meta"><span class="tag">CAMERA</span> 17:48 · 图片</div>
+          <div class="img-thumb" style="background: linear-gradient(135deg, var(--note-mint), var(--note-yellow));"></div>
+          <div class="body" style="font-size:13px;color:var(--ink-2);">列了一个选题，开始卡在前三句。</div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <a class="compose-fab" href="capture.html" aria-label="新增灵感">
+    <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+  </a>
+
+  <nav class="mobile-bar">
+    <a class="secondary" href="home.html">🏠 入口</a>
+    <a class="primary" href="capture.html">＋ 记一条</a>
+  </nav>
+
+<script>
+  // 顶部滚动
+  const topbar = document.getElementById('topbar');
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 16) topbar.classList.add('scrolled');
+    else topbar.classList.remove('scrolled');
+  }, { passive: true });
+
+  // 滚轮：构造日期档
+  const STATE = { year: 2026, month: 8, day: 14 };
+  const WHEEL_DATA = {
+    year: { values: [2024, 2025, 2026, 2027, 2028], label: '年' },
+    month: { values: [1,2,3,4,5,6,7,8,9,10,11,12], label: '月' },
+    day:   { values: Array.from({length: 31}, (_, i) => i + 1), label: '日' },
+  };
+  const wheelEls = document.querySelectorAll('[data-axis]');
+  wheelEls.forEach((col) => {
+    const axis = col.dataset.axis;
+    const data = WHEEL_DATA[axis];
+    let idx = data.values.indexOf(STATE[axis]);
+    if (idx < 0) idx = 0;
+    const wheel = col.querySelector('[data-wheel]');
+    const track = col.querySelector('.wheel-track');
+    function render() {
+      track.innerHTML = '';
+      const total = data.values.length;
+      const span = 5;
+      track.style.transform = 'translateY(0)';
+      track.style.height = '36px';
+      track.style.position = 'relative';
+      const items = [];
+      for (let off = -span; off <= span; off++) {
+        const pos = (idx + off + total) % total;
+        const v = data.values[pos];
+        const el = document.createElement('div');
+        el.className = 'wheel-item' + (off === 0 ? ' focal' : ' dim');
+        el.style.position = 'absolute';
+        el.style.left = '0'; el.style.right = '0';
+        el.style.top = '50%';
+        el.style.transform = `translateY(calc(-50% + ${off * 36}px))`;
+        el.textContent = axis === 'month' ? (v + ' 月') : (axis === 'day' ? (v + ' 日') : (v + ' 年'));
+        if (off === 0) {
+          STATE[axis] = v;
+          el.addEventListener('click', () => confirm());
+        }
+        track.appendChild(el);
+      }
+      // 上下按钮
+      const up = document.createElement('div');
+      up.className = 'wheel-nav';
+      up.style.cssText = 'position:absolute;left:50%;top:6px;transform:translateX(-50%);width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--ink-3);z-index:3;';
+      up.textContent = '↑';
+      up.addEventListener('click', (e) => { e.stopPropagation(); idx = (idx - 1 + total) % total; render(); });
+      const dn = document.createElement('div');
+      dn.style.cssText = up.style.cssText; dn.style.top = 'auto'; dn.style.bottom = '6px';
+      dn.textContent = '↓';
+      dn.addEventListener('click', (e) => { e.stopPropagation(); idx = (idx + 1) % total; render(); });
+      wheel.appendChild(up); wheel.appendChild(dn);
+    }
+    function confirm() {
+      // 显示"已确定"反馈
+      const focal = track.querySelector('.wheel-item.focal');
+      focal.animate([
+        { color: '#2D3E5F', transform: focal.style.transform.replace(')', ' scale(1.12))') },
+        { color: '#2A2825', transform: focal.style.transform }
+      ], { duration: 380, easing: 'cubic-bezier(.2,.7,.3,1)' });
+      refreshPickerInfo();
+    }
+    function refreshPickerInfo() {
+      const big = document.querySelector('.picker-info .date-big');
+      big.innerHTML = `
+        <span class="y">${STATE.year}</span>
+        <span class="d-num">${STATE.day}</span>
+        <span style="font-size: 18px; color: var(--ink-3); margin-left: 8px;">${STATE.month} 月</span>
+        <span style="font-size: 16px; color: var(--ink-3);">· 周${'日一二三四五六'[new Date(STATE.year, STATE.month-1, STATE.day).getDay()]}</span>
+      `;
+    }
+    // 滚轮/拖动
+    let dragging = false, startY = 0, startIdx = idx;
+    wheel.addEventListener('mousedown', (e) => { dragging = true; startY = e.clientY; startIdx = idx; });
+    window.addEventListener('mouseup', () => dragging = false);
+    window.addEventListener('mousemove', (e) => {
+      if (!dragging) return;
+      const dy = e.clientY - startY;
+      if (Math.abs(dy) > 18) {
+        const step = -Math.sign(dy);
+        idx = (idx + step + data.values.length) % data.values.length;
+        startY = e.clientY;
+        render();
+      }
+    });
+    wheel.addEventListener('touchstart', (e) => { dragging = true; startY = e.touches[0].clientY; startIdx = idx; }, { passive: true });
+    wheel.addEventListener('touchmove', (e) => {
+      if (!dragging) return;
+      const dy = e.touches[0].clientY - startY;
+      if (Math.abs(dy) > 18) {
+        idx = (idx + (-Math.sign(dy)) + data.values.length) % data.values.length;
+        startY = e.touches[0].clientY;
+        render();
+      }
+    }, { passive: true });
+    wheel.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      idx = (idx + (e.deltaY > 0 ? 1 : -1) + data.values.length) % data.values.length;
+      render();
+    }, { passive: false });
+    render();
+  });
+
+  // 多选
+  const board = document.getElementById('board');
+  const countEl = document.getElementById('countSel');
+  let selected = 0;
+  board.querySelectorAll('.note').forEach((n) => {
+    n.addEventListener('click', (e) => {
+      if (e.target.classList.contains('check')) return;
+      n.classList.toggle('selected');
+      selected = document.querySelectorAll('.note.selected').length;
+      countEl.textContent = selected;
+      n.animate([
+        { transform: getComputedStyle(n).transform + ' scale(.96)' },
+        { transform: n.classList.contains('selected') ? 'scale(1.04)' : getComputedStyle(n).transform }
+      ], { duration: 200 });
+    });
+  });
+
+  // chip 切换
+  document.querySelectorAll('.toolbar .left .chip, .view-switch button').forEach((c) => {
+    c.addEventListener('click', () => {
+      const sib = c.parentElement.querySelectorAll(c.classList.contains('chip') ? '.chip' : 'button');
+      sib.forEach((x) => x.classList.remove('active'));
+      c.classList.add('active');
+    });
+  });
+
+  // 便签稍微漂浮
+  setInterval(() => {
+    document.querySelectorAll('.board .note').forEach((n) => {
+      const t = getComputedStyle(n).transform;
+      if (n.dataset.drift === 'no') return;
+      const m = t.match(/rotate\(([-\d.]+)deg\)/);
+      const base = m ? parseFloat(m[1]) : 0;
+      const drift = base + (Math.random() - .5) * .15;
+      n.style.transform = `rotate(${drift}deg) translateY(${(Math.random() - .5) * 1.2}px)`;
+    });
+  }, 2200);
+
+  // 入场
+  setTimeout(() => {
+    document.querySelectorAll('.note').forEach((n, i) => {
+      n.style.opacity = '0';
+      n.style.transform += ' translateY(20px)';
+      setTimeout(() => {
+        n.style.transition = 'opacity .6s ease, transform .6s cubic-bezier(.2,.7,.3,1)';
+        n.style.opacity = '1';
+        n.style.transform = n.style.transform.replace(' translateY(20px)', '');
+      }, 80 * i);
+    });
+  }, 200);
+</script>
+</body>
+</html>

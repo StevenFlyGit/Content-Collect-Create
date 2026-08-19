@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#F1EEE8" />
+<title>方案 C · 和声 · 灵感记录页</title>
+<style>
+  :root {
+    --canvas: #F1EEE8;
+    --canvas-2: #E6E1D6;
+    --paper: #FBF9F4;
+    --paper-2: #EFE9DD;
+    --ink: #1F2421;
+    --ink-2: #4C504A;
+    --ink-3: #8A8B82;
+    --line: rgba(31, 36, 33, .08);
+    --line-2: rgba(31, 36, 33, .16);
+    --accent-moss: #586E51;
+    --accent-clay: #B68764;
+    --accent-ink: #2D3E5F;
+    --accent-gold: #C9A961;
+
+    --radius-panel: 8px;
+    --radius-card: 12px;
+    --radius-pill: 999px;
+
+    --shadow-1: 0 1px 0 rgba(31, 36, 33, .04), 0 12px 24px -16px rgba(31, 36, 33, .15);
+
+    --font-serif: "Cormorant Garamond", "Noto Serif SC", "Songti SC", "STSong", Georgia, serif;
+    --font-sans: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+    --font-mono: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    --ease: cubic-bezier(.2, .7, .3, 1);
+
+    --container: 880px;
+    --pad-x: 40px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-sans); font-size: 16px; line-height: 1.7;
+    color: var(--ink); background: var(--canvas);
+    -webkit-font-smoothing: antialiased; overflow-x: hidden;
+  }
+  a { color: inherit; text-decoration: none; }
+  button { font: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+  ::selection { background: var(--accent-clay); color: var(--paper); }
+
+  /* Topbar editorial */
+  .topbar {
+    position: sticky; top: 0; z-index: 50;
+    backdrop-filter: saturate(140%) blur(12px);
+    background: rgba(241, 238, 232, .85);
+    border-bottom: 1px solid transparent;
+  }
+  .topbar.scrolled { border-bottom-color: var(--line); }
+  .topbar-inner {
+    max-width: var(--container);
+    margin: 0 auto;
+    padding: 18px var(--pad-x);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .back {
+    display: inline-flex; align-items: center; gap: 8px;
+    color: var(--ink-2);
+    font-size: 13px;
+    font-family: var(--font-mono);
+    letter-spacing: 1px;
+    padding: 7px 14px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--line);
+    background: var(--paper);
+    transition: all .25s var(--ease);
+    text-transform: uppercase;
+  }
+  .back:hover { background: var(--paper-2); }
+  .back svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.6; }
+
+  .step-pill {
+    font-family: var(--font-mono);
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 7px 14px;
+    border-radius: var(--radius-pill);
+    background: var(--paper); border: 1px solid var(--line);
+    color: var(--ink-2);
+    font-size: 11px; letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  .step-pill .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent-moss);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    50% { opacity: .55; transform: scale(.7); }
+  }
+
+  .wrap {
+    max-width: var(--container);
+    margin: 0 auto;
+    padding: 40px var(--pad-x) 100px;
+  }
+
+  /* Mode tabs editorial */
+  .mode-tabs {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 28px;
+    padding: 4px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-pill);
+  }
+  .mode-tab {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 12px 16px;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    transition: all .25s var(--ease);
+    font-size: 13px;
+    color: var(--ink-2);
+  }
+  .mode-tab:hover { color: var(--ink); }
+  .mode-tab.active {
+    background: var(--ink);
+    color: var(--canvas);
+  }
+  .mode-tab .ico svg {
+    width: 16px; height: 16px;
+    stroke: currentColor; fill: none; stroke-width: 1.6;
+    stroke-linecap: round; stroke-linejoin: round;
+  }
+  .mode-tab .info { line-height: 1.3; }
+  .mode-tab .info .name { font-weight: 500; }
+  .mode-tab .info .hint {
+    font-size: 11px;
+    color: var(--ink-3);
+    font-family: var(--font-mono);
+    letter-spacing: 1px;
+  }
+  .mode-tab.active .info .hint { color: rgba(241, 238, 232, .6); }
+
+  /* Sheet */
+  .sheet {
+    background: var(--paper);
+    border-radius: var(--radius-card);
+    padding: 40px;
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow-1);
+    position: relative;
+  }
+  .sheet::before {
+    content: ""; position: absolute; left: 0; top: 40px; bottom: 40px;
+    width: 2px;
+    background: var(--accent-clay);
+  }
+
+  .sheet-meta {
+    display: flex; align-items: baseline; gap: 12px;
+    margin: 4px 0 18px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-3);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+  .sheet-meta .now { color: var(--accent-clay); font-weight: 600; }
+  .sheet-meta .live {
+    margin-left: auto;
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px;
+    border-radius: var(--radius-pill);
+    background: rgba(88, 110, 81, .08);
+    color: var(--accent-moss);
+    font-size: 11px;
+    letter-spacing: 1px;
+  }
+  .sheet-meta .live::before {
+    content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--accent-moss);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  .sheet h2 {
+    font-family: var(--font-serif);
+    font-size: 32px;
+    margin: 0 0 8px;
+    font-weight: 500;
+    letter-spacing: -.5px;
+  }
+  .sheet .lede {
+    font-family: var(--font-serif);
+    color: var(--ink-2);
+    font-size: 16px;
+    margin: 0 0 28px;
+    line-height: 1.5;
+  }
+
+  /* Editor */
+  .editor {
+    min-height: 260px;
+    padding: 24px 28px;
+    background: var(--paper-2);
+    border-radius: var(--radius-card);
+    border: 1px solid var(--line);
+  }
+  .editor:focus-within {
+    border-color: var(--accent-clay);
+    background: var(--canvas);
+    box-shadow: 0 0 0 4px rgba(182, 135, 100, .1);
+  }
+  .editor textarea {
+    width: 100%; min-height: 200px;
+    background: transparent; border: none; outline: none;
+    font-family: var(--font-serif);
+    font-size: 19px; line-height: 1.7;
+    color: var(--ink);
+    resize: none;
+  }
+  .editor textarea::placeholder { color: var(--ink-3); font-style: italic; }
+
+  .upload-row {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    margin-top: 18px;
+  }
+  .upload-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 9px 14px;
+    border-radius: var(--radius-pill);
+    background: var(--paper);
+    border: 1px solid var(--line);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 1px;
+    color: var(--ink-2);
+    cursor: pointer;
+    transition: all .2s var(--ease);
+    text-transform: uppercase;
+  }
+  .upload-chip:hover {
+    background: var(--canvas);
+    border-color: var(--accent-clay);
+    transform: translateY(-1px);
+  }
+  .upload-chip svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 1.6; }
+  .upload-chip.has { background: var(--accent-moss); color: var(--paper); border-color: var(--accent-moss); }
+
+  .voice-live {
+    display: none;
+    margin-top: 16px;
+    padding: 18px;
+    border-radius: var(--radius-card);
+    background: var(--paper-2);
+    border: 1px solid var(--accent-clay);
+    position: relative;
+  }
+  .voice-live.show { display: block; }
+  .voice-live .head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .voice-live .head .badge {
+    font-family: var(--font-mono);
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px;
+    border-radius: var(--radius-pill);
+    background: var(--accent-clay);
+    color: var(--paper);
+    font-size: 10px; letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .voice-live .head .badge::before {
+    content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--paper);
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+  .voice-live .head .time {
+    font-family: var(--font-mono); font-size: 16px; color: var(--accent-clay);
+    font-variant-numeric: tabular-nums;
+  }
+  .voice-live .wave-bars {
+    display: flex; align-items: end; gap: 3px; height: 56px;
+  }
+  .voice-live .wave-bars i {
+    display: block; width: 3px; border-radius: 2px;
+    background: var(--accent-clay);
+    animation: wave-bar 1.2s ease-in-out infinite;
+  }
+  @keyframes wave-bar {
+    50% { transform: scaleY(.3); }
+  }
+
+  /* Type section editorial */
+  .type-section {
+    margin-top: 28px;
+    padding: 28px;
+    border-radius: var(--radius-card);
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+  }
+  .type-section h4 {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    margin: 0 0 18px;
+    color: var(--ink-3);
+    letter-spacing: 2px;
+    font-weight: 500;
+    text-transform: uppercase;
+  }
+  .type-section h4 .req { color: var(--accent-clay); }
+  .type-chips {
+    display: flex; flex-wrap: wrap; gap: 8px;
+  }
+  .type-chip {
+    padding: 9px 16px;
+    border-radius: var(--radius-pill);
+    background: var(--paper);
+    border: 1px solid var(--line);
+    font-size: 13px;
+    color: var(--ink-2);
+    cursor: pointer;
+    transition: all .2s var(--ease);
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .type-chip::before {
+    content: ""; width: 8px; height: 8px; border-radius: 50%;
+    background: currentColor; opacity: .5;
+  }
+  .type-chip[data-color="#586E51"] { color: var(--accent-moss); }
+  .type-chip[data-color="#B68764"] { color: var(--accent-clay); }
+  .type-chip[data-color="#C9A961"] { color: var(--accent-gold); }
+  .type-chip[data-color="#2D3E5F"] { color: var(--accent-ink); }
+  .type-chip:hover { transform: translateY(-1px); border-color: currentColor; }
+  .type-chip.active {
+    background: var(--ink); color: var(--canvas);
+    border-color: var(--ink);
+  }
+  .type-chip.active::before { background: var(--accent-clay); opacity: 1; }
+
+  /* Footer editorial */
+  .footer-actions {
+    margin-top: 28px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px;
+  }
+  .footer-actions .left {
+    font-family: var(--font-mono);
+    display: flex; align-items: center; gap: 12px;
+    font-size: 12px;
+    color: var(--ink-3);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .footer-actions .left .save-draft {
+    color: var(--ink-2);
+    cursor: pointer;
+  }
+  .footer-actions .right { display: flex; gap: 10px; }
+  .btn {
+    padding: 13px 22px;
+    border-radius: var(--radius-pill);
+    font-size: 13px;
+    font-family: var(--font-mono);
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all .25s var(--ease);
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .btn.ghost {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--ink-2);
+  }
+  .btn.ghost:hover { background: var(--paper); }
+  .btn.primary {
+    background: var(--ink);
+    color: var(--canvas);
+  }
+  .btn.primary:hover {
+    background: var(--accent-clay);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px -10px rgba(182, 135, 100, .35);
+  }
+  .btn .key {
+    font-size: 10px;
+    padding: 3px 7px;
+    border-radius: 4px;
+    background: rgba(255,255,255,.12);
+    color: inherit;
+  }
+  .btn.ghost .key { background: var(--paper-2); color: var(--ink-3); }
+
+  /* Recent editorial */
+  .recent {
+    margin-top: 36px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  .recent-item {
+    padding: 18px;
+    background: var(--paper);
+    border-radius: var(--radius-card);
+    border: 1px solid var(--line);
+    font-family: var(--font-serif);
+    font-size: 15px;
+    color: var(--ink-2);
+    line-height: 1.5;
+    cursor: pointer;
+    transition: transform .2s var(--ease);
+  }
+  .recent-item:hover { transform: translateY(-2px); box-shadow: var(--shadow-1); }
+  .recent-item .when {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--ink-3);
+    margin-top: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 720px) {
+    :root { --pad-x: 16px; }
+    .mode-tabs { grid-template-columns: repeat(2, 1fr); }
+    .sheet { padding: 24px 20px; }
+    .sheet::before { display: none; }
+    .editor { padding: 16px; }
+    .editor textarea { font-size: 16px; min-height: 160px; }
+    .recent { grid-template-columns: 1fr; }
+    .footer-actions { flex-direction: column; align-items: stretch; }
+    .footer-actions .right { justify-content: stretch; }
+    .footer-actions .right .btn { flex: 1; justify-content: center; }
+  }
+</style>
+</head>
+<body>
+  <header class="topbar" id="topbar">
+    <div class="topbar-inner">
+      <a class="back" href="home.html">
+        <svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>
+        返回
+      </a>
+      <span class="step-pill">
+        <span class="dot"></span>
+        I · INPUT LAYER · 文字 · 语音 · 图片 · 组合
+      </span>
+      <div style="width:70px;"></div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="mode-tabs" role="tablist">
+      <button class="mode-tab active" data-mode="text">
+        <span class="ico">
+          <svg viewBox="0 0 24 24"><path d="M4 7h12M4 12h12M4 17h8"/></svg>
+        </span>
+        <span class="info">
+          <span class="name">纯文字</span>
+          <span class="hint">1500</span>
+        </span>
+      </button>
+      <button class="mode-tab" data-mode="voice">
+        <span class="ico">
+          <svg viewBox="0 0 24 24"><path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3z"/><path d="M5 12a7 7 0 0 0 14 0M12 19v3"/></svg>
+        </span>
+        <span class="info">
+          <span class="name">语音</span>
+          <span class="hint">ASR</span>
+        </span>
+      </button>
+      <button class="mode-tab" data-mode="image">
+        <span class="ico">
+          <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="m21 17-4-4-7 7"/></svg>
+        </span>
+        <span class="info">
+          <span class="name">图片</span>
+          <span class="hint">JPG · HEIC</span>
+        </span>
+      </button>
+      <button class="mode-tab" data-mode="combo">
+        <span class="ico">
+          <svg viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"/><circle cx="18" cy="18" r="3"/><path d="M9 9l6 6"/></svg>
+        </span>
+        <span class="info">
+          <span class="name">组合</span>
+          <span class="hint">混合</span>
+        </span>
+      </button>
+    </div>
+
+    <section class="sheet">
+      <div class="sheet-meta">
+        <span class="now">2026 / 08 / 18 · MON</span>
+        <span class="live">已自动保存</span>
+      </div>
+      <h2>关于智能账号开头结构的观察</h2>
+      <p class="lede">先抓到的就是最好的提示词样本。无需整齐，一段好的灵感只要求被记住。</p>
+
+      <div class="editor" id="editor">
+        <textarea
+          id="text"
+          placeholder="想到什么就写什么。可以是半句话、一个疑问、一段吐槽。"
+        >观察了三个 Top 50 的智能工具账号的开头结构，发现一件有意思的事：它们的金句率并不是均匀分布的——前 30 个字比后 970 个字更接近「自然语言节奏」，意味着大部分人点开文章只是为了看头一句是否值得读下去。
+
+回头去找一段适合作为我下一篇开篇的句子：「这个工具真的让我省了一个通宵，还是它替我想清楚我之前为什么愿意熬通宵？」</textarea>
+        <div class="voice-live" id="voice">
+          <div class="head">
+            <span class="badge">recording · 13:48</span>
+            <span class="time" id="time">00:42</span>
+          </div>
+          <div class="wave-bars" id="bars"></div>
+        </div>
+        <div class="upload-row" id="uploads">
+          <button class="upload-chip" data-kind="image">
+            <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 17l4-4 4 4 4-3 6 5"/></svg>
+            图片
+          </button>
+          <button class="upload-chip" data-kind="audio">
+            <svg viewBox="0 0 24 24"><path d="M9 9V5a3 3 0 0 1 6 0v4M5 9h14l-1.5 9h-11z"/></svg>
+            音频
+          </button>
+          <button class="upload-chip" data-kind="link">
+            <svg viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 1 0-5.66-5.66l-1.5 1.5"/><path d="M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 1 0 5.66 5.66l1.5-1.5"/></svg>
+            链接
+          </button>
+          <button class="upload-chip" data-kind="clip">
+            <svg viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg>
+            剪贴板
+          </button>
+        </div>
+      </div>
+
+      <div class="type-section">
+        <h4>灵感类型 · <span class="req">可选</span> · 可后改</h4>
+        <div class="type-chips">
+          <button class="type-chip" data-color="#B68764">创作灵感</button>
+          <button class="type-chip" data-color="#2D3E5F">研究素材</button>
+          <button class="type-chip" data-color="#586E51">随手记录</button>
+          <button class="type-chip" data-color="#C9A961">金句片段</button>
+          <button class="type-chip" data-color="#B68764">待回答问题</button>
+          <button class="type-chip active" data-color="#1F2421" style="color:#1F2421;">未分类 · 让我来猜</button>
+        </div>
+        <p style="margin:18px 0 0;font-family:var(--font-serif);font-size:13px;color:var(--ink-3);font-style:italic;">
+          类型只是索引的快捷方式，<strong style="color:var(--ink-2);">不阻挡你保存</strong>。后续可在每条灵感的右侧菜单修改。
+        </p>
+      </div>
+
+      <div class="footer-actions">
+        <div class="left">
+          <span>📁 整理到 2026 / 08 / 18 的白板</span>
+          <span class="save-draft">· 暂存草稿</span>
+        </div>
+        <div class="right">
+          <button class="btn ghost">
+            再写一条
+            <span class="key">⌘ ↵</span>
+          </button>
+          <button class="btn primary" id="mainSave">
+            挂上今天这块白板
+            <span class="key">⌘ S</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="recent">
+      <div class="recent-item">
+        "这个工具真的让我省了时间吗？"
+        <span class="when">今天 09:42 · CHAT · 文字</span>
+      </div>
+      <div class="recent-item">
+        把灵感整理成一个选题
+        <span class="when">今天 11:06 · FEISHU · 语音 0:42</span>
+      </div>
+      <div class="recent-item">
+        历史脚本和录屏素材，先链接
+        <span class="when">今天 13:27 · DESKTOP · 文字</span>
+      </div>
+    </section>
+  </main>
+
+<script>
+  const topbar = document.getElementById('topbar');
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 16) topbar.classList.add('scrolled');
+    else topbar.classList.remove('scrolled');
+  }, { passive: true });
+
+  const modes = document.querySelectorAll('.mode-tab');
+  const editor = document.getElementById('editor');
+  const voice = document.getElementById('voice');
+  modes.forEach((m) => {
+    m.addEventListener('click', () => {
+      modes.forEach((x) => x.classList.remove('active'));
+      m.classList.add('active');
+      const mode = m.dataset.mode;
+      voice.classList.toggle('show', mode === 'voice' || mode === 'combo');
+      editor.style.transition = 'opacity .2s ease';
+      editor.style.opacity = '.5';
+      setTimeout(() => { editor.style.opacity = '1'; }, 200);
+    });
+  });
+
+  const bars = document.getElementById('bars');
+  if (bars) {
+    const seeds = [12, 18, 28, 36, 44, 50, 40, 30, 24, 36, 48, 56, 44, 30, 22, 30, 40, 50, 42, 30, 22, 18, 26, 34];
+    seeds.forEach((h, i) => {
+      const b = document.createElement('i');
+      b.style.height = h + 'px';
+      b.style.animationDelay = (i * 0.04) + 's';
+      bars.appendChild(b);
+    });
+    const t = document.getElementById('time');
+    let seconds = 42;
+    setInterval(() => {
+      seconds = (seconds + 1) % 200;
+      const mm = String(Math.floor(seconds / 60)).padStart(2, '0');
+      const ss = String(seconds % 60).padStart(2, '0');
+      t.textContent = mm + ':' + ss;
+    }, 1000);
+  }
+
+  document.querySelectorAll('.type-chip').forEach((c) => {
+    c.addEventListener('click', () => {
+      document.querySelectorAll('.type-chip').forEach((x) => x.classList.remove('active'));
+      c.classList.add('active');
+    });
+  });
+
+  document.querySelectorAll('.upload-chip').forEach((c) => {
+    c.addEventListener('click', () => c.classList.toggle('has'));
+  });
+
+  document.getElementById('mainSave').addEventListener('click', () => {
+    const btn = document.getElementById('mainSave');
+    btn.style.background = 'var(--accent-clay)';
+    btn.innerHTML = '已挂到今天 · <span class="key">⌘ N</span> 新一条';
+    setTimeout(() => {
+      btn.style.background = 'var(--ink)';
+      btn.innerHTML = '挂上今天这块白板 <span class="key">⌘ S</span>';
+    }, 1600);
+  });
+</script>
+</body>
+</html>

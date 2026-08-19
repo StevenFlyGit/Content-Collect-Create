@@ -1,0 +1,119 @@
+/* ---------- 贴片 ---------- */
+.sticky {
+  position: absolute;
+  width: 220px;
+  background: var(--cosmos-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  padding: 14px 16px 12px;
+  cursor: grab;
+  transition: box-shadow .2s var(--ease), transform .2s var(--ease), border-color .2s var(--ease);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  opacity: 0; transform: translateY(8px);
+  animation: placeIn .55s var(--ease) forwards;
+}
+.sticky:active { cursor: grabbing; }
+.sticky:hover {
+  transform: translateY(-3px) rotate(0deg) !important;
+  box-shadow: 0 0 0 1px rgba(167, 139, 250, .5), 0 20px 40px -8px rgba(167, 139, 250, .3);
+  border-color: rgba(167, 139, 250, .4);
+  z-index: 2;
+}
+.sticky.selected {
+  border-color: var(--nebula-violet);
+  box-shadow: 0 0 0 1px var(--nebula-violet), 0 0 24px -4px var(--nebula-violet), var(--shadow-lift);
+  z-index: 3;
+}
+.sticky .check {
+  position: absolute; top: 10px; right: 10px;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid var(--line);
+  background: var(--cosmos-2);
+  display: grid; place-items: center;
+  color: var(--cosmos-deep);
+  transition: all .2s var(--ease);
+}
+.sticky.selected .check {
+  background: var(--nebula-violet);
+  border-color: var(--nebula-violet);
+  box-shadow: 0 0 12px var(--nebula-violet);
+}
+
+.sticky .head {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11px; color: var(--ink-muted);
+  margin-bottom: 6px; letter-spacing: 1px;
+}
+.sticky .pill {
+  font-size: 10px; padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--surface-strong);
+  border: 1px solid var(--line-soft);
+  letter-spacing: 1px;
+}
+.sticky[data-type="想法"] .pill { color: var(--nebula-violet); border-color: rgba(167, 139, 250, .3); }
+.sticky[data-type="引用"] .pill { color: var(--nebula-blue);   border-color: rgba(125, 211, 252, .3); }
+.sticky[data-type="随感"] .pill { color: var(--nebula-rose);   border-color: rgba(249, 168, 212, .3); }
+.sticky[data-type="待办"] .pill { color: var(--nebula-mint);   border-color: rgba(134, 239, 172, .3); }
+
+.sticky .text {
+  font-size: 14px; line-height: 1.6;
+  color: var(--ink);
+  margin: 0 0 8px;
+  display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden;
+}
+.sticky .text.quote {
+  font-family: "Songti SC", "STSong", "Noto Serif SC", Georgia, serif;
+  font-style: italic;
+  border-left: 2px solid var(--nebula-blue);
+  padding-left: 8px;
+}
+.sticky .attach-row { display: flex; gap: 4px; margin-top: 8px; flex-wrap: wrap; }
+.sticky .attach-row .chip {
+  font-size: 11px; padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--surface-strong);
+  color: var(--ink-soft);
+  display: inline-flex; align-items: center; gap: 3px;
+}
+.sticky .ai-tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 10px; padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(167, 139, 250, .12);
+  color: var(--nebula-violet);
+  margin-top: 8px;
+}
+.sticky .used {
+  font-size: 10px; color: var(--ink-muted);
+  margin-top: 6px;
+  display: flex; align-items: center; gap: 4px;
+}
+.sticky .used::before {
+  content: ""; width: 4px; height: 4px; border-radius: 50%;
+  background: var(--nebula-mint);
+  box-shadow: 0 0 6px var(--nebula-mint);
+}
+
+@keyframes placeIn { to { opacity: 1; transform: translateY(0); } }
+
+.sticky.s1 { top: 28px;  left: 32px;  transform: rotate(-1.5deg); animation-delay: .1s; }
+.sticky.s2 { top: 60px;  left: 290px; transform: rotate(0.8deg);  animation-delay: .18s; width: 240px; }
+.sticky.s3 { top: 220px; left: 80px;  transform: rotate(-0.5deg); animation-delay: .26s; }
+.sticky.s4 { top: 280px; left: 360px; transform: rotate(1.2deg);  animation-delay: .34s; width: 260px; }
+.sticky.s5 { top: 440px; left: 200px; transform: rotate(-1deg);   animation-delay: .42s; }
+.sticky.s6 { top: 100px; left: 580px; transform: rotate(0.4deg);  animation-delay: .5s;  width: 200px; }
+.sticky.s7 { top: 360px; left: 660px; transform: rotate(-0.6deg); animation-delay: .58s; }
+
+@media (max-width: 720px) {
+  .sticky {
+    position: relative !important;
+    top: auto !important; left: auto !important;
+    transform: none !important;
+    width: 100% !important;
+    margin-bottom: 12px;
+    animation-delay: 0s !important;
+  }
+}

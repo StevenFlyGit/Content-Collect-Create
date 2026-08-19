@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<meta name="theme-color" content="#f7f3ea">
+<title>记录灵感 · Calm Edition · A</title>
+<style>
+:root {
+  --canvas: #f7f3ea;
+  --surface: #fffdf8;
+  --surface-glass: rgba(255, 253, 248, 0.78);
+  --ink: #25231f;
+  --ink-muted: #6f6a60;
+  --grid: rgba(74, 69, 61, 0.06);
+  --line: rgba(74, 69, 61, 0.14);
+  --accent-violet: #7867a8;
+  --accent-blue: #6f91aa;
+  --accent-rose: #b77b83;
+  --accent-moss: #788a6b;
+  --accent-amber: #c8956c;
+  --focus: #4f64c8;
+  --success: #4f7f62;
+  --danger: #b84a4a;
+
+  --radius-panel: 20px;
+  --radius-card: 14px;
+  --radius-pill: 999px;
+  --shadow-soft: 0 1px 2px rgba(37, 35, 31, .04), 0 6px 20px -8px rgba(37, 35, 31, .12);
+  --shadow-lift: 0 2px 4px rgba(37, 35, 31, .06), 0 16px 32px -12px rgba(37, 35, 31, .18);
+  --ease: cubic-bezier(.2,.7,.3,1);
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+  font-size: 16px; line-height: 1.7;
+  color: var(--ink); background: var(--canvas);
+  -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+input, textarea { font: inherit; color: inherit; }
+
+.bg {
+  position: fixed; inset: 0; z-index: -1;
+  background:
+    radial-gradient(40% 40% at 80% 20%, rgba(120, 103, 168, .08), transparent 70%),
+    radial-gradient(50% 40% at 20% 80%, rgba(200, 149, 108, .08), transparent 70%),
+    var(--canvas);
+}
+
+/* ---------- 顶部 ---------- */
+.topbar {
+  position: sticky; top: 0; z-index: 10;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 24px;
+  background: var(--surface-glass);
+  backdrop-filter: saturate(140%) blur(12px);
+  -webkit-backdrop-filter: saturate(140%) blur(12px);
+  border-bottom: 1px solid var(--line);
+}
+.back {
+  display: flex; align-items: center; gap: 6px;
+  color: var(--ink-muted); text-decoration: none;
+  font-size: 14px; padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  transition: all .2s var(--ease);
+}
+.back:hover { color: var(--ink); background: rgba(0,0,0,.04); }
+.topbar-title {
+  font-family: "Songti SC", "STSong", "Noto Serif SC", Georgia, serif;
+  font-size: 18px; letter-spacing: 1px;
+}
+.status-chip {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; color: var(--ink-muted);
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+}
+.status-chip .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--ink-muted);
+}
+.status-chip.saving .dot { background: var(--accent-amber); animation: pulse 1.2s infinite; }
+.status-chip.saved .dot  { background: var(--success); }
+@keyframes pulse {
+  0%, 100% { opacity: 1; } 50% { opacity: .4; }
+}
+
+/* ---------- 主体 ---------- */
+.main {
+  max-width: 760px; margin: 0 auto;
+  padding: 32px 24px 160px;
+}
+.date-stamp {
+  font-size: 13px; color: var(--ink-muted);
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 12px;
+}
+.date-stamp::before {
+  content: ""; width: 16px; height: 1px; background: currentColor;
+}
+
+.editor {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  padding: 32px;
+  min-height: 320px;
+  position: relative;
+  box-shadow: var(--shadow-soft);
+  transition: box-shadow .2s var(--ease), border-color .2s var(--ease);
+}
+.editor:focus-within {
+  border-color: var(--accent-violet);
+  box-shadow: 0 0 0 4px rgba(120, 103, 168, .12), var(--shadow-soft);
+}
+.title-input {
+  width: 100%; border: 0; outline: 0; background: transparent;
+  font-family: "Songti SC", "STSong", "Noto Serif SC", Georgia, serif;
+  font-size: 28px; line-height: 1.4;
+  font-weight: 500;
+  color: var(--ink);
+  padding: 0; margin-bottom: 16px;
+}
+.title-input::placeholder { color: rgba(37, 35, 31, .25); }
+
+.body-input {
+  width: 100%; border: 0; outline: 0; background: transparent;
+  font-size: 16px; line-height: 1.85;
+  color: var(--ink);
+  resize: none; min-height: 180px;
+  padding: 0;
+}
+.body-input::placeholder { color: rgba(37, 35, 31, .32); }
+
+/* ---------- 附件区 ---------- */
+.attachments {
+  margin-top: 24px;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+}
+.attach {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--canvas);
+}
+.attach img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+}
+.attach.audio {
+  aspect-ratio: auto;
+  padding: 12px;
+  display: flex; flex-direction: column; gap: 8px;
+  background: linear-gradient(135deg, rgba(120, 103, 168, .12), rgba(120, 103, 168, .04));
+}
+.attach.audio .wave {
+  flex: 1;
+  display: flex; align-items: center; gap: 2px;
+  min-height: 28px;
+}
+.attach.audio .wave i {
+  flex: 1; height: 100%; border-radius: 1px;
+  background: var(--accent-violet); opacity: .5;
+}
+.attach.audio .meta { font-size: 12px; color: var(--ink-muted); display: flex; justify-content: space-between; }
+.attach .x {
+  position: absolute; top: 6px; right: 6px;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: rgba(0,0,0,.55); color: white;
+  display: grid; place-items: center; font-size: 12px;
+  border: 0; cursor: pointer;
+  opacity: 0; transition: opacity .2s var(--ease);
+}
+.attach:hover .x { opacity: 1; }
+
+.attach.processing::after {
+  content: ""; position: absolute; inset: 0;
+  background: rgba(255, 253, 248, .6);
+  background-image: linear-gradient(90deg, transparent 0%, rgba(120, 103, 168, .15) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: var(--radius-card);
+}
+@keyframes shimmer {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
+}
+
+/* ---------- 工具栏 ---------- */
+.toolbar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 9;
+  background: var(--surface-glass);
+  backdrop-filter: saturate(140%) blur(14px);
+  -webkit-backdrop-filter: saturate(140%) blur(14px);
+  border-top: 1px solid var(--line);
+  padding: 12px 24px max(12px, env(safe-area-inset-bottom));
+}
+.toolbar-inner {
+  max-width: 760px; margin: 0 auto;
+  display: flex; align-items: center; gap: 12px;
+  flex-wrap: wrap;
+}
+.tool-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--canvas);
+  color: var(--ink-muted);
+  font-size: 14px;
+  transition: all .2s var(--ease);
+  border: 1px solid transparent;
+}
+.tool-btn:hover { color: var(--ink); border-color: var(--line); background: var(--surface); }
+.tool-btn .ico { font-size: 16px; }
+.tool-btn .label { display: none; }
+@media (min-width: 720px) { .tool-btn .label { display: inline; } }
+.tool-btn.disabled { opacity: .35; cursor: not-allowed; }
+.tool-btn.disabled:hover { color: var(--ink-muted); border-color: transparent; background: var(--canvas); }
+
+/* 类型选择器 */
+.type-select {
+  position: relative;
+  margin-left: auto;
+}
+.type-trigger {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 12px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 14px;
+  transition: all .2s var(--ease);
+}
+.type-trigger:hover { box-shadow: var(--shadow-soft); }
+.type-trigger .swatch {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--ink-muted);
+}
+.type-trigger[data-type="想法"] .swatch { background: var(--accent-violet); }
+.type-trigger[data-type="引用"] .swatch { background: var(--accent-blue); }
+.type-trigger[data-type="随感"] .swatch { background: var(--accent-rose); }
+.type-trigger[data-type="待办"] .swatch { background: var(--accent-moss); }
+.type-trigger[data-type="案例"] .swatch { background: var(--accent-amber); }
+.type-trigger[data-type="问题"] .swatch { background: var(--danger); }
+.type-trigger .caret { color: var(--ink-muted); font-size: 10px; }
+.type-menu {
+  position: absolute; bottom: calc(100% + 8px); right: 0;
+  min-width: 180px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  padding: 6px;
+  box-shadow: var(--shadow-lift);
+  display: none;
+  z-index: 12;
+}
+.type-menu.open { display: block; animation: rise .18s var(--ease); }
+@keyframes rise { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.type-item {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%; text-align: left;
+  padding: 8px 10px;
+  border-radius: 8px;
+  color: var(--ink);
+  font-size: 14px;
+  transition: background .15s var(--ease);
+}
+.type-item:hover { background: var(--canvas); }
+.type-item .swatch {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--ink-muted);
+}
+.type-item[data-type="想法"] .swatch { background: var(--accent-violet); }
+.type-item[data-type="引用"] .swatch { background: var(--accent-blue); }
+.type-item[data-type="随感"] .swatch { background: var(--accent-rose); }
+.type-item[data-type="待办"] .swatch { background: var(--accent-moss); }
+.type-item[data-type="案例"] .swatch { background: var(--accent-amber); }
+.type-item[data-type="问题"] .swatch { background: var(--danger); }
+
+/* 主操作按钮 */
+.primary {
+  padding: 10px 18px;
+  border-radius: var(--radius-pill);
+  background: var(--ink);
+  color: var(--canvas);
+  font-size: 14px; font-weight: 500;
+  transition: all .2s var(--ease);
+  border: 0;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.primary:hover { transform: translateY(-1px); box-shadow: 0 8px 20px -8px rgba(37,35,31,.4); }
+
+/* AI 建议 */
+.ai-suggest {
+  display: inline-flex; align-items: center; gap: 8px;
+  margin-top: 16px;
+  padding: 8px 12px;
+  background: rgba(120, 103, 168, .08);
+  border: 1px dashed rgba(120, 103, 168, .4);
+  border-radius: var(--radius-card);
+  font-size: 13px; color: var(--ink);
+  animation: rise .3s var(--ease);
+}
+.ai-suggest .badge {
+  font-size: 10px; padding: 2px 6px; border-radius: 4px;
+  background: var(--accent-violet); color: white;
+  letter-spacing: .5px;
+}
+.ai-suggest button {
+  margin-left: auto;
+  color: var(--accent-violet);
+  font-weight: 500;
+}
+
+/* 拖拽提示 */
+.dropzone-hint {
+  margin-top: 16px;
+  text-align: center;
+  font-size: 12px; color: var(--ink-muted);
+  padding: 12px;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius-card);
+  opacity: .7;
+}
+
+/* 入场动效 */
+.reveal { opacity: 0; transform: translateY(8px); animation: reveal .5s var(--ease) forwards; }
+.reveal.d1 { animation-delay: .05s; }
+.reveal.d2 { animation-delay: .15s; }
+@keyframes reveal { to { opacity: 1; transform: none; } }
+
+/* 响应式 */
+@media (max-width: 720px) {
+  .main { padding: 20px 16px 180px; }
+  .editor { padding: 20px; border-radius: 16px; }
+  .title-input { font-size: 22px; }
+  .toolbar-inner { gap: 8px; }
+  .primary { padding: 10px 14px; }
+  .type-select { margin-left: 0; flex: 1; }
+  .type-trigger { width: 100%; justify-content: center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+}
+.attach:focus-visible,
+.tool-btn:focus-visible,
+.primary:focus-visible,
+.back:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+</style>
+</head>
+<body>
+<div class="bg" aria-hidden="true"></div>
+
+<!-- 顶栏 -->
+<header class="topbar">
+  <a href="./home.html" class="back" aria-label="返回工作台">← 返回</a>
+  <div class="topbar-title">记录灵感</div>
+  <div class="status-chip saved" id="statusChip">
+    <span class="dot"></span><span id="statusText">已自动保存 · 17:42</span>
+  </div>
+</header>
+
+<main class="main">
+
+  <p class="date-stamp reveal">2026 年 8 月 18 日 · 周二 · 下午 5 点 42 分</p>
+
+  <form class="editor reveal d1" id="editorForm" autocomplete="off">
+    <input
+      class="title-input"
+      type="text"
+      placeholder="给这一刻起个名字（可留空）"
+      aria-label="标题"
+    >
+
+    <textarea
+      class="body-input"
+      placeholder="写下此刻的想法……
+
+不必完整，先抓住那束光。
+粘贴图片、拖入文件、随时切换灵感类型。"
+      aria-label="正文"
+      autofocus
+    ></textarea>
+
+    <!-- 附件区 -->
+    <div class="attachments" id="attachments">
+      <div class="attach" aria-label="附件：草图.jpg">
+        <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><rect width='200' height='200' fill='%23dccdb4'/><text x='100' y='105' text-anchor='middle' fill='%23786953' font-family='serif' font-size='20' font-style='italic'>草图</text></svg>" alt="">
+        <button class="x" type="button" aria-label="移除附件">×</button>
+      </div>
+      <div class="attach audio" aria-label="音频：01:24">
+        <div class="wave" aria-hidden="true">
+          <i style="height:30%"></i><i style="height:60%"></i><i style="height:80%"></i>
+          <i style="height:50%"></i><i style="height:90%"></i><i style="height:40%"></i>
+          <i style="height:70%"></i><i style="height:55%"></i><i style="height:85%"></i>
+          <i style="height:35%"></i><i style="height:65%"></i><i style="height:75%"></i>
+        </div>
+        <div class="meta"><span>🎙 灵感语音</span><span>01:24</span></div>
+        <button class="x" type="button" aria-label="移除附件">×</button>
+      </div>
+      <div class="attach processing" aria-label="处理中">
+        <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><rect width='200' height='200' fill='%23b9c2c8'/><text x='100' y='105' text-anchor='middle' fill='%23555e64' font-family='sans-serif' font-size='14'>OCR 中…</text></svg>" alt="">
+      </div>
+    </div>
+
+    <!-- AI 分类建议 -->
+    <div class="ai-suggest" id="aiSuggest" style="display:none">
+      <span class="badge">AI</span>
+      <span>看起来像 <strong id="aiType">「想法」</strong>，要切换吗？</span>
+      <button type="button" id="aiAccept">接受</button>
+    </div>
+  </form>
+
+  <div class="dropzone-hint reveal d2">提示：可直接粘贴图片、拖拽文件到上方；移动端后续支持拍照与录音。</div>
+
+</main>
+
+<!-- 底部工具栏 -->
+<div class="toolbar" role="toolbar" aria-label="记录工具栏">
+  <div class="toolbar-inner">
+    <button class="tool-btn" type="button" data-action="image">
+      <span class="ico">🖼</span><span class="label">图片</span>
+    </button>
+    <button class="tool-btn" type="button" data-action="audio">
+      <span class="ico">🎙</span><span class="label">音频</span>
+    </button>
+    <button class="tool-btn disabled" type="button" aria-label="拍照（移动端）" title="移动端后续支持">
+      <span class="ico">📷</span><span class="label">拍照</span>
+    </button>
+    <button class="tool-btn disabled" type="button" aria-label="录音（移动端）" title="移动端后续支持">
+      <span class="ico">🎤</span><span class="label">录音</span>
+    </button>
+
+    <div class="type-select">
+      <button class="type-trigger" type="button" id="typeTrigger" data-type="想法" aria-haspopup="listbox" aria-expanded="false">
+        <span class="swatch" aria-hidden="true"></span>
+        <span id="typeLabel">类型：想法</span>
+        <span class="caret">▾</span>
+      </button>
+      <div class="type-menu" id="typeMenu" role="listbox">
+        <button class="type-item" type="button" data-type="先不分类" data-color="ink-muted">
+          <span class="swatch" style="background: var(--ink-muted)"></span>先不分类
+        </button>
+        <button class="type-item" type="button" data-type="想法">
+          <span class="swatch"></span>想法
+        </button>
+        <button class="type-item" type="button" data-type="引用">
+          <span class="swatch"></span>引用
+        </button>
+        <button class="type-item" type="button" data-type="随感">
+          <span class="swatch"></span>随感
+        </button>
+        <button class="type-item" type="button" data-type="待办">
+          <span class="swatch"></span>待办
+        </button>
+        <button class="type-item" type="button" data-type="案例">
+          <span class="swatch"></span>案例
+        </button>
+        <button class="type-item" type="button" data-type="问题">
+          <span class="swatch"></span>问题
+        </button>
+      </div>
+    </div>
+
+    <button class="primary" type="submit" form="editorForm">保存灵感 <span aria-hidden="true">⌘↵</span></button>
+  </div>
+</div>
+
+<script>
+// 类型选择器
+const trigger = document.getElementById('typeTrigger');
+const menu = document.getElementById('typeMenu');
+const label = document.getElementById('typeLabel');
+const items = menu.querySelectorAll('.type-item');
+const aiSuggest = document.getElementById('aiSuggest');
+const aiType = document.getElementById('aiType');
+const aiAccept = document.getElementById('aiAccept');
+
+trigger.addEventListener('click', (e) => {
+  e.stopPropagation();
+  const isOpen = menu.classList.toggle('open');
+  trigger.setAttribute('aria-expanded', isOpen);
+});
+document.addEventListener('click', () => {
+  menu.classList.remove('open');
+  trigger.setAttribute('aria-expanded', 'false');
+});
+items.forEach(item => {
+  item.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const t = item.dataset.type;
+    trigger.dataset.type = t;
+    label.textContent = '类型：' + t;
+    menu.classList.remove('open');
+    trigger.setAttribute('aria-expanded', 'false');
+    // 关闭 AI 建议
+    aiSuggest.style.display = 'none';
+  });
+});
+
+// 模拟 AI 分类建议：3 秒后弹出
+setTimeout(() => {
+  if (aiSuggest.style.display === 'none' || !aiSuggest.style.display) {
+    aiSuggest.style.display = 'inline-flex';
+    aiType.textContent = '「引用」';
+  }
+}, 3000);
+
+aiAccept.addEventListener('click', () => {
+  trigger.dataset.type = '引用';
+  label.textContent = '类型：引用';
+  aiSuggest.style.display = 'none';
+});
+
+// 自动保存状态切换
+const chip = document.getElementById('statusChip');
+const text = document.getElementById('statusText');
+const body = document.querySelector('.body-input');
+let saveTimer = null;
+body.addEventListener('input', () => {
+  chip.classList.remove('saved');
+  chip.classList.add('saving');
+  text.textContent = '正在保存…';
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    chip.classList.remove('saving');
+    chip.classList.add('saved');
+    const d = new Date();
+    text.textContent = '已自动保存 · ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+  }, 800);
+});
+
+// 提交
+document.getElementById('editorForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  chip.classList.remove('saving');
+  chip.classList.add('saved');
+  text.textContent = '已记录 ✓';
+  // 反馈动效
+  trigger.style.transform = 'scale(1.05)';
+  setTimeout(() => trigger.style.transform = '', 200);
+});
+</script>
+</body>
+</html>

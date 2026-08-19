@@ -1,0 +1,21 @@
+{
+  "name": "nebula-react",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Nebula Edition · 灵感收集与查阅 · React + Vite 真实可运行组件（CSS 变量与 SVG 资源零翻译复用）",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.26.2"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.3",
+    "vite": "^5.4.10"
+  }
+}

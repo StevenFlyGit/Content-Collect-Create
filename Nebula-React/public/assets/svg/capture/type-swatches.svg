@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 182 50" width="182" height="50">
+  <g>
+    <circle cx="14" cy="14" r="10" fill="#8d8879"/>
+    <text x="14" y="40" text-anchor="middle" font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif" font-size="9" fill="#8d8879">先不分类</text>
+  </g>
+  <g>
+    <circle cx="42" cy="14" r="10" fill="#a78bfa"/>
+    <text x="42" y="40" text-anchor="middle" font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif" font-size="9" fill="#8d8879">想法</text>
+  </g>
+  <g>
+    <circle cx="70" cy="14" r="10" fill="#7dd3fc"/>
+    <text x="70" y="40" text-anchor="middle" font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif" font-size="9" fill="#8d8879">引用</text>
+  </g>
+  <g>
+    <circle cx="98" cy="14" r="10" fill="#f9a8d4"/>
+    <text x="98" y="40" text-anchor="middle" font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif" font-size="9" fill="#8d8879">随感</text>
+  </g>
+  <g>
+    <circle cx="126" cy="14" r="10" fill="#86efac"/>
+    <text x="126" y="40" text-anchor="middle" font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif" font-size="9" fill="#8d8879">待办</text>
+  </g>
+  <g>
+    <circle cx="154" cy="14" r="10" fill="#fcd34d"/>
+    <text x="154" y="40" text-anchor="middle" font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif" font-size="9" fill="#8d8879">案例</text>
+  </g>
+</svg>

@@ -1,0 +1,128 @@
+/* ---------- 日期区 ---------- */
+.datesec {
+  max-width: 1280px; margin: 0 auto;
+  padding: 28px 24px 12px;
+  text-align: center;
+}
+.datesec h2 {
+  font-family: "Songti SC", "STSong", "Noto Serif SC", Georgia, serif;
+  font-size: 18px; font-weight: 500;
+  margin: 0 0 18px; letter-spacing: 2px;
+  color: var(--ink);
+}
+
+.date-summary {
+  margin-top: 16px;
+  font-size: 13px; color: var(--ink-soft);
+  display: flex; justify-content: center; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.date-summary strong { color: var(--ink); font-weight: 500; }
+.date-summary .q {
+  font-size: 12px; padding: 4px 12px; border-radius: var(--radius-pill);
+  background: var(--surface); color: var(--ink-soft);
+  border: 1px solid var(--line);
+  letter-spacing: 1px;
+  transition: all .2s var(--ease);
+  cursor: pointer;
+}
+.date-summary .q:hover { color: var(--ink); border-color: rgba(255,255,255,.22); }
+
+/* 视图切换 */
+.view-switch {
+  display: inline-flex;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  padding: 4px;
+  margin-bottom: 16px;
+}
+.view-switch button {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  color: var(--ink-muted);
+  transition: all .2s var(--ease);
+}
+.view-switch button img { width: 14px; height: 14px; }
+.view-switch button.active { background: var(--ink); color: var(--cosmos-deep); }
+
+/* ---------- 白板区 ---------- */
+.board-wrap { max-width: 1280px; margin: 0 auto; padding: 8px 24px 200px; }
+.board-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin: 0 auto 16px; max-width: 1280px;
+}
+.board-title {
+  display: flex; align-items: center; gap: 12px;
+  font-size: 13px; color: var(--ink-muted);
+  letter-spacing: 1px; text-transform: uppercase;
+}
+.board-title strong { color: var(--ink); font-weight: 500; letter-spacing: 1px; }
+.board-actions { display: flex; gap: 8px; }
+.icon-btn {
+  width: 36px; height: 36px;
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  display: grid; place-items: center;
+  color: var(--ink-muted);
+  transition: all .2s var(--ease);
+}
+.icon-btn:hover { color: var(--ink); border-color: rgba(255,255,255,.2); }
+.icon-btn.active { background: var(--nebula-violet); color: var(--cosmos-deep); border-color: var(--nebula-violet); box-shadow: 0 0 16px rgba(167, 139, 250, .5); }
+
+.board {
+  position: relative;
+  background: var(--surface);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  min-height: 560px;
+  padding: 24px;
+  overflow: hidden;
+}
+.board::before {
+  content: ""; position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+  background-size: 32px 32px;
+  pointer-events: none;
+}
+
+/* 缩略地图 */
+.thumb-map {
+  display: none;
+  margin-top: 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  height: 80px;
+  position: relative;
+  overflow: hidden;
+}
+.thumb-map::before {
+  content: "贴片缩略图 · 1/4";
+  position: absolute; top: 6px; left: 8px;
+  font-size: 11px; color: var(--ink-muted);
+}
+
+.reveal { opacity: 0; transform: translateY(6px); animation: reveal .5s var(--ease) forwards; }
+@keyframes reveal { to { opacity: 1; transform: none; } }
+
+@media (max-width: 720px) {
+  .datesec { padding: 20px 16px 8px; }
+  .board-wrap { padding: 8px 16px 200px; }
+  .board { padding: 16px; min-height: auto; }
+  .board::before { display: none; }
+  .nav-tools .nav-btn { display: none; }
+  .thumb-map { display: block; }
+}
+
+/* a11y 焦点 */
+.sticky:focus-visible, .cluster:focus-visible, .icon-btn:focus-visible,
+.back:focus-visible, .nav-btn:focus-visible {
+  outline: 2px solid var(--focus); outline-offset: 3px;
+}

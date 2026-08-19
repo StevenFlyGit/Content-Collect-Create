@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nebula Edition · 设计稿 & 切图 · xhs-content-workflow</title>
+<style>
+:root {
+  --cosmos-deep: #07060f;
+  --cosmos: #0e0c1d;
+  --cosmos-2: #16142a;
+  --surface: rgba(255, 255, 255, 0.04);
+  --surface-strong: rgba(255, 255, 255, 0.09);
+  --line: rgba(255, 255, 255, 0.10);
+  --line-soft: rgba(255, 255, 255, 0.06);
+  --ink: #f5f3ed;
+  --ink-soft: #d8d4c8;
+  --ink-muted: #8d8879;
+  --nebula-violet: #a78bfa;
+  --nebula-blue: #7dd3fc;
+  --nebula-rose: #f9a8d4;
+  --nebula-mint: #86efac;
+  --nebula-amber: #fcd34d;
+  --danger: #fca5a5;
+  --focus: #93c5fd;
+  --radius-panel: 20px;
+  --radius-card: 14px;
+  --radius-pill: 999px;
+  --ease: cubic-bezier(.2,.7,.3,1);
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+  font-size: 15px; line-height: 1.75;
+  color: var(--ink);
+  background: var(--cosmos-deep);
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; }
+code, kbd, .mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, "Courier New", monospace; font-size: 13px; }
+
+.layout { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
+.toc {
+  position: sticky; top: 0; align-self: start;
+  height: 100vh; overflow-y: auto;
+  padding: 28px 20px;
+  border-right: 1px solid var(--line);
+  background: linear-gradient(180deg, var(--cosmos-2), var(--cosmos-deep));
+}
+.toc h1 { font-size: 14px; letter-spacing: 2px; color: var(--ink-soft); margin: 0 0 18px; }
+.toc ol { list-style: none; padding: 0; margin: 0; counter-reset: s; }
+.toc li { counter-increment: s; margin: 4px 0; }
+.toc li a {
+  display: block; padding: 6px 10px; border-radius: 8px;
+  color: var(--ink-muted); font-size: 13px; text-decoration: none;
+  transition: all .2s var(--ease);
+}
+.toc li a::before { content: counter(s) ". "; color: var(--ink-muted); margin-right: 4px; }
+.toc li a:hover { background: var(--surface); color: var(--ink); }
+
+main { padding: 40px 56px 120px; max-width: 1280px; }
+section { margin-bottom: 72px; scroll-margin-top: 24px; }
+section h2 {
+  font-size: 22px; font-weight: 500; letter-spacing: 1px;
+  color: var(--ink); margin: 0 0 4px;
+  display: flex; align-items: baseline; gap: 10px;
+}
+section h2 .num { font-size: 12px; color: var(--ink-muted); letter-spacing: 2px; }
+section .sub { color: var(--ink-muted); font-size: 13px; margin: 0 0 24px; }
+
+.hero { padding: 32px 0 56px; border-bottom: 1px solid var(--line); margin-bottom: 48px; }
+.hero .badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 11px; padding: 4px 10px; border-radius: var(--radius-pill);
+  background: rgba(167, 139, 250, .12); color: var(--nebula-violet);
+  border: 1px solid rgba(167, 139, 250, .3); letter-spacing: 1px;
+}
+.hero h1 {
+  font-size: 40px; font-weight: 500; letter-spacing: 2px;
+  margin: 16px 0 8px; line-height: 1.2;
+  background: linear-gradient(135deg, #f5f3ed 0%, #a78bfa 60%, #f9a8d4 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.hero .lead { color: var(--ink-soft); font-size: 15px; max-width: 720px; }
+.hero .meta { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 24px; font-size: 12px; color: var(--ink-muted); }
+.hero .meta span { padding: 4px 10px; border: 1px solid var(--line); border-radius: var(--radius-pill); }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  padding: 24px;
+  margin-bottom: 16px;
+}
+.card h3 { font-size: 13px; color: var(--ink-muted); margin: 0 0 16px; letter-spacing: 1.5px; text-transform: uppercase; font-weight: 500; }
+.grid { display: grid; gap: 16px; }
+.grid-2 { grid-template-columns: 1fr 1fr; }
+.grid-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-4 { grid-template-columns: repeat(4, 1fr); }
+.grid-5 { grid-template-columns: repeat(5, 1fr); }
+.grid-6 { grid-template-columns: repeat(6, 1fr); }
+
+.swatch {
+  display: flex; flex-direction: column;
+  background: var(--cosmos-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+}
+.swatch .chip { height: 64px; }
+.swatch .meta { padding: 10px 12px; font-size: 11px; color: var(--ink-muted); }
+.swatch .meta b { display: block; color: var(--ink); font-size: 13px; font-weight: 500; margin-bottom: 2px; }
+.swatch .meta code { font-size: 11px; }
+
+.type-row { display: flex; align-items: baseline; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--line-soft); }
+.type-row:last-child { border-bottom: 0; }
+.type-row .name { width: 120px; font-size: 12px; color: var(--ink-muted); }
+.type-row .spec { width: 200px; font-size: 12px; color: var(--ink-muted); font-family: ui-monospace, monospace; }
+
+.spec-row { display: flex; align-items: center; gap: 16px; padding: 10px 0; }
+.spec-row .name { width: 100px; font-size: 12px; color: var(--ink-muted); }
+.spec-row .viz { display: flex; align-items: center; gap: 10px; }
+.spec-row .val { color: var(--ink); font-size: 13px; font-family: ui-monospace, monospace; }
+.shadow-box { width: 80px; height: 48px; background: var(--cosmos-2); border: 1px solid var(--line); border-radius: 12px; display: grid; place-items: center; font-size: 11px; color: var(--ink-muted); }
+
+.demo-row { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line-soft); }
+.demo-row:last-child { border-bottom: 0; }
+.demo-row .label { width: 110px; font-size: 12px; color: var(--ink-muted); }
+
+.btn-primary {
+  padding: 10px 18px; border-radius: var(--radius-pill); border: 0;
+  background: linear-gradient(135deg, var(--nebula-violet), var(--nebula-rose));
+  color: var(--cosmos-deep); font-size: 14px; font-weight: 600;
+  display: inline-flex; align-items: center; gap: 6px;
+  box-shadow: 0 0 24px rgba(167, 139, 250, .4);
+  transition: all .2s var(--ease);
+  cursor: pointer; font-family: inherit;
+}
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 32px -4px rgba(167, 139, 250, .6); }
+.btn-primary:active { transform: translateY(0); }
+.btn-primary.is-disabled { opacity: .35; cursor: not-allowed; box-shadow: none; }
+
+.btn-secondary {
+  padding: 10px 18px; border-radius: var(--radius-pill);
+  background: var(--surface); border: 1px solid var(--line);
+  color: var(--ink); font-size: 14px; cursor: pointer; font-family: inherit;
+}
+.btn-secondary.is-active { background: var(--ink); color: var(--cosmos-deep); border-color: var(--ink); }
+
+.icon-btn {
+  width: 36px; height: 36px; border-radius: var(--radius-pill);
+  background: var(--surface); border: 1px solid var(--line);
+  display: grid; place-items: center; cursor: pointer;
+  transition: all .2s var(--ease); color: var(--ink-muted);
+}
+.icon-btn.is-active { background: var(--nebula-violet); color: var(--cosmos-deep); border-color: var(--nebula-violet); box-shadow: 0 0 16px rgba(167, 139, 250, .5); }
+.icon-btn svg { width: 18px; height: 18px; }
+
+.mode-card {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: 14px;
+  background: var(--surface); border: 1px solid var(--line);
+  cursor: pointer; transition: all .22s var(--ease);
+  min-width: 110px;
+}
+.mode-card.is-active {
+  background: linear-gradient(135deg, rgba(167, 139, 250, .15), rgba(125, 211, 252, .06));
+  border-color: rgba(167, 139, 250, .55);
+  box-shadow: 0 0 0 1px rgba(167, 139, 250, .35), 0 4px 16px -4px rgba(167, 139, 250, .4);
+}
+.mode-card.is-disabled { opacity: .42; cursor: not-allowed; }
+.mode-card .ico {
+  width: 32px; height: 32px; display: grid; place-items: center;
+  border-radius: 9px;
+  background: linear-gradient(135deg, #2a2255 0%, #3a2d72 100%);
+  color: #e8e4ff; flex-shrink: 0;
+}
+.mode-card.is-active .ico {
+  background: linear-gradient(135deg, #3a2d72 0%, #4d3da3 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .12), 0 0 12px rgba(167, 139, 250, .5);
+}
+.mode-card .ico svg { width: 18px; height: 18px; }
+.mode-card .lbl { font-size: 13.5px; font-weight: 500; letter-spacing: 1px; }
+
+.type-trigger {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 14px; border-radius: var(--radius-pill);
+  border: 1px solid var(--line); background: var(--surface-strong);
+  color: var(--ink); font-size: 13px; cursor: pointer; font-family: inherit;
+}
+.type-trigger .swatch { width: 10px; height: 10px; border-radius: 50%; }
+.type-trigger[data-type="想法"] .swatch { background: var(--nebula-violet); box-shadow: 0 0 8px var(--nebula-violet); }
+.type-trigger[data-type="引用"] .swatch { background: var(--nebula-blue);   box-shadow: 0 0 8px var(--nebula-blue); }
+.type-trigger[data-type="随感"] .swatch { background: var(--nebula-rose);   box-shadow: 0 0 8px var(--nebula-rose); }
+.type-trigger[data-type="待办"] .swatch { background: var(--nebula-mint);   box-shadow: 0 0 8px var(--nebula-mint); }
+.type-trigger[data-type="案例"] .swatch { background: var(--nebula-amber);  box-shadow: 0 0 8px var(--nebula-amber); }
+
+.status-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px; color: var(--ink-soft);
+  padding: 4px 10px; border: 1px solid var(--line);
+  border-radius: var(--radius-pill); background: var(--surface);
+}
+.status-chip .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ink-muted); }
+.status-chip.is-saving .dot { background: var(--nebula-amber); box-shadow: 0 0 8px var(--nebula-amber); animation: pulse 1.2s infinite; }
+.status-chip.is-saved .dot { background: var(--nebula-mint); box-shadow: 0 0 8px var(--nebula-mint); }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+.sticky {
+  position: relative;
+  width: 220px;
+  background: var(--cosmos-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  padding: 14px 16px 12px;
+  transition: all .2s var(--ease);
+}
+.sticky .check { position: absolute; top: 10px; right: 10px; width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--line); background: var(--cosmos-2); display: grid; place-items: center; font-size: 12px; }
+.sticky .head { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--ink-muted); margin-bottom: 6px; }
+.sticky .pill { font-size: 10px; padding: 2px 6px; border-radius: 4px; background: var(--surface-strong); border: 1px solid var(--line-soft); }
+.sticky[data-type="想法"] .pill { color: var(--nebula-violet); border-color: rgba(167, 139, 250, .3); }
+.sticky[data-type="引用"] .pill { color: var(--nebula-blue);   border-color: rgba(125, 211, 252, .3); }
+.sticky[data-type="随感"] .pill { color: var(--nebula-rose);   border-color: rgba(249, 168, 212, .3); }
+.sticky .text { font-size: 13px; line-height: 1.6; color: var(--ink); margin: 0; }
+.sticky .text.quote { font-style: italic; border-left: 2px solid var(--nebula-blue); padding-left: 8px; }
+.sticky .ai-tag { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; padding: 2px 6px; border-radius: 4px; background: rgba(167, 139, 250, .12); color: var(--nebula-violet); margin-top: 8px; }
+.sticky.is-selected { border-color: var(--nebula-violet); box-shadow: 0 0 0 1px var(--nebula-violet), 0 0 24px -4px var(--nebula-violet); }
+.sticky.is-selected .check { background: var(--nebula-violet); border-color: var(--nebula-violet); color: var(--cosmos-deep); }
+
+.view-switch { display: inline-flex; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-pill); padding: 4px; }
+.view-switch button { padding: 6px 14px; border-radius: var(--radius-pill); font-size: 13px; color: var(--ink-muted); background: none; border: 0; cursor: pointer; font-family: inherit; }
+.view-switch button.is-active { background: var(--ink); color: var(--cosmos-deep); }
+
+.selection-bar {
+  display: inline-flex; align-items: center; gap: 16px;
+  padding: 10px 12px 10px 18px;
+  background: var(--cosmos-2); border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  box-shadow: 0 10px 40px -10px rgba(167, 139, 250, .4), 0 0 24px -4px rgba(167, 139, 250, .3);
+  color: var(--ink);
+}
+.selection-bar .count { font-size: 14px; display: flex; align-items: center; gap: 8px; }
+.selection-bar .count strong { font-size: 18px; }
+.selection-bar .divider { width: 1px; height: 20px; background: var(--line); }
+.selection-bar .btn { padding: 8px 14px; border-radius: var(--radius-pill); font-size: 14px; background: none; border: 0; color: var(--ink-soft); cursor: pointer; font-family: inherit; }
+.selection-bar .btn.primary { background: linear-gradient(135deg, var(--nebula-violet), var(--nebula-rose)); color: var(--cosmos-deep); font-weight: 600; }
+
+.wheels-mini { display: inline-flex; align-items: center; gap: 12px; padding: 8px 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; }
+.wheels-mini .col { display: flex; flex-direction: column; align-items: center; gap: 4px; font-family: "Songti SC", "Noto Serif SC", Georgia, serif; }
+.wheels-mini .col span { color: var(--ink-muted); font-size: 14px; }
+.wheels-mini .col b { color: var(--ink); font-size: 22px; text-shadow: 0 0 22px rgba(167, 139, 250, .55); }
+.wheels-mini .sep { width: 1px; height: 48px; background: var(--line); }
+
+.frame {
+  width: 100%; max-width: 1080px; height: 760px;
+  overflow: hidden; position: relative;
+  border-radius: var(--radius-panel);
+  border: 1px solid var(--line);
+  background: var(--cosmos);
+  margin-bottom: 12px;
+}
+.frame iframe {
+  width: 1280px; height: 1080px;
+  border: 0; background: var(--cosmos-deep);
+  transform-origin: top left;
+  transform: scale(0.84375);
+}
+.frame-label { font-size: 12px; color: var(--ink-muted); }
+
+.icon-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; }
+.icon-cell {
+  background: var(--cosmos-2); border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  padding: 14px; text-align: center;
+  transition: all .2s var(--ease);
+}
+.icon-cell:hover { border-color: rgba(167, 139, 250, .4); }
+.icon-cell .ico { width: 48px; height: 48px; margin: 0 auto 10px; display: grid; place-items: center; }
+.icon-cell .ico img, .icon-cell .ico svg { width: 48px; height: 48px; display: block; }
+.icon-cell .name { font-size: 12px; color: var(--ink); margin-bottom: 2px; font-family: ui-monospace, monospace; }
+.icon-cell .group { font-size: 10px; color: var(--ink-muted); letter-spacing: 1px; text-transform: uppercase; }
+
+@media (max-width: 960px) {
+  .layout { grid-template-columns: 1fr; }
+  .toc { position: relative; height: auto; }
+  main { padding: 24px 20px 80px; }
+  .grid-2, .grid-3, .grid-4, .grid-5, .grid-6 { grid-template-columns: 1fr 1fr; }
+  .icon-grid { grid-template-columns: repeat(3, 1fr); }
+  .frame { height: 540px; }
+  .frame iframe { transform: scale(0.6); }
+}
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="toc">
+    <h1>Nebula · B</h1>
+    <ol>
+      <li><a href="#overview">总览</a></li>
+      <li><a href="#tokens">设计令牌</a></li>
+      <li><a href="#components">组件库</a></li>
+      <li><a href="#pages">页面框架</a></li>
+      <li><a href="#icons">图标资产</a></li>
+      <li><a href="#handoff">前端交付</a></li>
+    </ol>
+    <p style="margin-top: 24px; font-size: 11px; color: var(--ink-muted); line-height: 1.7; letter-spacing: .5px;">
+      本文档为 Nebula 方案 B 的高保真设计稿与切图总览。<br>
+      由于本环境无法导出 .fig 文件，已用 HTML + 实际资产作为 Figma 等效交付。
+    </p>
+  </aside>
+
+  <main>
+    <header class="hero">
+      <span class="badge">✦ Nebula Edition · 方案 B</span>
+      <h1>灵感工作台 · 高保真设计稿 & 切图</h1>
+      <p class="lead">深色星云调性、玻璃拟态与低饱和类型族群。覆盖工作台首页 / 灵感记录 / 灵感库三个核心场景，含完整组件库、状态变体与前端可用的 SVG/PNG 资源。</p>
+      <div class="meta">
+        <span>3 个核心页面</span>
+        <span>21 个矢量图标</span>
+        <span>63 张位图（×3 分辨率）</span>
+        <span>1 套类型色板</span>
+      </div>
+    </header>
+
+    <section id="overview">
+      <h2><span class="num">01</span> 总览</h2>
+      <p class="sub">本方案的设计哲学与版式基础</p>
+      <div class="card">
+        <h3>设计原则</h3>
+        <div class="grid grid-3" style="font-size: 13px; line-height: 1.9; color: var(--ink-soft);">
+          <div><b style="color:var(--nebula-violet)">沉浸感</b><br>深色星云作底，让灵感有"被包裹"的归属感，避免白底工作台的冷感。</div>
+          <div><b style="color:var(--nebula-blue)">自由有序</b><br>白板贴片允许位置自由，但类型色与 AI 标签提供统一锚点。</div>
+          <div><b style="color:var(--nebula-rose)">类型优先</b><br>六色低饱和色板：想法 / 引用 / 随感 / 待办 / 案例 / 问题，色盲友好。</div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>调色板预览</h3>
+        <div class="grid grid-6">
+          <div class="swatch"><div class="chip" style="background:#07060f;border:1px solid var(--line)"></div><div class="meta"><b>cosmos-deep</b><code>#07060f</code></div></div>
+          <div class="swatch"><div class="chip" style="background:#16142a"></div><div class="meta"><b>cosmos-2</b><code>#16142a</code></div></div>
+          <div class="swatch"><div class="chip" style="background:#a78bfa"></div><div class="meta"><b>violet</b><code>#a78bfa</code></div></div>
+          <div class="swatch"><div class="chip" style="background:#7dd3fc"></div><div class="meta"><b>blue</b><code>#7dd3fc</code></div></div>
+          <div class="swatch"><div class="chip" style="background:#f9a8d4"></div><div class="meta"><b>rose</b><code>#f9a8d4</code></div></div>
+          <div class="swatch"><div class="chip" style="background:#86efac"></div><div class="meta"><b>mint</b><code>#86efac</code></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tokens">
+      <h2><span class="num">02</span> 设计令牌</h2>
+      <p class="sub">前端可直接复用的 CSS 变量与基础值</p>
+      <div class="card">
+        <h3>字体 / Typography</h3>
+        <div class="type-row"><span class="name">font-family</span><span class="spec">system stack</span><span style="color:var(--ink-soft);font-size:13px">-apple-system, PingFang SC, Microsoft YaHei, system-ui</span></div>
+        <div class="type-row"><span class="name">title</span><span class="spec">28 / 1.4 / Songti</span><span style="font-family:'Songti SC','Noto Serif SC',Georgia,serif;font-size:28px">给这一刻起个名字</span></div>
+        <div class="type-row"><span class="name">body</span><span class="spec">16 / 1.85</span><span style="font-size:16px;line-height:1.85">写下此刻的想法……</span></div>
+        <div class="type-row"><span class="name">topbar-title</span><span class="spec">18 / 2 / Songti</span><span style="font-family:'Songti SC','Noto Serif SC',Georgia,serif;font-size:18px;letter-spacing:2px">灵感库</span></div>
+        <div class="type-row"><span class="name">nav-link</span><span class="spec">14 / 0.5</span><span style="font-size:14px">工作台</span></div>
+        <div class="type-row"><span class="name">caption</span><span class="spec">12 / 1.5 / muted</span><span style="font-size:12px;color:var(--ink-muted)">2026 年 8 月 18 日 · 17:42</span></div>
+      </div>
+      <div class="card">
+        <h3>间距 / Spacing</h3>
+        <div class="grid grid-2">
+          <div>
+            <div class="spec-row"><span class="name">xxs · 4</span><div class="viz"><span style="width:4px;height:18px;background:var(--nebula-violet);border-radius:2px"></span><span class="val">4</span></div></div>
+            <div class="spec-row"><span class="name">xs · 8</span><div class="viz"><span style="width:8px;height:18px;background:var(--nebula-violet);border-radius:2px"></span><span class="val">8</span></div></div>
+            <div class="spec-row"><span class="name">sm · 12</span><div class="viz"><span style="width:12px;height:18px;background:var(--nebula-violet);border-radius:2px"></span><span class="val">12</span></div></div>
+          </div>
+          <div>
+            <div class="spec-row"><span class="name">md · 16</span><div class="viz"><span style="width:16px;height:18px;background:var(--nebula-blue);border-radius:2px"></span><span class="val">16</span></div></div>
+            <div class="spec-row"><span class="name">lg · 24</span><div class="viz"><span style="width:24px;height:18px;background:var(--nebula-blue);border-radius:2px"></span><span class="val">24</span></div></div>
+            <div class="spec-row"><span class="name">xl · 32</span><div class="viz"><span style="width:32px;height:18px;background:var(--nebula-rose);border-radius:2px"></span><span class="val">32</span></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>圆角 / Radius</h3>
+        <div class="grid grid-4">
+          <div class="shadow-box" style="border-radius:8px">8</div>
+          <div class="shadow-box" style="border-radius:14px">14 · card</div>
+          <div class="shadow-box" style="border-radius:20px">20 · panel</div>
+          <div class="shadow-box" style="border-radius:999px">999 · pill</div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>阴影 / Shadow</h3>
+        <div class="grid grid-3">
+          <div style="text-align:center">
+            <div style="width:96px;height:48px;margin:0 auto 8px;background:var(--cosmos-2);border:1px solid var(--line);border-radius:12px;box-shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -12px rgba(0,0,0,.5)"></div>
+            <code>shadow-soft</code>
+          </div>
+          <div style="text-align:center">
+            <div style="width:96px;height:48px;margin:0 auto 8px;background:var(--cosmos-2);border:1px solid var(--line);border-radius:12px;box-shadow: 0 2px 4px rgba(0,0,0,.4), 0 24px 48px -16px rgba(0,0,0,.6)"></div>
+            <code>shadow-lift</code>
+          </div>
+          <div style="text-align:center">
+            <div style="width:96px;height:48px;margin:0 auto 8px;background:var(--cosmos-2);border:1px solid rgba(167,139,250,.4);border-radius:12px;box-shadow: 0 0 0 1px rgba(167,139,250,.5), 0 0 24px -4px var(--nebula-violet)"></div>
+            <code>selected-glow</code>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>缓动 / Easing</h3>
+        <div class="grid grid-3" style="font-size: 12px;">
+          <div><code>--ease: cubic-bezier(.2,.7,.3,1)</code><br><span style="color:var(--ink-muted)">主要过渡曲线</span></div>
+          <div><code>180ms</code><br><span style="color:var(--ink-muted)">滚轮单步推进防抖</span></div>
+          <div><code>350ms</code><br><span style="color:var(--ink-muted)">滚轮吸附 / 入场动效</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="components">
+      <h2><span class="num">03</span> 组件库</h2>
+      <p class="sub">所有组件均带 normal / hover / active / disabled 四种状态</p>
+      <div class="card">
+        <h3>Button · 主按钮</h3>
+        <div class="demo-row"><span class="label">normal</span><button class="btn-primary">保存灵感</button></div>
+        <div class="demo-row"><span class="label">hover</span><button class="btn-primary" style="transform: translateY(-1px); box-shadow: 0 8px 32px -4px rgba(167, 139, 250, .6)">保存灵感</button></div>
+        <div class="demo-row"><span class="label">disabled</span><button class="btn-primary is-disabled">保存灵感</button></div>
+      </div>
+      <div class="card">
+        <h3>Mode Card · 输入模式（4 横向）</h3>
+        <div class="demo-row">
+          <span class="label">default</span>
+          <div class="mode-card">
+            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="15" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 16l5-5 4 4 3-3 6 6"/></svg></span>
+            <span class="lbl">图片</span>
+          </div>
+          <div class="mode-card">
+            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><line x1="12" y1="18" x2="12" y2="21"/></svg></span>
+            <span class="lbl">音频</span>
+          </div>
+        </div>
+        <div class="demo-row">
+          <span class="label">active</span>
+          <div class="mode-card is-active">
+            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="15" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 16l5-5 4 4 3-3 6 6"/></svg></span>
+            <span class="lbl">图片</span>
+          </div>
+        </div>
+        <div class="demo-row">
+          <span class="label">disabled</span>
+          <div class="mode-card is-disabled">
+            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8a2 2 0 0 1 2-2h2.5l1.5-2h6l1.5 2H19a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><circle cx="12" cy="13" r="3.5"/></svg></span>
+            <span class="lbl">拍照</span>
+          </div>
+          <div class="mode-card is-disabled">
+            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><line x1="12" y1="18" x2="12" y2="21"/><circle cx="19" cy="5.5" r="1.4" fill="currentColor" stroke="none"/></svg></span>
+            <span class="lbl">录音</span>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Type Trigger · 灵感类型</h3>
+        <div class="demo-row">
+          <span class="label">5 种类型</span>
+          <button class="type-trigger" data-type="想法"><span class="swatch"></span>类型：想法</button>
+          <button class="type-trigger" data-type="引用"><span class="swatch"></span>类型：引用</button>
+          <button class="type-trigger" data-type="随感"><span class="swatch"></span>类型：随感</button>
+          <button class="type-trigger" data-type="待办"><span class="swatch"></span>类型：待办</button>
+          <button class="type-trigger" data-type="案例"><span class="swatch"></span>类型：案例</button>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Status Chip · 状态指示</h3>
+        <div class="demo-row">
+          <span class="label">3 种状态</span>
+          <span class="status-chip"><span class="dot"></span>未开始</span>
+          <span class="status-chip is-saving"><span class="dot"></span>正在保存…</span>
+          <span class="status-chip is-saved"><span class="dot"></span>已自动保存 · 17:42</span>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Sticky · 灵感贴片</h3>
+        <div class="grid grid-3">
+          <article class="sticky" data-type="想法">
+            <div class="check"></div>
+            <div class="head"><span class="pill">想法</span><span>09:42</span></div>
+            <p class="text">"如果按日期回看灵感，会不会更像回到当天？"</p>
+            <div class="ai-tag">✦ AI 标签：产品 / 内容</div>
+          </article>
+          <article class="sticky" data-type="引用">
+            <div class="check"></div>
+            <div class="head"><span class="pill">引用</span><span>11:08</span></div>
+            <p class="text quote">"桂花落在车座上，气味比照片更早把秋天保存下来。"</p>
+          </article>
+          <article class="sticky is-selected" data-type="随感">
+            <div class="check">✓</div>
+            <div class="head"><span class="pill">随感</span><span>15:21</span></div>
+            <p class="text">便利店夜班的灯是"不要过来"还是"随时可以"？两个方向其实只差一块招牌。</p>
+          </article>
+        </div>
+      </div>
+      <div class="card">
+        <h3>View Switch · 视图切换</h3>
+        <div class="demo-row"><span class="label">白板 / 星云</span>
+          <div class="view-switch"><button class="is-active">▦ 白板</button><button>✦ 星云</button></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Selection Bar · 多选操作</h3>
+        <div class="demo-row"><span class="label">已选 3 条</span>
+          <div class="selection-bar">
+            <div class="count">已选 <strong>3</strong> 条灵感</div>
+            <div class="divider"></div>
+            <button class="btn">清空</button>
+            <button class="btn primary">用这些灵感创作 →</button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Icon Button · 顶栏操作</h3>
+        <div class="demo-row"><span class="label">normal / active</span>
+          <button class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="6" width="16" height="12" rx="2"/></svg></button>
+          <button class="icon-btn is-active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 14 10 21 12 14 14 12 21 10 14 3 12 10 10z"/></svg></button>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Date Wheel · 日期滚轮（3 列并排）</h3>
+        <div class="demo-row" style="justify-content:center">
+          <div class="wheels-mini">
+            <div class="col"><span>2020</span><b>2026</b><span>2030</span></div>
+            <div class="sep"></div>
+            <div class="col"><span>07</span><b>08</b><span>09</span></div>
+            <div class="sep"></div>
+            <div class="col"><span>17</span><b>18</b><span>19</span></div>
+          </div>
+        </div>
+        <p style="text-align:center;color:var(--ink-muted);font-size:12px;margin:12px 0 0">中间高亮 = active；上下用 mask 渐隐；滚轮 / 拖动 / 键盘均可用</p>
+      </div>
+    </section>
+
+    <section id="pages">
+      <h2><span class="num">04</span> 页面框架</h2>
+      <p class="sub">3 个核心页面 · 实景预览（含完整交互与动效）</p>
+      <div style="margin-bottom: 32px">
+        <p class="frame-label">① 工作台首页 · home.html</p>
+        <div class="frame"><iframe src="../Inspiration%20collection%20page%20prototype/scheme-B-nebula/home.html" title="工作台"></iframe></div>
+      </div>
+      <div style="margin-bottom: 32px">
+        <p class="frame-label">② 记录灵感 · capture.html</p>
+        <div class="frame"><iframe src="../Inspiration%20collection%20page%20prototype/scheme-B-nebula/capture.html" title="记录灵感"></iframe></div>
+      </div>
+      <div style="margin-bottom: 32px">
+        <p class="frame-label">③ 灵感库 · timeline.html</p>
+        <div class="frame"><iframe src="../Inspiration%20collection%20page%20prototype/scheme-B-nebula/timeline.html" title="灵感库"></iframe></div>
+      </div>
+    </section>
+
+    <section id="icons">
+      <h2><span class="num">05</span> 图标资产</h2>
+      <p class="sub">21 个图标 · 4 个分组 · SVG 矢量 + PNG @1x/@2x/@3x 位图</p>
+      <div class="card">
+        <h3>common · 通用</h3>
+        <div class="icon-grid">
+          <div class="icon-cell"><div class="ico"><img src="assets/svg/common/brand-mark.svg" alt=""></div><div class="name">brand-mark</div><div class="group">common</div></div>
+          <div class="icon-cell"><div class="ico"><img src="assets/svg/common/sparkle.svg" alt=""></div><div class="name">sparkle</div><div class="group">common</div></div>
+          <div class="icon-cell"><div class="ico"><img src="assets/svg/common/close.svg" alt=""></div><div class="name">close</div><div class="group">common</div></div>
+          <div class="icon-cell"><div class="ico"><img src="assets/svg/common/check.svg" alt=""></div><div class="name">check</div><div class="group">common</div></div>
+          <div class="icon-cell"><div class="ico"><img src="assets/svg/common/chevron-down.svg" alt=""></div><div class="name">chevron-down</div><div class="group">common</div></div>
+          <div class="icon-cell"><div class="ico"><img src="assets/svg/common/plus.svg" alt=""></div><div class="name">plus</div><div class="group">common</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>nav · 顶栏</h3>
+        <div class="icon-grid">
+          <div class="icon-cell"><div class="ico"><img src="assets/svg/nav/back.svg" alt=""></div><div class="name">back</div><div class="group">nav</div></div>
+          <div class="icon-cell"><div class="ico"><img src="assets/svg/nav/search.svg" alt=""></div><div class="name">search</div><div class="group">nav</div></div>
+          <div class="icon-cell"><div class="ico"><img src="assets/svg/nav/filter.svg" alt=""></div><div class="name">filter</div><div class="group">nav</div></div>
+          <div class="icon-cell"><div class="ico"><img src="assets/svg/nav/arrange.svg" alt=""></div><div class="name">arrange</div><div class="group">nav</div></div>
+          <div class="icon-cell"><div class="ico"><img src="assets/svg/nav/thumbmap.svg" alt=""></div><div class="name">thumbmap</div><div class="group">nav</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>capture · 输入模式</h3>
+        <div class="icon-grid">
+          <div class="icon-cell"><div class="ico"><img src="assets/svg/capture/image.svg" alt=""></div><div class="name">image</div><div class="group">capture</div></div>
+          <div class="icon-cell"><div class="ico"><img src="assets/svg/capture/audio.svg" alt=""></div><div class="name">audio</div><div class="group">capture</div></div>
+          <div class="icon-cell"><div class="ico"><img src="assets/svg/capture/camera.svg" alt=""></div><div class="name">camera</div><div class="group">capture</div></div>
+          <div class="icon-cell"><div class="ico"><img src="assets/svg/capture/record.svg" alt=""></div><div class="name">record</div><div class="group">capture</div></div>
+        </div>
+        <h3 style="margin-top: 24px">类型色板 · type-swatches</h3>
+        <div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap">
+          <img src="assets/svg/capture/type-swatches.svg" alt="类型色板" style="height:48px">
+          <code style="font-size:11px;color:var(--ink-muted)">assets/svg/capture/type-swatches.svg + assets/png/@Nx/capture__type-swatches.png</code>
+        </div>
+      </div>
+      <div class="card">
+        <h3>timeline · 灵感库</h3>
+        <div class="icon-grid">
+          <div class="icon-cell"><div class="ico"><img src="assets/svg/timeline/view-board.svg" alt=""></div><div class="name">view-board</div><div class="group">timeline</div></div>
+          <div class="icon-cell"><div class="ico"><img src="assets/svg/timeline/view-nebula.svg" alt=""></div><div class="name">view-nebula</div><div class="group">timeline</div></div>
+          <div class="icon-cell"><div class="ico"><img src="assets/svg/timeline/arrow-right.svg" alt=""></div><div class="name">arrow-right</div><div class="group">timeline</div></div>
+          <div class="icon-cell"><div class="ico"><img src="assets/svg/timeline/sticky-note.svg" alt=""></div><div class="name">sticky-note</div><div class="group">timeline</div></div>
+          <div class="icon-cell"><div class="ico"><img src="assets/svg/timeline/ai-spark.svg" alt=""></div><div class="name">ai-spark</div><div class="group">timeline</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="handoff">
+      <h2><span class="num">06</span> 前端交付说明</h2>
+      <p class="sub">CSS 变量、文件命名、组件映射、注意事项</p>
+      <div class="card">
+        <h3>CSS 变量（直接复用）</h3>
+        <pre style="background: var(--cosmos-2); border: 1px solid var(--line); border-radius: 12px; padding: 16px; font-size: 12px; line-height: 1.7; color: var(--ink-soft); overflow-x: auto;"><code>:root {
+  /* 宇宙背景 */
+  --cosmos-deep: #07060f;
+  --cosmos:     #0e0c1d;
+  --cosmos-2:   #16142a;
+
+  /* 表面（玻璃拟态） */
+  --surface:        rgba(255, 255, 255, 0.04);
+  --surface-strong: rgba(255, 255, 255, 0.09);
+  --line:           rgba(255, 255, 255, 0.10);
+
+  /* 文字 */
+  --ink:       #f5f3ed;
+  --ink-soft:  #d8d4c8;
+  --ink-muted: #8d8879;
+
+  /* 星云主色 = 类型色 */
+  --nebula-violet: #a78bfa;  /* 想法 */
+  --nebula-blue:   #7dd3fc;  /* 引用 */
+  --nebula-rose:   #f9a8d4;  /* 随感 */
+  --nebula-mint:   #86efac;  /* 待办 */
+  --nebula-amber:  #fcd34d;  /* 案例 */
+  --danger:        #fca5a5;  /* 问题 */
+
+  /* 圆角 / 阴影 / 缓动 */
+  --radius-panel: 20px;
+  --radius-card:  14px;
+  --radius-pill:  999px;
+  --shadow-soft: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -12px rgba(0,0,0,.5);
+  --shadow-lift: 0 2px 4px rgba(0,0,0,.4), 0 24px 48px -16px rgba(0,0,0,.6);
+  --ease:        cubic-bezier(.2,.7,.3,1);
+}</code></pre>
+      </div>
+      <div class="card">
+        <h3>资源命名规范</h3>
+        <table style="width:100%;border-collapse:collapse;font-size:13px;color:var(--ink-soft);">
+          <tr style="border-bottom:1px solid var(--line);">
+            <th style="text-align:left;padding:10px;color:var(--ink-muted);font-weight:500">类型</th>
+            <th style="text-align:left;padding:10px;color:var(--ink-muted);font-weight:500">路径</th>
+            <th style="text-align:left;padding:10px;color:var(--ink-muted);font-weight:500">示例</th>
+          </tr>
+          <tr style="border-bottom:1px solid var(--line-soft);">
+            <td style="padding:10px">SVG 矢量</td>
+            <td style="padding:10px"><code>assets/svg/&lt;group&gt;/&lt;name&gt;.svg</code></td>
+            <td style="padding:10px"><code>assets/svg/capture/record.svg</code></td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--line-soft);">
+            <td style="padding:10px">PNG 位图</td>
+            <td style="padding:10px"><code>assets/png/@&lt;Nx&gt;/&lt;group&gt;__&lt;name&gt;.png</code></td>
+            <td style="padding:10px"><code>assets/png/@2x/capture__record.png</code></td>
+          </tr>
+          <tr>
+            <td style="padding:10px">分辨率</td>
+            <td style="padding:10px"><code>@1x = 24px / @2x = 48px / @3x = 72px</code></td>
+            <td style="padding:10px">icon 设计基准 24px，描边 1.6</td>
+          </tr>
+        </table>
+        <p style="font-size:12px;color:var(--ink-muted);margin-top:12px">前端推荐：图标优先用 SVG（矢量、清晰、可改色）；仅在 PWA / 跨域 / sprite 不可用时使用 PNG。</p>
+      </div>
+      <div class="card">
+        <h3>组件 → 资源映射</h3>
+        <div class="grid grid-2" style="font-size:13px;line-height:1.9;">
+          <div>
+            <b style="color:var(--nebula-violet)">topbar / nav</b><br>
+            nav/back · nav/search · nav/filter · common/plus · common/sparkle<br><br>
+            <b style="color:var(--nebula-blue)">capture 底部工具栏</b><br>
+            capture/image · capture/audio · capture/camera · capture/record<br>
+            capture/type-swatches（6 类型色板 sprite）<br><br>
+            <b style="color:var(--nebula-rose)">timeline 视图切换</b><br>
+            timeline/view-board · timeline/view-nebula
+          </div>
+          <div>
+            <b style="color:var(--nebula-mint)">timeline 贴片操作</b><br>
+            common/check（多选标记）· common/close（删除）<br>
+            timeline/arrow-right（开始创作）<br>
+            timeline/sticky-note · timeline/ai-spark（AI 标签）<br><br>
+            <b style="color:var(--nebula-amber)">白板头部</b><br>
+            nav/arrange（整理白板）· nav/thumbmap（缩略地图）<br><br>
+            <b style="color:var(--ink-soft)">品牌 / 装饰</b><br>
+            common/brand-mark · common/sparkle
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>注意事项</h3>
+        <ul style="font-size:13px;color:var(--ink-soft);line-height:2;padding-left:20px;">
+          <li>所有 SVG 默认描边色为 <code style="color:var(--nebula-violet)">#e9e6ff</code>（深紫白）；前端可改用 <code>stroke="currentColor"</code> 跟随父级 color。</li>
+          <li>PNG 透明背景，可叠加在任何深色容器上；如需浅色背景，需重新着色或反向版本。</li>
+          <li>PNG 已 12× 超采样 + LANCZOS 下采样，<code>@2x</code> 视觉质量最佳；<code>@1x</code> 用于性能敏感场景，<code>@3x</code> 用于 4K 屏。</li>
+          <li>类型色板前端优先用 CSS 变量（<code>var(--nebula-violet)</code> 等），PNG 仅作设计参考与离线场景。</li>
+          <li>本环境无法直接产出 <code>.fig</code> 文件；本 HTML 文档即"Figma 等效"，可用浏览器打开核对所有页面 / 组件 / 资产。</li>
+        </ul>
+      </div>
+    </section>
+  </main>
+</div>
+</body>
+</html>

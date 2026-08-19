@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<meta name="theme-color" content="#0a0a1a">
+<title>记录灵感 · Nebula Edition · B</title>
+<style>
+:root {
+  --cosmos-deep: #07060f;
+  --cosmos: #0e0c1d;
+  --cosmos-2: #16142a;
+  --surface: rgba(255, 255, 255, 0.04);
+  --surface-glass: rgba(255, 255, 255, 0.06);
+  --surface-strong: rgba(255, 255, 255, 0.09);
+  --line: rgba(255, 255, 255, 0.10);
+  --line-soft: rgba(255, 255, 255, 0.06);
+
+  --ink: #f5f3ed;
+  --ink-soft: #d8d4c8;
+  --ink-muted: #8d8879;
+
+  --nebula-violet: #a78bfa;
+  --nebula-blue:   #7dd3fc;
+  --nebula-rose:   #f9a8d4;
+  --nebula-mint:   #86efac;
+  --nebula-amber:  #fcd34d;
+
+  --focus: #93c5fd;
+  --success: #86efac;
+
+  --radius-panel: 20px;
+  --radius-card: 14px;
+  --radius-pill: 999px;
+  --shadow-soft: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -12px rgba(0,0,0,.5);
+  --shadow-lift: 0 2px 4px rgba(0,0,0,.4), 0 24px 48px -16px rgba(0,0,0,.6);
+  --ease: cubic-bezier(.2,.7,.3,1);
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+  font-size: 16px; line-height: 1.7;
+  color: var(--ink);
+  background: var(--cosmos-deep);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+button { font: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+input, textarea { font: inherit; color: inherit; }
+
+.cosmos {
+  position: fixed; inset: 0; z-index: -2;
+  background:
+    radial-gradient(ellipse 70% 50% at 70% 15%, rgba(167, 139, 250, .22), transparent 60%),
+    radial-gradient(ellipse 50% 60% at 20% 70%, rgba(125, 211, 252, .14), transparent 60%),
+    radial-gradient(ellipse 40% 50% at 90% 90%, rgba(249, 168, 212, .10), transparent 60%),
+    var(--cosmos-deep);
+}
+.cosmos::before {
+  content: "";
+  position: absolute; inset: -20%;
+  background:
+    radial-gradient(1.5px 1.5px at 20% 30%, rgba(255,255,255,.5), transparent),
+    radial-gradient(1px 1px at 60% 20%, rgba(255,255,255,.4), transparent),
+    radial-gradient(1.5px 1.5px at 80% 60%, rgba(255,255,255,.5), transparent),
+    radial-gradient(1px 1px at 30% 80%, rgba(255,255,255,.35), transparent),
+    radial-gradient(2px 2px at 90% 10%, rgba(255,255,255,.5), transparent);
+  background-size: 600px 600px;
+  animation: drift 50s linear infinite;
+  pointer-events: none;
+}
+@keyframes drift {
+  from { transform: translate(0, 0); }
+  to { transform: translate(-60px, -60px); }
+}
+
+/* ---------- 顶部：外层铺满做 backdrop，内层居中 ---------- */
+.topbar {
+  position: sticky; top: 0; z-index: 10;
+  background: linear-gradient(to bottom, rgba(14, 12, 29, .85), rgba(14, 12, 29, 0));
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  border-bottom: 1px solid var(--line);
+}
+.topbar-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 16px 24px;
+  display: flex; align-items: center; gap: 16px;
+}
+.back {
+  display: flex; align-items: center; gap: 6px;
+  color: var(--ink-muted);
+  font-size: 14px; padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  transition: all .2s var(--ease);
+  flex-shrink: 0;
+}
+.back:hover { color: var(--ink); background: var(--surface); border: 1px solid var(--line); }
+.topbar-title {
+  font-family: "Songti SC", "STSong", "Noto Serif SC", Georgia, serif;
+  font-size: 18px; letter-spacing: 2px;
+  flex: 1; text-align: center;
+}
+.status-chip {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; color: var(--ink-soft);
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  flex-shrink: 0;
+}
+.status-chip .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--ink-muted);
+}
+.status-chip.saving .dot {
+  background: var(--nebula-amber);
+  box-shadow: 0 0 8px var(--nebula-amber);
+  animation: pulse 1.2s infinite;
+}
+.status-chip.saved .dot {
+  background: var(--nebula-mint);
+  box-shadow: 0 0 8px var(--nebula-mint);
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; } 50% { opacity: .4; }
+}
+
+/* ---------- 主体 ---------- */
+.main {
+  max-width: 760px; margin: 0 auto;
+  padding: 32px 24px 240px;
+}
+.date-stamp {
+  font-size: 12px; color: var(--ink-muted);
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 16px;
+  letter-spacing: 1px; text-transform: uppercase;
+}
+.date-stamp::before {
+  content: ""; width: 16px; height: 1px; background: var(--nebula-violet);
+  box-shadow: 0 0 8px var(--nebula-violet);
+}
+
+/* ---------- 编辑器玻璃卡 ---------- */
+.editor {
+  background: var(--surface);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  padding: 32px;
+  min-height: 320px;
+  position: relative;
+  transition: box-shadow .2s var(--ease), border-color .2s var(--ease);
+  box-shadow: var(--shadow-soft);
+}
+.editor:focus-within {
+  border-color: rgba(167, 139, 250, .5);
+  box-shadow: 0 0 0 1px rgba(167, 139, 250, .4), 0 0 40px -10px rgba(167, 139, 250, .3), var(--shadow-soft);
+}
+.editor::before {
+  content: "";
+  position: absolute; top: 0; left: 32px; right: 32px; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--nebula-violet), var(--nebula-rose), transparent);
+  opacity: .5; border-radius: 1px;
+}
+.title-input {
+  width: 100%; border: 0; outline: 0; background: transparent;
+  font-family: "Songti SC", "STSong", "Noto Serif SC", Georgia, serif;
+  font-size: 28px; line-height: 1.4;
+  font-weight: 500;
+  color: var(--ink);
+  padding: 0; margin-bottom: 16px;
+  letter-spacing: 1px;
+}
+.title-input::placeholder { color: rgba(245, 243, 237, .25); }
+
+.body-input {
+  width: 100%; border: 0; outline: 0; background: transparent;
+  font-size: 16px; line-height: 1.85;
+  color: var(--ink);
+  resize: none; min-height: 180px;
+  padding: 0;
+}
+.body-input::placeholder { color: rgba(245, 243, 237, .3); }
+
+/* ---------- 附件区 ---------- */
+.attachments {
+  margin-top: 24px;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+}
+.attach {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--cosmos-2);
+}
+.attach img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.attach.audio {
+  aspect-ratio: auto;
+  padding: 12px;
+  display: flex; flex-direction: column; gap: 8px;
+  background: linear-gradient(135deg, rgba(167, 139, 250, .15), rgba(125, 211, 252, .05));
+  border-color: rgba(167, 139, 250, .25);
+}
+.attach.audio .wave { flex: 1; display: flex; align-items: center; gap: 2px; min-height: 28px; }
+.attach.audio .wave i {
+  flex: 1; height: 100%; border-radius: 1px;
+  background: var(--nebula-violet); opacity: .6;
+  animation: barDance 1.4s ease-in-out infinite;
+}
+.attach.audio .wave i:nth-child(odd) { animation-delay: .2s; }
+.attach.audio .wave i:nth-child(3n) { animation-delay: .4s; }
+@keyframes barDance {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(.4); }
+}
+.attach.audio .meta { font-size: 11px; color: var(--ink-soft); display: flex; justify-content: space-between; }
+.attach .x {
+  position: absolute; top: 6px; right: 6px;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: rgba(0,0,0,.7); color: white;
+  display: grid; place-items: center; font-size: 12px;
+  border: 0; cursor: pointer;
+  opacity: 0; transition: opacity .2s var(--ease);
+}
+.attach:hover .x { opacity: 1; }
+
+.attach.processing::after {
+  content: ""; position: absolute; inset: 0;
+  background-image: linear-gradient(90deg, transparent 0%, rgba(167, 139, 250, .25) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: var(--radius-card);
+}
+@keyframes shimmer {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
+}
+
+/* ---------- 底部工具栏：模式卡片 + 操作行 ---------- */
+.toolbar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 9;
+  background: rgba(14, 12, 29, .85);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-top: 1px solid var(--line);
+  padding: 14px 24px max(14px, env(safe-area-inset-bottom));
+}
+.toolbar-inner {
+  max-width: 760px; margin: 0 auto;
+  display: flex; flex-direction: column; gap: 10px;
+}
+
+/* 4 横向模式卡片（仿图 1：图片 / 音频 / 拍照 / 录音） */
+.mode-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+.mode-card {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  text-align: left;
+  color: var(--ink);
+  transition: all .22s var(--ease);
+  cursor: pointer;
+  min-width: 0;
+}
+.mode-card:hover:not(.disabled) {
+  background: var(--surface-strong);
+  border-color: rgba(167, 139, 250, .4);
+  transform: translateY(-1px);
+}
+.mode-card.active {
+  background: linear-gradient(135deg, rgba(167, 139, 250, .15), rgba(125, 211, 252, .06));
+  border-color: rgba(167, 139, 250, .55);
+  box-shadow: 0 0 0 1px rgba(167, 139, 250, .35), 0 4px 16px -4px rgba(167, 139, 250, .4);
+}
+.mode-card.disabled {
+  opacity: .42;
+  cursor: not-allowed;
+}
+/* 图标容器：参考图 2 风格（深紫实色背景 + 浅色线性图标） */
+.mode-ico {
+  width: 32px; height: 32px;
+  display: grid; place-items: center;
+  border-radius: 9px;
+  background: linear-gradient(135deg, #2a2255 0%, #3a2d72 100%);
+  color: #e8e4ff;
+  flex-shrink: 0;
+  transition: all .22s var(--ease);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08), 0 2px 6px -2px rgba(0, 0, 0, .4);
+}
+.mode-card.active .mode-ico {
+  background: linear-gradient(135deg, #3a2d72 0%, #4d3da3 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .12), 0 0 12px rgba(167, 139, 250, .5);
+  color: #fff;
+}
+.mode-ico svg { width: 18px; height: 18px; display: block; }
+.mode-label {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--ink);
+  letter-spacing: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 操作行：类型 + 保存 */
+.action-row {
+  display: flex; align-items: center; gap: 12px;
+}
+.type-select { position: relative; }
+.type-trigger {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--line);
+  background: var(--surface-strong);
+  color: var(--ink);
+  font-size: 13px;
+  transition: all .2s var(--ease);
+}
+.type-trigger:hover { border-color: rgba(255,255,255,.2); box-shadow: 0 0 16px rgba(167, 139, 250, .2); }
+.type-trigger .swatch {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--ink-muted);
+  box-shadow: 0 0 8px currentColor;
+}
+.type-trigger[data-type="想法"] .swatch { background: var(--nebula-violet); color: var(--nebula-violet); }
+.type-trigger[data-type="引用"] .swatch { background: var(--nebula-blue);   color: var(--nebula-blue); }
+.type-trigger[data-type="随感"] .swatch { background: var(--nebula-rose);   color: var(--nebula-rose); }
+.type-trigger[data-type="待办"] .swatch { background: var(--nebula-mint);   color: var(--nebula-mint); }
+.type-trigger[data-type="案例"] .swatch { background: var(--nebula-amber);  color: var(--nebula-amber); }
+.type-trigger[data-type="问题"] .swatch { background: var(--danger);        color: var(--danger); }
+.type-trigger .caret { color: var(--ink-muted); font-size: 10px; }
+
+.type-menu {
+  position: absolute; bottom: calc(100% + 8px); left: 0;
+  min-width: 160px;
+  background: var(--cosmos-2);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  padding: 6px;
+  box-shadow: var(--shadow-lift);
+  display: none;
+  z-index: 12;
+}
+.type-menu.open { display: block; animation: rise .18s var(--ease); }
+@keyframes rise { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.type-item {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%; text-align: left;
+  padding: 8px 10px;
+  border-radius: 8px;
+  color: var(--ink);
+  font-size: 14px;
+  transition: background .15s var(--ease);
+}
+.type-item:hover { background: var(--surface); }
+.type-item .swatch {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--ink-muted);
+  box-shadow: 0 0 8px currentColor;
+}
+.type-item[data-type="想法"] .swatch { background: var(--nebula-violet); color: var(--nebula-violet); }
+.type-item[data-type="引用"] .swatch { background: var(--nebula-blue);   color: var(--nebula-blue); }
+.type-item[data-type="随感"] .swatch { background: var(--nebula-rose);   color: var(--nebula-rose); }
+.type-item[data-type="待办"] .swatch { background: var(--nebula-mint);   color: var(--nebula-mint); }
+.type-item[data-type="案例"] .swatch { background: var(--nebula-amber);  color: var(--nebula-amber); }
+.type-item[data-type="问题"] .swatch { background: var(--danger);        color: var(--danger); }
+
+/* 保存按钮推到右侧 */
+.primary {
+  margin-left: auto;
+  padding: 10px 18px;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(135deg, var(--nebula-violet), var(--nebula-rose));
+  color: var(--cosmos-deep);
+  font-size: 14px; font-weight: 600;
+  transition: all .25s var(--ease);
+  border: 0;
+  display: inline-flex; align-items: center; gap: 6px;
+  box-shadow: 0 0 24px rgba(167, 139, 250, .4);
+}
+.primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 32px -4px rgba(167, 139, 250, .6);
+}
+
+/* AI 建议 */
+.ai-suggest {
+  display: inline-flex; align-items: center; gap: 8px;
+  margin-top: 16px;
+  padding: 8px 12px;
+  background: rgba(167, 139, 250, .12);
+  border: 1px solid rgba(167, 139, 250, .3);
+  border-radius: var(--radius-card);
+  font-size: 13px; color: var(--ink);
+  animation: rise .3s var(--ease);
+}
+.ai-suggest .badge {
+  font-size: 10px; padding: 2px 6px; border-radius: 4px;
+  background: linear-gradient(135deg, var(--nebula-violet), var(--nebula-blue));
+  color: var(--cosmos-deep);
+  letter-spacing: .5px; font-weight: 600;
+}
+.ai-suggest button {
+  margin-left: auto;
+  color: var(--nebula-violet);
+  font-weight: 500;
+}
+
+/* 拖拽提示 */
+.dropzone-hint {
+  margin-top: 16px;
+  text-align: center;
+  font-size: 12px; color: var(--ink-muted);
+  padding: 12px;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+}
+
+/* 入场动效 */
+.reveal { opacity: 0; transform: translateY(8px); animation: reveal .5s var(--ease) forwards; }
+.reveal.d1 { animation-delay: .05s; }
+.reveal.d2 { animation-delay: .15s; }
+@keyframes reveal { to { opacity: 1; transform: none; } }
+
+/* 响应式 */
+@media (max-width: 720px) {
+  .topbar-inner { padding: 14px 16px; gap: 8px; }
+  .topbar-title { font-size: 15px; letter-spacing: 1px; }
+  .status-chip { font-size: 11px; padding: 3px 8px; }
+  .main { padding: 20px 16px 260px; }
+  .editor { padding: 20px; border-radius: 16px; }
+  .title-input { font-size: 22px; }
+  .toolbar-inner { gap: 8px; }
+  .primary { padding: 10px 14px; }
+  .mode-grid { grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .mode-card { padding: 7px 6px; gap: 5px; border-radius: 12px; }
+  .mode-ico { width: 24px; height: 24px; border-radius: 7px; }
+  .mode-ico svg { width: 14px; height: 14px; }
+  .mode-label { font-size: 11.5px; letter-spacing: 0; }
+  .action-row { gap: 8px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+.attach:focus-visible,
+.primary:focus-visible,
+.back:focus-visible,
+.mode-card:focus-visible,
+.type-trigger:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+</style>
+</head>
+<body>
+<div class="cosmos" aria-hidden="true"></div>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="./home.html" class="back" aria-label="返回工作台">← 返回</a>
+    <div class="topbar-title">记录灵感</div>
+    <div class="status-chip saved" id="statusChip">
+      <span class="dot"></span><span id="statusText">已自动保存 · 17:42</span>
+    </div>
+  </div>
+</header>
+
+<main class="main">
+
+  <p class="date-stamp reveal">2026 年 8 月 18 日 · 周二 · 17:42</p>
+
+  <form class="editor reveal d1" id="editorForm" autocomplete="off">
+    <input
+      class="title-input"
+      type="text"
+      placeholder="给这一刻起个名字（可留空）"
+      aria-label="标题"
+    >
+
+    <textarea
+      class="body-input"
+      placeholder="写下此刻的想法……
+
+不必完整，先抓住那束光。
+粘贴图片、拖入文件、随时切换灵感类型。"
+      aria-label="正文"
+      autofocus
+    ></textarea>
+
+    <div class="attachments" id="attachments">
+      <div class="attach" aria-label="附件：草图.jpg">
+        <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><defs><linearGradient id='g'><stop offset='0' stop-color='%23a78bfa'/><stop offset='1' stop-color='%237dd3fc'/></linearGradient></defs><rect width='200' height='200' fill='url(%23g)' opacity='.3'/><text x='100' y='110' text-anchor='middle' fill='%23f5f3ed' font-family='serif' font-size='18' font-style='italic'>草图</text></svg>" alt="">
+        <button class="x" type="button" aria-label="移除附件">×</button>
+      </div>
+      <div class="attach audio" aria-label="音频：01:24">
+        <div class="wave" aria-hidden="true">
+          <i style="height:30%"></i><i style="height:60%"></i><i style="height:80%"></i>
+          <i style="height:50%"></i><i style="height:90%"></i><i style="height:40%"></i>
+          <i style="height:70%"></i><i style="height:55%"></i><i style="height:85%"></i>
+          <i style="height:35%"></i><i style="height:65%"></i><i style="height:75%"></i>
+        </div>
+        <div class="meta"><span>灵感语音</span><span>01:24</span></div>
+        <button class="x" type="button" aria-label="移除附件">×</button>
+      </div>
+      <div class="attach processing" aria-label="处理中">
+        <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><rect width='200' height='200' fill='%23312e4a'/><text x='100' y='110' text-anchor='middle' fill='%23a78bfa' font-family='sans-serif' font-size='14'>OCR 中…</text></svg>" alt="">
+      </div>
+    </div>
+
+    <div class="ai-suggest" id="aiSuggest" style="display:none">
+      <span class="badge">AI</span>
+      <span>看起来像 <strong id="aiType">「想法」</strong>，要切换吗？</span>
+      <button type="button" id="aiAccept">接受</button>
+    </div>
+  </form>
+
+  <div class="dropzone-hint reveal d2">
+    提示：可直接粘贴图片、拖拽文件到上方；移动端后续支持拍照与录音。
+  </div>
+
+</main>
+
+<!-- 底部工具栏：2x2 模式卡片 + 操作行 -->
+<div class="toolbar" role="toolbar" aria-label="记录工具栏">
+  <div class="toolbar-inner">
+
+    <div class="mode-grid" role="radiogroup" aria-label="输入模式">
+      <button class="mode-card active" type="button" data-mode="image" role="radio" aria-checked="true">
+        <span class="mode-ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4.5" width="18" height="15" rx="2"/>
+            <circle cx="8.5" cy="10" r="1.5"/>
+            <path d="M3 16l5-5 4 4 3-3 6 6"/>
+          </svg>
+        </span>
+        <span class="mode-label">图片</span>
+      </button>
+
+      <button class="mode-card" type="button" data-mode="audio" role="radio" aria-checked="false">
+        <span class="mode-ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="3" width="6" height="11" rx="3"/>
+            <path d="M5 11a7 7 0 0 0 14 0"/>
+            <line x1="12" y1="18" x2="12" y2="21"/>
+          </svg>
+        </span>
+        <span class="mode-label">音频</span>
+      </button>
+
+      <button class="mode-card disabled" type="button" data-mode="camera" role="radio" aria-checked="false" aria-disabled="true" title="拍照（移动端 PWA 支持）">
+        <span class="mode-ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 8a2 2 0 0 1 2-2h2.5l1.5-2h6l1.5 2H19a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <circle cx="12" cy="13" r="3.5"/>
+          </svg>
+        </span>
+        <span class="mode-label">拍照</span>
+      </button>
+
+      <button class="mode-card disabled" type="button" data-mode="record" role="radio" aria-checked="false" aria-disabled="true" title="录音（移动端 PWA 支持）">
+        <span class="mode-ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="3" width="6" height="11" rx="3"/>
+            <path d="M5 11a7 7 0 0 0 14 0"/>
+            <line x1="12" y1="18" x2="12" y2="21"/>
+            <circle cx="19" cy="5.5" r="1.4" fill="currentColor" stroke="none"/>
+          </svg>
+        </span>
+        <span class="mode-label">录音</span>
+      </button>
+    </div>
+
+    <div class="action-row">
+      <div class="type-select">
+        <button class="type-trigger" type="button" id="typeTrigger" data-type="想法" aria-haspopup="listbox" aria-expanded="false">
+          <span class="swatch" aria-hidden="true"></span>
+          <span id="typeLabel">类型：想法</span>
+          <span class="caret">▾</span>
+        </button>
+        <div class="type-menu" id="typeMenu" role="listbox">
+          <button class="type-item" type="button" data-type="先不分类">
+            <span class="swatch" style="background: var(--ink-muted)"></span>先不分类
+          </button>
+          <button class="type-item" type="button" data-type="想法">
+            <span class="swatch"></span>想法
+          </button>
+          <button class="type-item" type="button" data-type="引用">
+            <span class="swatch"></span>引用
+          </button>
+          <button class="type-item" type="button" data-type="随感">
+            <span class="swatch"></span>随感
+          </button>
+          <button class="type-item" type="button" data-type="待办">
+            <span class="swatch"></span>待办
+          </button>
+          <button class="type-item" type="button" data-type="案例">
+            <span class="swatch"></span>案例
+          </button>
+          <button class="type-item" type="button" data-type="问题">
+            <span class="swatch"></span>问题
+          </button>
+        </div>
+      </div>
+
+      <button class="primary" type="submit" form="editorForm">保存灵感 <span aria-hidden="true">⌘↵</span></button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------- 模式切换 ---------- */
+const modeCards = document.querySelectorAll('.mode-card:not(.disabled)');
+modeCards.forEach(card => {
+  card.addEventListener('click', () => {
+    modeCards.forEach(c => { c.classList.remove('active'); c.setAttribute('aria-checked', 'false'); });
+    card.classList.add('active');
+    card.setAttribute('aria-checked', 'true');
+  });
+});
+
+/* ---------- 类型选择 ---------- */
+const trigger = document.getElementById('typeTrigger');
+const menu = document.getElementById('typeMenu');
+const label = document.getElementById('typeLabel');
+const items = menu.querySelectorAll('.type-item');
+const aiSuggest = document.getElementById('aiSuggest');
+const aiType = document.getElementById('aiType');
+const aiAccept = document.getElementById('aiAccept');
+
+trigger.addEventListener('click', (e) => {
+  e.stopPropagation();
+  const isOpen = menu.classList.toggle('open');
+  trigger.setAttribute('aria-expanded', isOpen);
+});
+document.addEventListener('click', () => {
+  menu.classList.remove('open');
+  trigger.setAttribute('aria-expanded', 'false');
+});
+items.forEach(item => {
+  item.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const t = item.dataset.type;
+    trigger.dataset.type = t;
+    label.textContent = '类型：' + t;
+    menu.classList.remove('open');
+    trigger.setAttribute('aria-expanded', 'false');
+    aiSuggest.style.display = 'none';
+  });
+});
+
+setTimeout(() => {
+  if (!aiSuggest.style.display || aiSuggest.style.display === 'none') {
+    aiSuggest.style.display = 'inline-flex';
+    aiType.textContent = '「引用」';
+  }
+}, 3000);
+
+aiAccept.addEventListener('click', () => {
+  trigger.dataset.type = '引用';
+  label.textContent = '类型：引用';
+  aiSuggest.style.display = 'none';
+});
+
+/* ---------- 自动保存状态 ---------- */
+const chip = document.getElementById('statusChip');
+const text = document.getElementById('statusText');
+const body = document.querySelector('.body-input');
+let saveTimer = null;
+body.addEventListener('input', () => {
+  chip.classList.remove('saved');
+  chip.classList.add('saving');
+  text.textContent = '正在保存…';
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    chip.classList.remove('saving');
+    chip.classList.add('saved');
+    const d = new Date();
+    text.textContent = '已自动保存 · ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+  }, 800);
+});
+
+document.getElementById('editorForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  chip.classList.remove('saving');
+  chip.classList.add('saved');
+  text.textContent = '已记录 ✓';
+  trigger.style.transform = 'scale(1.05)';
+  setTimeout(() => trigger.style.transform = '', 200);
+});
+</script>
+</body>
+</html>

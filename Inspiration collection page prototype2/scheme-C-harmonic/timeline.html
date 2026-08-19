@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#F1EEE8" />
+<title>方案 C · 和声 · 按日期翻阅</title>
+<style>
+  :root {
+    --canvas: #F1EEE8;
+    --canvas-2: #E6E1D6;
+    --paper: #FBF9F4;
+    --paper-2: #EFE9DD;
+    --ink: #1F2421;
+    --ink-2: #4C504A;
+    --ink-3: #8A8B82;
+    --line: rgba(31, 36, 33, .08);
+    --line-2: rgba(31, 36, 33, .16);
+    --accent-moss: #586E51;
+    --accent-clay: #B68764;
+    --accent-ink: #2D3E5F;
+    --accent-gold: #C9A961;
+
+    --radius-panel: 8px;
+    --radius-card: 12px;
+    --radius-pill: 999px;
+
+    --shadow-1: 0 1px 0 rgba(31, 36, 33, .04), 0 12px 24px -16px rgba(31, 36, 33, .15);
+    --shadow-2: 0 2px 0 rgba(31, 36, 33, .06), 0 24px 48px -20px rgba(31, 36, 33, .22);
+
+    --font-serif: "Cormorant Garamond", "Noto Serif SC", "Songti SC", "STSong", Georgia, serif;
+    --font-sans: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+    --font-mono: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    --ease: cubic-bezier(.2, .7, .3, 1);
+
+    --container: 1240px;
+    --pad-x: 40px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-sans); font-size: 16px; line-height: 1.7;
+    color: var(--ink); background: var(--canvas);
+    -webkit-font-smoothing: antialiased; overflow-x: hidden;
+  }
+  a { color: inherit; text-decoration: none; }
+  button { font: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+  ::selection { background: var(--accent-clay); color: var(--paper); }
+
+  .bg-glow {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background-image:
+      radial-gradient(50% 40% at 20% 0%, rgba(88, 110, 81, .05) 0%, transparent 70%),
+      radial-gradient(50% 50% at 80% 100%, rgba(182, 135, 100, .04) 0%, transparent 70%);
+  }
+
+  /* Topbar editorial */
+  .topbar {
+    position: sticky; top: 0; z-index: 50;
+    backdrop-filter: saturate(140%) blur(12px);
+    background: rgba(241, 238, 232, .85);
+    border-bottom: 1px solid transparent;
+  }
+  .topbar.scrolled { border-bottom-color: var(--line); }
+  .topbar-inner {
+    max-width: var(--container);
+    margin: 0 auto;
+    padding: 18px var(--pad-x);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .brand {
+    display: flex; align-items: baseline; gap: 14px;
+    font-family: var(--font-serif);
+    font-size: 22px;
+    font-weight: 500;
+  }
+  .brand .t {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 28px; height: 28px;
+    background: var(--ink); color: var(--canvas);
+    font-family: var(--font-serif); font-weight: 600; font-size: 14px;
+    border-radius: 6px;
+    transform: translateY(4px);
+  }
+  .topbar-actions { display: flex; align-items: center; gap: 8px; }
+  .icon-btn {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: var(--paper); border: 1px solid var(--line);
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: all .25s var(--ease);
+  }
+  .icon-btn:hover { background: var(--paper-2); }
+  .icon-btn svg { width: 17px; height: 17px; stroke: var(--ink-2); fill: none; stroke-width: 1.6; }
+  .badge-soft {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 7px 14px;
+    border-radius: var(--radius-pill);
+    background: var(--paper); border: 1px solid var(--line);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-2);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+  .badge-soft .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent-moss); }
+
+  /* Page head */
+  .page-head {
+    position: relative; z-index: 1;
+    max-width: var(--container);
+    margin: 0 auto;
+    padding: 40px var(--pad-x) 0;
+    text-align: center;
+  }
+  .page-head .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-3);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .page-head h1 {
+    font-family: var(--font-serif);
+    font-size: 56px;
+    font-weight: 500;
+    margin: 0 0 12px;
+    letter-spacing: -.5px;
+  }
+  .page-head h1 em {
+    font-style: italic;
+    color: var(--accent-clay);
+    font-weight: 400;
+  }
+  .page-head .sub {
+    color: var(--ink-2);
+    font-family: var(--font-serif);
+    font-size: 17px;
+    max-width: 560px;
+    margin: 0 auto 24px;
+  }
+  .view-switch {
+    display: inline-flex; gap: 4px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-pill);
+    padding: 4px;
+  }
+  .view-switch button {
+    padding: 7px 14px;
+    border-radius: var(--radius-pill);
+    font-size: 13px;
+    color: var(--ink-2);
+    transition: all .2s var(--ease);
+  }
+  .view-switch button.active {
+    background: var(--ink); color: var(--canvas);
+  }
+
+  /* Picker */
+  .picker {
+    position: relative; z-index: 1;
+    max-width: var(--container);
+    margin: 36px auto 0;
+    padding: 32px var(--pad-x);
+    background: var(--paper);
+    border-radius: var(--radius-card);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow-1);
+  }
+  .picker-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1.2fr;
+    gap: 28px;
+    align-items: center;
+  }
+  .picker-info {
+    padding-right: 16px;
+    border-right: 1px solid var(--line);
+  }
+  .picker-info .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-3);
+    letter-spacing: 2px;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+  }
+  .picker-info .date-big {
+    font-family: var(--font-serif);
+    font-size: 64px;
+    font-weight: 500;
+    line-height: 1;
+    margin: 0;
+    letter-spacing: -1px;
+  }
+  .picker-info .date-big .y {
+    font-size: 18px;
+    color: var(--ink-3);
+    display: block;
+    margin-bottom: 2px;
+    font-family: var(--font-mono);
+    letter-spacing: 4px;
+  }
+  .picker-info .date-big .d-num {
+    color: var(--accent-clay);
+    font-style: italic;
+  }
+  .picker-info .date-big .m-d {
+    font-size: 18px;
+    color: var(--ink-3);
+    margin-left: 8px;
+    font-family: var(--font-mono);
+    letter-spacing: 2px;
+  }
+  .picker-info .meta {
+    margin-top: 14px;
+    display: flex; gap: 14px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-3);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .picker-info .meta strong { color: var(--ink-2); font-weight: 600; }
+
+  .wheel-col { text-align: center; }
+  .wheel-col .label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-3);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+  .wheel {
+    position: relative;
+    height: 220px;
+    overflow: hidden;
+    border-radius: var(--radius-card);
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    cursor: ns-resize;
+    user-select: none;
+    touch-action: pan-y;
+  }
+  .wheel::before, .wheel::after {
+    content: "";
+    position: absolute; left: 0; right: 0;
+    height: 70px;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .wheel::before {
+    top: 0;
+    background: linear-gradient(180deg, var(--paper-2) 0%, transparent 100%);
+  }
+  .wheel::after {
+    bottom: 0;
+    background: linear-gradient(0deg, var(--paper-2) 0%, transparent 100%);
+  }
+  .wheel-line {
+    position: absolute; left: 0; right: 0;
+    top: 50%;
+    height: 36px;
+    margin-top: -18px;
+    border-top: 1px solid var(--accent-clay);
+    border-bottom: 1px solid var(--accent-clay);
+    pointer-events: none;
+    z-index: 1;
+    border-radius: 4px;
+  }
+  .wheel-track {
+    position: absolute; left: 0; right: 0;
+    top: 50%; transform: translateY(-50%);
+    height: 36px;
+    line-height: 36px;
+    text-align: center;
+  }
+  .wheel-item {
+    height: 36px;
+    line-height: 36px;
+    text-align: center;
+    font-family: var(--font-serif);
+    font-size: 18px;
+    color: var(--ink-2);
+    transition: all .25s var(--ease);
+    cursor: pointer;
+    position: absolute;
+    left: 0; right: 0;
+    top: 50%;
+  }
+  .wheel-item.dim { opacity: .35; font-size: 14px; }
+  .wheel-item.focal {
+    font-size: 26px;
+    color: var(--ink);
+    font-weight: 500;
+    opacity: 1;
+  }
+  .wheel-item.focal .num {
+    font-style: italic;
+    color: var(--accent-clay);
+  }
+
+  .picker-hint {
+    text-align: center;
+    margin-top: 14px;
+    color: var(--ink-3);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+  .picker-hint kbd {
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 11px;
+    color: var(--ink-2);
+    margin: 0 2px;
+  }
+
+  /* Toolbar */
+  .toolbar {
+    position: relative; z-index: 1;
+    max-width: var(--container);
+    margin: 16px auto 0;
+    padding: 0 var(--pad-x);
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .toolbar .left, .toolbar .right { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .chip {
+    padding: 8px 16px;
+    border-radius: var(--radius-pill);
+    background: transparent;
+    border: 1px solid var(--line);
+    font-size: 13px;
+    color: var(--ink-2);
+    cursor: pointer;
+    transition: all .2s var(--ease);
+  }
+  .chip:hover { background: var(--paper); }
+  .chip.active {
+    background: var(--ink); color: var(--canvas); border-color: var(--ink);
+  }
+  .search-inline {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 14px;
+    border-radius: var(--radius-pill);
+    background: var(--paper);
+    border: 1px solid var(--line);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--ink-3);
+    min-width: 240px;
+    letter-spacing: 1px;
+  }
+  .search-inline svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.6; }
+  .select-count {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 14px;
+    border-radius: var(--radius-pill);
+    background: var(--accent-clay);
+    color: var(--paper);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 1px;
+  }
+  .select-count b { font-size: 16px; font-weight: 700; }
+
+  /* Board editorial */
+  .board-wrap {
+    position: relative; z-index: 1;
+    max-width: var(--container);
+    margin: 24px auto 80px;
+    padding: 0 var(--pad-x);
+  }
+  .board {
+    position: relative;
+    background: var(--paper);
+    border-radius: var(--radius-card);
+    border: 1px solid var(--line);
+    padding: 36px;
+    min-height: 540px;
+  }
+  .card {
+    position: absolute;
+    width: 220px;
+    padding: 22px;
+    border-radius: 6px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow-1);
+    cursor: grab;
+    transition: all .35s var(--ease);
+  }
+  .card.selected {
+    box-shadow: 0 0 0 2px var(--accent-moss), var(--shadow-2);
+    border-color: var(--accent-moss);
+  }
+  .card:hover {
+    transform: translateY(-4px) rotate(0deg) !important;
+    box-shadow: var(--shadow-2);
+    z-index: 4;
+  }
+  .card .meta {
+    display: flex; align-items: center; gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--ink-3);
+    letter-spacing: 1.5px;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+  }
+  .card .meta .tag {
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: var(--paper-2);
+    color: var(--ink-2);
+    border: 1px solid var(--line);
+    font-weight: 500;
+  }
+  .card .body {
+    font-family: var(--font-serif);
+    font-size: 16px;
+    line-height: 1.55;
+    color: var(--ink);
+    word-break: break-word;
+  }
+  .card .check {
+    position: absolute; top: 10px; right: 10px;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    display: inline-flex; align-items: center; justify-content: center;
+    opacity: 0;
+    color: var(--ink-2);
+    font-size: 12px;
+    font-weight: 700;
+    transition: opacity .2s var(--ease);
+  }
+  .card:hover .check { opacity: 1; }
+  .card.selected .check {
+    opacity: 1;
+    background: var(--accent-moss);
+    color: var(--paper);
+    border-color: var(--accent-moss);
+  }
+  .card .media {
+    height: 80px;
+    border-radius: 4px;
+    margin-bottom: 12px;
+    border: 1px solid var(--line);
+    position: relative;
+    overflow: hidden;
+  }
+  .card .media-1 { background: linear-gradient(135deg, #8FA0F5, #C792EA); }
+  .card .media-2 { background: linear-gradient(135deg, #FFC998, #F8A9D2); }
+  .card .media-3 { background: linear-gradient(135deg, #82E1CB, #C792EA); }
+  .card .media::after {
+    content: "📷"; position: absolute; right: 8px; bottom: 6px; font-size: 14px;
+    filter: drop-shadow(0 1px 3px rgba(0,0,0,.3));
+  }
+  .card.wide { width: 280px; }
+
+  .compose-fab {
+    position: fixed;
+    right: 28px; bottom: 28px;
+    z-index: 70;
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: var(--ink); color: var(--canvas);
+    display: inline-flex; align-items: center; justify-content: center;
+    box-shadow: 0 16px 36px -10px rgba(31, 36, 33, .4);
+    transition: transform .3s var(--ease);
+    cursor: pointer;
+  }
+  .compose-fab:hover { transform: rotate(8deg) scale(1.05); }
+  .compose-fab svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+  .mobile-bar { display: none; }
+
+  @media (max-width: 960px) {
+    :root { --pad-x: 20px; }
+    .picker-grid { grid-template-columns: 1fr; gap: 18px; }
+    .picker-info { padding-right: 0; padding-bottom: 16px; border-right: none; border-bottom: 1px solid var(--line); }
+    .page-head { padding: 32px 20px 0; }
+    .page-head h1 { font-size: 36px; }
+    .board { padding: 24px; min-height: 480px; }
+    .card { width: 180px; padding: 16px; }
+  }
+  @media (max-width: 640px) {
+    body { padding-bottom: 76px; }
+    .topbar-inner { padding: 14px 16px; }
+    .picker { padding: 18px 16px; }
+    .picker-info .date-big { font-size: 44px; }
+    .board-wrap { padding: 0 12px; }
+    .board { padding: 18px; min-height: 420px; }
+    .toolbar { padding: 0 16px; }
+    .card { width: 150px; }
+    .card .body { font-size: 13px; }
+    .mobile-bar {
+      display: flex;
+      position: fixed; left: 12px; right: 12px; bottom: 12px;
+      z-index: 70;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-pill);
+      box-shadow: 0 12px 32px -8px rgba(31, 36, 33, .18);
+      padding: 6px;
+    }
+    .mobile-bar a {
+      flex: 1; text-align: center;
+      padding: 10px 8px;
+      border-radius: var(--radius-pill);
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .mobile-bar a.primary { background: var(--ink); color: var(--canvas); }
+    .mobile-bar a.secondary { color: var(--ink); }
+  }
+</style>
+</head>
+<body>
+  <div class="bg-glow"></div>
+
+  <header class="topbar" id="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="home.html">
+        <span class="t">光</span>
+        <span>Atelier</span>
+      </a>
+      <div class="topbar-actions">
+        <span class="badge-soft"><span class="dot"></span>2026 / 08 / 14 · 12 ITEMS</span>
+        <button class="icon-btn" aria-label="搜索">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        </button>
+        <button class="icon-btn" aria-label="切换">
+          <svg viewBox="0 0 24 24"><path d="M3 7h18M6 12h12M9 17h6"/></svg>
+        </button>
+        <span style="width: 38px; height: 38px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: var(--ink); color: var(--canvas); font-family: var(--font-serif); font-weight: 600;">光</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <header class="page-head">
+      <span class="eyebrow">step II · ready layer</span>
+      <h1>那一天的白板</h1>
+      <p class="sub">年 · 月 · 日 三档依次到位，每一档都只允许落到<em>单一具体日期</em>。</p>
+      <div class="view-switch">
+        <button class="active">按日期</button>
+        <button>按主题</button>
+        <button>按类型</button>
+      </div>
+    </header>
+
+    <section class="picker">
+      <div class="picker-grid">
+        <div class="picker-info">
+          <div class="eyebrow">已选定 · ready layer</div>
+          <h2 class="date-big">
+            <span class="y">2026</span>
+            <span class="d-num">14</span>
+            <span class="m-d">· AUG</span>
+            <span class="m-d" style="font-size:14px;">· THU</span>
+          </h2>
+          <div class="meta">
+            <span><strong>12</strong> 灵感</span>
+            <span><strong>3</strong> 语音</span>
+            <span><strong>2</strong> 图像</span>
+          </div>
+        </div>
+
+        <div class="wheel-col" data-axis="year">
+          <div class="label">YEAR</div>
+          <div class="wheel" data-wheel>
+            <div class="wheel-line"></div>
+            <div class="wheel-track"></div>
+          </div>
+        </div>
+        <div class="wheel-col" data-axis="month">
+          <div class="label">MONTH</div>
+          <div class="wheel" data-wheel>
+            <div class="wheel-line"></div>
+            <div class="wheel-track"></div>
+          </div>
+        </div>
+        <div class="wheel-col" data-axis="day">
+          <div class="label">DAY</div>
+          <div class="wheel" data-wheel>
+            <div class="wheel-line"></div>
+            <div class="wheel-track"></div>
+          </div>
+        </div>
+      </div>
+      <div class="picker-hint">
+        滚动到具体单一日期后回车 · <kbd>J</kbd><kbd>K</kbd> 在日间跳转 · <kbd>⌘ N</kbd> 当天新增
+      </div>
+    </section>
+
+    <section class="toolbar">
+      <div class="left">
+        <span class="select-count"><b id="countSel">0</b> SELECTED</span>
+        <button class="chip active">全部</button>
+        <button class="chip">文字</button>
+        <button class="chip">语音</button>
+        <button class="chip">图片</button>
+        <button class="chip">链接</button>
+      </div>
+      <div class="right">
+        <span class="search-inline">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          KEYWORDS · TYPE · SOURCE
+        </span>
+        <button class="chip" style="background:var(--ink); color:var(--canvas); border-color:var(--ink);">
+          ✓ 开始创作
+        </button>
+      </div>
+    </section>
+
+    <section class="board-wrap">
+      <div class="board" id="board">
+        <article class="card" style="top:30px; left:30px; transform: rotate(-2deg);">
+          <span class="check">✓</span>
+          <div class="meta"><span class="tag">CHAT</span> 09:42 · TEXT</div>
+          <div class="body">「这个工具能不能真的帮我省时间？」</div>
+        </article>
+        <article class="card wide" style="top:60px; left:300px; transform: rotate(1.5deg);">
+          <span class="check">✓</span>
+          <div class="meta"><span class="tag">BROWSER</span> 10:18 · IMAGE</div>
+          <div class="media media-1"></div>
+          <div class="body" style="font-size:13px;color:var(--ink-2);">对智能账号开头结构的截图分析</div>
+        </article>
+        <article class="card" style="top:40px; left:640px; transform: rotate(-1deg);">
+          <span class="check">✓</span>
+          <div class="meta"><span class="tag">FEISHU</span> 11:06 · VOICE 0:42</div>
+          <div class="body">把灵感整理成一个选题</div>
+        </article>
+        <article class="card wide" style="top:240px; left:60px; transform: rotate(.8deg);">
+          <span class="check">✓</span>
+          <div class="meta"><span class="tag">DESKTOP</span> 13:27 · TEXT</div>
+          <div class="body">历史脚本和录屏素材，散落的 .md 和 .mp4，先别合并，先链接。</div>
+        </article>
+        <article class="card wide" style="top:230px; left:390px; transform: rotate(-1.6deg);">
+          <span class="check">✓</span>
+          <div class="meta"><span class="tag">DESKTOP</span> 15:08 · TEXT</div>
+          <div class="body">小红书算法真的能识别 App 内的真实停留吗？还是只看曝光与点击？</div>
+        </article>
+        <article class="card wide" style="top:380px; left:90px; transform: rotate(1.2deg);">
+          <span class="check">✓</span>
+          <div class="meta"><span class="tag">CAMERA</span> 17:02 · IMAGE</div>
+          <div class="media media-2"></div>
+          <div class="body" style="font-size:13px;color:var(--ink-2);">窗外那张蓝得发愣的傍晚。适合做封面的色彩配比。</div>
+        </article>
+        <article class="card" style="top:430px; left:430px; transform: rotate(-2.4deg);">
+          <span class="check">✓</span>
+          <div class="meta"><span class="tag">DESKTOP</span> 22:15 · TEXT</div>
+          <div class="body">《别急着写稿》的另一种切入：把工作台和家分开一半工作时间。</div>
+        </article>
+        <article class="card" style="top:300px; left:680px; transform: rotate(2deg);">
+          <span class="check">✓</span>
+          <div class="meta"><span class="tag">BROWSER</span> 23:40 · TEXT</div>
+          <div class="body">卡兹克的 aihot 用公开接口拉热点列表，先评估再用。</div>
+        </article>
+        <article class="card" style="top:440px; left:740px; transform: rotate(-1deg);">
+          <span class="check">✓</span>
+          <div class="meta"><span class="tag">CAMERA</span> 17:48 · IMAGE</div>
+          <div class="media media-3"></div>
+          <div class="body" style="font-size:13px;color:var(--ink-2);">列了一个选题，开始卡在前三句。</div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <a class="compose-fab" href="capture.html">
+    <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+  </a>
+
+  <nav class="mobile-bar">
+    <a class="secondary" href="home.html">🏠 入口</a>
+    <a class="primary" href="capture.html">＋ 记一条</a>
+  </nav>
+
+<script>
+  const topbar = document.getElementById('topbar');
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 16) topbar.classList.add('scrolled');
+    else topbar.classList.remove('scrolled');
+  }, { passive: true });
+
+  const STATE = { year: 2026, month: 8, day: 14 };
+  const WHEEL_DATA = {
+    year: { values: [2024, 2025, 2026, 2027, 2028] },
+    month: { values: ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'], map: { JAN:1,FEB:2,MAR:3,APR:4,MAY:5,JUN:6,JUL:7,AUG:8,SEP:9,OCT:10,NOV:11,DEC:12 } },
+    day: { values: Array.from({length: 31}, (_, i) => i + 1) },
+  };
+  document.querySelectorAll('[data-axis]').forEach((col) => {
+    const axis = col.dataset.axis;
+    const data = WHEEL_DATA[axis];
+    let idx;
+    if (axis === 'month') idx = data.values.indexOf('AUG');
+    else idx = data.values.indexOf(STATE[axis]);
+    if (idx < 0) idx = 0;
+    const wheel = col.querySelector('[data-wheel]');
+    const track = col.querySelector('.wheel-track');
+    function render() {
+      track.innerHTML = '';
+      const total = data.values.length;
+      for (let off = -5; off <= 5; off++) {
+        const pos = (idx + off + total) % total;
+        const v = data.values[pos];
+        const el = document.createElement('div');
+        el.className = 'wheel-item' + (off === 0 ? ' focal' : ' dim');
+        el.style.transform = `translateY(calc(-50% + ${off * 36}px))`;
+        if (off === 0) {
+          if (axis === 'month') STATE.month = data.map[v];
+          else STATE[axis] = v;
+          el.innerHTML = `<span class="num">${v}</span>`;
+          el.addEventListener('click', () => confirm());
+        } else {
+          el.textContent = v;
+        }
+        track.appendChild(el);
+      }
+      const up = document.createElement('div');
+      up.style.cssText = 'position:absolute;left:50%;top:6px;transform:translateX(-50%);width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--ink-3);z-index:3;cursor:pointer;background:var(--paper);border:1px solid var(--line);';
+      up.textContent = '↑';
+      up.addEventListener('click', (e) => { e.stopPropagation(); idx = (idx - 1 + total) % total; render(); });
+      const dn = document.createElement('div');
+      dn.style.cssText = up.style.cssText; dn.style.top = 'auto'; dn.style.bottom = '6px';
+      dn.textContent = '↓';
+      dn.addEventListener('click', (e) => { e.stopPropagation(); idx = (idx + 1) % total; render(); });
+      wheel.appendChild(up); wheel.appendChild(dn);
+    }
+    function confirm() {
+      const big = document.querySelector('.picker-info .date-big');
+      big.innerHTML = `
+        <span class="y">${STATE.year}</span>
+        <span class="d-num">${STATE.day}</span>
+        <span class="m-d">· ${WHEEL_DATA.month.values[STATE.month-1]}</span>
+        <span class="m-d" style="font-size:14px;">· ${'SUNMONTUEWEDTHUFRISAT'.substr(new Date(STATE.year, STATE.month-1, STATE.day).getDay()*3,3)}</span>
+      `;
+    }
+    let dragging = false, startY = 0;
+    wheel.addEventListener('mousedown', (e) => { dragging = true; startY = e.clientY; });
+    window.addEventListener('mouseup', () => dragging = false);
+    window.addEventListener('mousemove', (e) => {
+      if (!dragging) return;
+      const dy = e.clientY - startY;
+      if (Math.abs(dy) > 18) {
+        idx = (idx + (-Math.sign(dy)) + data.values.length) % data.values.length;
+        startY = e.clientY;
+        render();
+      }
+    });
+    wheel.addEventListener('touchstart', (e) => { dragging = true; startY = e.touches[0].clientY; }, { passive: true });
+    wheel.addEventListener('touchmove', (e) => {
+      if (!dragging) return;
+      const dy = e.touches[0].clientY - startY;
+      if (Math.abs(dy) > 18) {
+        idx = (idx + (-Math.sign(dy)) + data.values.length) % data.values.length;
+        startY = e.touches[0].clientY;
+        render();
+      }
+    }, { passive: true });
+    wheel.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      idx = (idx + (e.deltaY > 0 ? 1 : -1) + data.values.length) % data.values.length;
+      render();
+    }, { passive: false });
+    render();
+  });
+
+  const board = document.getElementById('board');
+  board.querySelectorAll('.card').forEach((n) => {
+    n.addEventListener('click', () => {
+      n.classList.toggle('selected');
+      document.getElementById('countSel').textContent = document.querySelectorAll('.card.selected').length;
+    });
+  });
+
+  document.querySelectorAll('.toolbar .left .chip, .view-switch button').forEach((c) => {
+    c.addEventListener('click', () => {
+      c.parentElement.querySelectorAll(c.classList.contains('chip') ? '.chip' : 'button').forEach((x) => x.classList.remove('active'));
+      c.classList.add('active');
+    });
+  });
+
+  setTimeout(() => {
+    document.querySelectorAll('.card').forEach((n, i) => {
+      n.style.opacity = '0';
+      const t = getComputedStyle(n).transform;
+      n.style.transform = (t === 'none' ? '' : t) + ' translateY(20px)';
+      setTimeout(() => {
+        n.style.transition = 'opacity .6s ease, transform .6s cubic-bezier(.2,.7,.3,1)';
+        n.style.opacity = '1';
+        const t2 = getComputedStyle(n).transform;
+        n.style.transform = t2.replace(' translateY(20px)', '');
+      }, 80 * i);
+    });
+  }, 200);
+</script>
+</body>
+</html>

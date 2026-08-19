@@ -1,0 +1,126 @@
+/* ---------- 顶部导航：外层 sticky + 内层居中 ---------- */
+.nav {
+  position: sticky; top: 0; z-index: 30;
+  background: linear-gradient(to bottom, rgba(14, 12, 29, .85), rgba(14, 12, 29, 0));
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.nav.timeline-nav {
+  z-index: 20;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
+}
+/* scheme-B 时间线返回控件保留透明边框，保证其占位高度与原型一致；记录页原型没有该边框。 */
+.timeline-nav .back { border: 1px solid transparent; }
+.nav-inner {
+  max-width: 1280px; margin: 0 auto;
+  padding: 20px 32px;
+  display: flex; align-items: center; gap: 32px;
+}
+.timeline-nav-inner { padding: 16px 24px; gap: 16px; }
+.brand {
+  display: flex; align-items: center; gap: 12px;
+  font-family: "Songti SC", "STSong", "Noto Serif SC", Georgia, serif;
+  font-size: 20px; letter-spacing: 1.5px;
+  color: var(--ink);
+}
+.brand-mark {
+  width: 32px; height: 32px; border-radius: 10px;
+  background: linear-gradient(135deg, var(--nebula-violet), var(--nebula-blue), var(--nebula-rose));
+  position: relative;
+  box-shadow: 0 0 24px rgba(167, 139, 250, .5);
+}
+.brand-mark::after {
+  content: ""; position: absolute; inset: 4px;
+  background: var(--cosmos); border-radius: 7px;
+}
+.brand-mark::before {
+  content: ""; position: absolute; inset: 9px;
+  background: linear-gradient(135deg, var(--nebula-violet), var(--nebula-blue));
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(167, 139, 250, .8);
+}
+.nav-links { display: flex; gap: 4px; align-items: center; }
+.nav-link {
+  padding: 8px 14px; border-radius: var(--radius-pill);
+  color: var(--ink-muted); font-size: 14px;
+  transition: all .2s var(--ease);
+}
+.nav-link:hover { color: var(--ink-soft); background: var(--surface); }
+.nav-link.active { color: var(--ink); background: var(--surface-strong); border: 1px solid var(--line); }
+.avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--nebula-rose), var(--nebula-amber));
+  display: grid; place-items: center; color: var(--cosmos-deep);
+  font-size: 14px; font-weight: 600;
+  margin-left: 8px;
+  box-shadow: 0 0 16px rgba(249, 168, 212, .3);
+}
+
+/* ---------- 子页面导航 ---------- */
+.topbar {
+  position: sticky; top: 0; z-index: 10;
+  background: linear-gradient(to bottom, rgba(14, 12, 29, .85), rgba(14, 12, 29, 0));
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  border-bottom: 1px solid var(--line);
+}
+.topbar-inner {
+  max-width: 1280px; margin: 0 auto;
+  padding: 16px 24px;
+  display: flex; align-items: center; gap: 16px;
+}
+.back {
+  display: flex; align-items: center; gap: 6px;
+  color: var(--ink-muted); font-size: 14px; padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  transition: all .2s var(--ease);
+  flex-shrink: 0;
+}
+.back img.icon { width: 14px; height: 14px; flex-shrink: 0; }
+.back:hover { color: var(--ink); background: var(--surface); border-color: var(--line); }
+.nav-title, .topbar-title {
+  font-family: "Songti SC", "STSong", "Noto Serif SC", Georgia, serif;
+  font-size: 18px; letter-spacing: 2px;
+  flex: 1; text-align: center;
+}
+.nav-tools { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+.nav-btn {
+  padding: 8px 14px; border-radius: var(--radius-pill);
+  color: var(--ink-soft); font-size: 13px;
+  transition: all .2s var(--ease);
+  display: inline-flex; align-items: center; gap: 6px;
+  border: 1px solid transparent;
+}
+.nav-btn:hover { background: var(--surface); border-color: var(--line); }
+
+.status-chip {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; color: var(--ink-soft);
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  flex-shrink: 0;
+}
+.status-chip .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ink-muted); }
+.status-chip.saving .dot { background: var(--nebula-amber); box-shadow: 0 0 8px var(--nebula-amber); animation: pulse 1.2s infinite; }
+.status-chip.saved  .dot { background: var(--nebula-mint); box-shadow: 0 0 8px var(--nebula-mint); }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
+
+@media (max-width: 960px) {
+  /* 首页原型在窄视口给 nav 外层留出 16px / 20px 空间，内部 .nav-inner 保持桌面内边距。 */
+  .nav:not(.timeline-nav) { padding: 16px 20px; }
+  .nav:not(.timeline-nav) .nav-links .nav-link { display: none; }
+}
+
+@media (max-width: 720px) {
+  .timeline-nav-inner { padding: 12px 16px; gap: 8px; }
+  .topbar-inner { padding: 14px 16px; gap: 8px; }
+  .topbar-title { font-size: 15px; letter-spacing: 1px; }
+  .status-chip { font-size: 11px; padding: 3px 8px; }
+  .nav-tools .nav-btn { display: none; }
+}
+
+
