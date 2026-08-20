@@ -53,11 +53,18 @@ export const inspirationCreateSchema = z.object({
 
 export const inspirationPatchSchema = inspirationCreateSchema.partial()
 
+// 创建：前端只提交 label 与可选 icon；color_token 由后端从六色白名单随机分配并持久化。
 export const inspirationTypeCreateSchema = z.object({
   slug: z.string().trim().min(1).max(40).regex(/^[a-z0-9][a-z0-9-]*$/, 'slug 仅支持小写字母、数字和连字符').optional(),
   label: z.string().trim().min(1).max(40),
-  color_token: z.string().trim().min(1).max(40).regex(/^--[a-z0-9-]+$/, '颜色必须为合法 CSS 变量名').default('--ink-muted'),
   icon: z.string().trim().max(40).nullable().optional(),
+})
+
+// 编辑：仅开放 label/icon/sort_order；color_token 与 slug 不可修改。
+export const inspirationTypePatchSchema = z.object({
+  label: z.string().trim().min(1).max(40).optional(),
+  icon: z.string().trim().max(40).nullable().optional(),
+  sort_order: z.number().int().optional(),
 })
 
 export const assetCompleteSchema = z.object({

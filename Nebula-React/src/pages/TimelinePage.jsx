@@ -4,6 +4,7 @@ import TopNav from '../components/TopNav.jsx'
 import DateWheel from '../components/DateWheel.jsx'
 import ViewSwitch from '../components/ViewSwitch.jsx'
 import InspirationSticky from '../components/InspirationSticky.jsx'
+import InspirationDetailDrawer from '../components/InspirationDetailDrawer.jsx'
 import NebulaView from '../components/NebulaView.jsx'
 import SelectionBar from '../components/SelectionBar.jsx'
 import CosmosBackground from '../components/CosmosBackground.jsx'
@@ -73,6 +74,7 @@ export default function TimelinePage() {
   const [total, setTotal] = useState(0)
   const [hasMore, setHasMore] = useState(false)
   const [loadingMore, setLoadingMore] = useState(false)
+  const [detailId, setDetailId] = useState(null)
 
   const yearIdx = Math.max(0, yearValues.indexOf(date.year))
   const monthIdx = date.month - 1
@@ -213,11 +215,12 @@ export default function TimelinePage() {
       {state === 'loading' && <div className="empty">正在加载…</div>}
       {state === 'error' && <div className="empty">加载失败：{loadError}。<button type="button" onClick={() => loadPage({ targetPage: 1 })}>重试</button></div>}
       {state === 'ready' && !items.length && <div className="empty">{activeQuery || filter ? '当前搜索或筛选没有结果。' : '这一天还没有已提交灵感。'}</div>}
-      <div className="board" style={{ display: view === 'board' ? 'block' : 'none', minHeight: boardHeight }}>{items.map((sticky) => <InspirationSticky key={sticky.id} data={sticky} selected={selected.has(sticky.id)} onToggle={() => toggle(sticky.id)} onMove={(position) => moveSticky(sticky.id, position)} />)}</div>
+      <div className="board" style={{ display: view === 'board' ? 'block' : 'none', minHeight: boardHeight }}>{items.map((sticky) => <InspirationSticky key={sticky.id} data={sticky} selected={selected.has(sticky.id)} onToggle={() => toggle(sticky.id)} onMove={(position) => moveSticky(sticky.id, position)} onOpen={(id) => setDetailId(id)} />)}</div>
       {view === 'nebula' && <NebulaView clusters={clusters} selected={selected} onToggle={toggle} />}
       {state === 'ready' && items.length > 0 && <div className="pagination-state">{hasMore ? <button type="button" className="q load-more" onClick={() => loadPage({ targetPage: page + 1, append: true })} disabled={loadingMore}>{loadingMore ? '加载中…' : '加载更多'}</button> : <span>已加载全部 {total} 条灵感</span>}</div>}
       <div className="thumb-map" aria-hidden="true" />
     </section>
+    {detailId && <InspirationDetailDrawer inspirationId={detailId} onClose={() => setDetailId(null)} onChanged={() => loadPage({ targetPage: 1 })} />}
     <SelectionBar count={selected.size} onClear={() => setSelected(new Set())} />
   </>
 }

@@ -28,6 +28,10 @@ export const config = {
     bucket: required('OSS_BUCKET'),
     accessKeyId: required('OSS_ACCESS_KEY_ID'),
     accessKeySecret: required('OSS_ACCESS_KEY_SECRET'),
+    corsOrigins: required('OSS_CORS_ORIGINS', required('CORS_ORIGIN', 'http://localhost:5173'))
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean),
   },
 }
 

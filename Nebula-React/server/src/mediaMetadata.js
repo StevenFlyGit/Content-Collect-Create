@@ -3,8 +3,13 @@ import { MAX_AUDIO_DURATION_MS } from './validators.js'
 
 const DURATION_TOLERANCE_MS = 1500
 
-function validationError(message, code) {
+export function validationError(message, code) {
   return Object.assign(new Error(message), { status: 422, code })
+}
+
+/** webm/matroska 在 OSS 不可寻址流上流式解析易失败，需走声明时长回退。 */
+export function isWebmMatroska(mimeType) {
+  return /webm|matroska/i.test(String(mimeType || ''))
 }
 
 /**
@@ -41,4 +46,27 @@ export function validateAudioDuration({ actualMs, declaredMs }) {
     }
   }
   return actualMs
+}
+
+/**
+ * 解析音频真实时长，并对 webm/matroska 做声明时长回退。
+ * 这类格式在 OSS 不可寻址流上常因 End-Of-Stream 解析失败，但其声明时长
+ * （录音计时 / <audio> 元数据，来自前端）可靠，故回退到声明值即可继续。
+ * 非 webm 格式仍走严格的流式解析 + 声明交叉校验。
+ */
+export async function resolveAudioDurationMs({ stream, mimeType, size, declaredMs }) {
+  try {
+    const actualMs = await readAudioDurationMs(stream, mimeType, size)
+    return validateAudioDuration({ actualMs, declaredMs })
+  } catch (error) {
+    // webm/matroska 在 OSS 不可寻址流上无法可靠解析真实时长，两类失败都回退到声明值：
+    //  - AUDIO_METADATA_INVALID：parseStream 抛流错误（如 End-Of-Stream）
+    //  - AUDIO_DURATION_UNREADABLE：解析成功但无可用时长
+    if (isWebmMatroska(mimeType) && (error.code === 'AUDIO_METADATA_INVALID' || error.code === 'AUDIO_DURATION_UNREADABLE')) {
+      if (declaredMs == null) throw validationError('webm 音频缺少声明时长且服务端无法解析', 'AUDIO_DURATION_UNREADABLE')
+      // 回退到前端声明时长，仅做边界校验（不再与实际解析值交叉比对）。
+      return validateAudioDuration({ actualMs: declaredMs, declaredMs: null })
+    }
+    throw error
+  }
 }

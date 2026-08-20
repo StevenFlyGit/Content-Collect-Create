@@ -1,0 +1,100 @@
+/* ---------- 灵感详情 / 编辑 / 删除抽屉 ---------- */
+.detail-overlay {
+  position: fixed; inset: 0; z-index: 60;
+  background: rgba(7, 6, 15, .6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex; justify-content: flex-end;
+  animation: detailFade .18s var(--ease);
+}
+@keyframes detailFade { from { opacity: 0; } to { opacity: 1; } }
+
+.detail-panel {
+  width: min(440px, 100%);
+  height: 100%;
+  background: var(--cosmos);
+  border-left: 1px solid var(--line);
+  box-shadow: var(--shadow-lift);
+  display: flex; flex-direction: column;
+  animation: detailSlide .22s var(--ease);
+}
+@keyframes detailSlide { from { transform: translateX(24px); opacity: .6; } to { transform: none; opacity: 1; } }
+
+.detail-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; padding: 16px 18px;
+  border-bottom: 1px solid var(--line);
+  font-size: 16px; color: var(--ink);
+}
+.detail-close {
+  width: 32px; height: 32px; flex: none;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--line-soft); border-radius: 9px;
+  background: var(--surface); color: var(--ink-soft);
+  font-size: 18px; cursor: pointer;
+}
+.detail-close:hover { color: var(--ink); }
+
+.detail-body { flex: 1 1 auto; overflow-y: auto; padding: 18px; }
+.detail-empty { color: var(--ink-muted); }
+
+.detail-type { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--ink); }
+.detail-type .swatch { width: 12px; height: 12px; border-radius: 50%; box-shadow: 0 0 8px currentColor; }
+.detail-archived-tag { font-size: 11px; color: var(--ink-muted); padding: 1px 6px; border: 1px solid var(--line-soft); border-radius: 4px; }
+.detail-time { font-size: 12px; color: var(--ink-muted); margin: 8px 0 14px; }
+.detail-text { white-space: pre-wrap; word-break: break-word; font-size: 15px; line-height: 1.7; color: var(--ink); margin: 0 0 16px; }
+
+.detail-attachments { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+.detail-image img { display: block; width: 100%; max-height: 280px; object-fit: cover; border-radius: 10px; border: 1px solid var(--line-soft); }
+.detail-audio audio { display: block; width: 100%; }
+.detail-chip { font-size: 12px; padding: 4px 8px; border-radius: 6px; background: var(--surface-strong); color: var(--ink-soft); align-self: flex-start; }
+.detail-refresh { margin-top: 4px; font-size: 12px; color: var(--nebula-blue); background: none; border: 0; cursor: pointer; }
+
+.detail-meta { margin: 0 0 16px; display: grid; gap: 8px; }
+.detail-meta div { display: flex; gap: 10px; font-size: 12px; }
+.detail-meta dt { color: var(--ink-muted); min-width: 64px; }
+.detail-meta dd { margin: 0; color: var(--ink-soft); }
+
+.detail-actions { display: flex; gap: 10px; }
+.detail-btn {
+  flex: 1 1 auto;
+  min-height: 44px; padding: 10px 16px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--line);
+  background: var(--surface-strong); color: var(--ink);
+  font-size: 14px; cursor: pointer;
+  transition: all .2s var(--ease);
+}
+.detail-btn:hover { border-color: rgba(167, 139, 250, .4); }
+.detail-btn.primary { background: linear-gradient(135deg, var(--nebula-violet), var(--nebula-rose)); color: var(--cosmos-deep); border: 0; font-weight: 600; box-shadow: 0 0 18px rgba(167, 139, 250, .35); }
+.detail-btn.danger { color: var(--danger); border-color: rgba(252, 165, 165, .4); }
+.detail-btn.danger:hover { background: rgba(252, 165, 165, .12); }
+.detail-btn:disabled { opacity: .6; cursor: not-allowed; }
+
+.detail-error { color: var(--danger); font-size: 12px; line-height: 1.5; margin: 0 0 10px; }
+
+.detail-delete-confirm {
+  margin-top: 16px; padding: 14px;
+  border: 1px solid rgba(252, 165, 165, .35); border-radius: 12px;
+  background: rgba(252, 165, 165, .08);
+}
+.detail-delete-confirm p { margin: 0 0 12px; font-size: 13px; line-height: 1.6; color: var(--ink-soft); }
+.detail-delete-actions { display: flex; justify-content: flex-end; gap: 10px; }
+.detail-delete-actions .detail-btn { flex: 0 1 auto; min-width: 96px; }
+
+.detail-edit-form { display: grid; gap: 14px; }
+.detail-field { display: grid; gap: 6px; font-size: 13px; color: var(--ink-muted); }
+.detail-field input, .detail-field textarea, .detail-field select {
+  width: 100%; padding: 10px 12px;
+  border: 1px solid var(--line); border-radius: 10px;
+  background: var(--surface-strong); color: var(--ink);
+  font-size: 14px; font-family: inherit;
+}
+.detail-field textarea { resize: vertical; line-height: 1.6; }
+.detail-edit-actions { display: flex; gap: 10px; margin-top: 4px; }
+
+@media (max-width: 720px) {
+  .detail-overlay { align-items: flex-end; }
+  .detail-panel { width: 100%; height: auto; max-height: 92vh; border-left: 0; border-top: 1px solid var(--line); border-radius: 18px 18px 0 0; }
+  @keyframes detailSlide { from { transform: translateY(24px); opacity: .6; } to { transform: none; opacity: 1; } }
+}

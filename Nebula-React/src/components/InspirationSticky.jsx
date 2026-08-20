@@ -42,7 +42,7 @@ function AssetPreview({ attachment }) {
 /**
  * 灵感白板贴片：短按切换多选，桌面端拖动后回传 x/y/z/rotation 坐标。
  */
-export default function InspirationSticky({ data, selected, onToggle, onMove }) {
+export default function InspirationSticky({ data, selected, onToggle, onMove, onOpen }) {
   const dragRef = useRef(null)
   const position = data.position || { x: 0, y: 0, z: 1, rotation: 0 }
 
@@ -114,6 +114,7 @@ export default function InspirationSticky({ data, selected, onToggle, onMove }) 
       <div className="head">
         <span className="pill" style={{ color: `var(${data.color_token || '--ink-muted'})` }}>{data.type}</span>
         <span>{data.time}</span>
+        {onOpen && <button type="button" className="view-btn" aria-label="查看灵感详情" onPointerDown={(event) => event.stopPropagation()} onClick={(event) => { event.stopPropagation(); onOpen(data.id) }}>查看</button>}
       </div>
 
       <p className={`text${data.quote ? ' quote' : ''}`}>{data.text}</p>

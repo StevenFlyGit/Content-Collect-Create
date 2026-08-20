@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import TopNav from '../components/TopNav.jsx'
 import CosmosBackground from '../components/CosmosBackground.jsx'
+import InspirationDetailDrawer from '../components/InspirationDetailDrawer.jsx'
 import { listInspirations } from '../lib/api.js'
 import './HomePage.css'
 
@@ -13,6 +14,7 @@ export default function HomePage() {
   const [items, setItems] = useState([])
   const [todayCount, setTodayCount] = useState(0)
   const [state, setState] = useState('loading')
+  const [detailId, setDetailId] = useState(null)
   const load = () => { setState('loading'); listInspirations({ recent: 4 }).then((payload) => { setItems(payload.data || []); setTodayCount(payload.meta?.today_count || 0); setState('ready') }).catch(() => setState('error')) }
   useEffect(() => { load() }, [])
   return <><CosmosBackground variant="home" /><TopNav variant="home" /><main className="main">
@@ -20,7 +22,8 @@ export default function HomePage() {
     <section className="actions reveal d1"><Link to="/capture" className="action-card capture" onMouseMove={onCardMove}><div className="ico" aria-hidden="true">＋</div><h2 className="title">记录灵感 <span className="arrow">→</span></h2><p className="desc">随手写下一句话、拍一张图、录一段语音。<br />不必完整，先抓住那束光。</p><div className="tags"><span className="tag">文字</span><span className="tag">图片 ≤20MB</span><span className="tag">音频 ≤1分钟</span></div></Link><Link to="/timeline" className="action-card create" onMouseMove={onCardMove}><div className="ico" aria-hidden="true">✦</div><h2 className="title">开始创作 <span className="arrow">→</span></h2><p className="desc">从某一天出发，挑出今天想到的，<br />开始一段结构化的写作。</p><div className="tags"><span className="tag">按日期</span><span className="tag">白板贴片</span><span className="tag">多选进入</span></div></Link></section>
     <section className="reveal d2"><header className="section-head"><h3 className="section-title">最近的灵感</h3><Link to="/timeline" className="section-link">查看全部 →</Link></header>
       {state === 'loading' && <p className="empty">正在加载灵感…</p>}{state === 'error' && <div className="empty">最近灵感加载失败。<button type="button" onClick={load}>重试</button></div>}{state === 'ready' && !items.length && <p className="empty">还没有已提交的灵感，先记录一条吧。</p>}
-      <div className="recent-grid">{items.map((item, i) => <article className={`note reveal d${i + 2}`} tabIndex={0} key={item.id}><div className="meta"><span className={`pill ${typePill[item.type] || 'idea'}`}>{item.type}</span><span>{formatTime(item.recorded_at)}</span></div><p className="excerpt">{item.title ? `${item.title}：` : ''}{item.text || '（无正文）'}</p><div className="footer"><span>{item.attachments?.filter((a) => a.kind === 'image').length ? `🖼 ${item.attachments.filter((a) => a.kind === 'image').length} 张图` : ''}</span><span>{item.attachments?.filter((a) => a.kind === 'audio').length ? `🎙 ${item.attachments.filter((a) => a.kind === 'audio').length} 段音频` : ''}</span><span>{item.sync_status === 'synced' ? '已同步' : '草稿'}</span></div></article>)}</div>
+      <div className="recent-grid">{items.map((item, i) => <article className={`note reveal d${i + 2}`} tabIndex={0} key={item.id} role="button" aria-label={`查看灵感 ${item.title || item.text || ''}`} onClick={() => setDetailId(item.id)} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); setDetailId(item.id) } }}><div className="meta"><span className={`pill ${typePill[item.type] || 'idea'}`}>{item.type}</span><span>{formatTime(item.recorded_at)}</span></div><p className="excerpt">{item.title ? `${item.title}：` : ''}{item.text || '（无正文）'}</p><div className="footer"><span>{item.attachments?.filter((a) => a.kind === 'image').length ? `🖼 ${item.attachments.filter((a) => a.kind === 'image').length} 张图` : ''}</span><span>{item.attachments?.filter((a) => a.kind === 'audio').length ? `🎙 ${item.attachments.filter((a) => a.kind === 'audio').length} 段音频` : ''}</span><span>{item.sync_status === 'synced' ? '已同步' : '草稿'}</span></div></article>)}</div>
     </section>
+    {detailId && <InspirationDetailDrawer inspirationId={detailId} onClose={() => setDetailId(null)} onChanged={load} />}
   </main></>
 }

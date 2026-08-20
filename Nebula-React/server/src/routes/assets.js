@@ -2,7 +2,7 @@ import { Router } from 'express'
 import { randomUUID } from 'node:crypto'
 import { query, withTransaction } from '../db.js'
 import { signedPutUrl, signedGetUrl, headObject, getObjectStream } from '../oss.js'
-import { readAudioDurationMs, validateAudioDuration } from '../mediaMetadata.js'
+import { resolveAudioDurationMs } from '../mediaMetadata.js'
 import { config } from '../config.js'
 import { assetCompleteSchema, uuidSchema, validateAssetInput } from '../validators.js'
 import { notFound, conflict } from '../errors.js'
@@ -94,8 +94,10 @@ router.post('/complete', async (req, res, next) => {
     let actualDurationMs = durationMs ?? null
     if (asset.kind === 'audio') {
       const stream = await getObjectStream(asset.storage_key)
-      actualDurationMs = validateAudioDuration({
-        actualMs: await readAudioDurationMs(stream, asset.mime_type, Number(asset.bytes)),
+      actualDurationMs = await resolveAudioDurationMs({
+        stream,
+        mimeType: asset.mime_type,
+        size: Number(asset.bytes),
         declaredMs: durationMs,
       })
     }
