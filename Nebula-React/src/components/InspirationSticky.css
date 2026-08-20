@@ -32,9 +32,15 @@
   border-radius: 50%;
   border: 1.5px solid var(--line);
   background: var(--cosmos-2);
-  display: grid; place-items: center;
+  display: flex; align-items: center; justify-content: center;
   color: var(--cosmos-deep);
   transition: all .2s var(--ease);
+}
+.sticky .check span {
+  display: block;
+  font-size: 12px;
+  line-height: 1;
+  transform: translate(0.5px, -0.5px);
 }
 .sticky.selected .check {
   background: var(--nebula-violet);

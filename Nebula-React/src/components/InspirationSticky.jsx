@@ -109,7 +109,7 @@ export default function InspirationSticky({ data, selected, onToggle, onMove }) 
         }
       }}
     >
-      <div className="check" aria-hidden="true">{selected && '✓'}</div>
+      <div className="check" aria-hidden="true">{selected && <span>✓</span>}</div>
 
       <div className="head">
         <span className="pill" style={{ color: `var(${data.color_token || '--ink-muted'})` }}>{data.type}</span>

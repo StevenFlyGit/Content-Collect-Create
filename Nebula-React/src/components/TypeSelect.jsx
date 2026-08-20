@@ -23,8 +23,23 @@ export default function TypeSelect({ valueId = '', valueLabel = '想法', types 
   const [createError, setCreateError] = useState('')
   const [creatingType, setCreatingType] = useState(false)
   const ref = useRef(null)
+  const labelRef = useRef(null)
   const options = useMemo(() => types.length ? types : FALLBACK_TYPES, [types])
   const current = options.find((type) => valueId && type.id === valueId) || options.find((type) => type.label === valueLabel) || options[0]
+
+  // 类型名超长时启用自动左滑动效；不溢出则保持静止（尊重系统的「减少动效」偏好由 CSS 控制）
+  useEffect(() => {
+    const el = labelRef.current
+    if (!el) return
+    const shift = el.scrollWidth - el.clientWidth
+    if (shift > 1) {
+      el.style.setProperty('--marquee-shift', `${shift}px`)
+      el.classList.add('marquee')
+    } else {
+      el.classList.remove('marquee')
+      el.style.removeProperty('--marquee-shift')
+    }
+  }, [current?.label, open])
 
   useEffect(() => {
     const onDoc = (event) => { if (ref.current && !ref.current.contains(event.target)) setOpen(false) }
@@ -81,7 +96,7 @@ export default function TypeSelect({ valueId = '', valueLabel = '想法', types 
         onClick={() => setOpen((value) => !value)}
       >
         <span className="swatch" style={{ background: colorValue(current), color: colorValue(current) }} aria-hidden="true" />
-        <span>类型：{current?.label || valueLabel}</span>
+        <span className="type-label-text" ref={labelRef}>类型：{current?.label || valueLabel}</span>
         <span className="caret" aria-hidden="true">▾</span>
       </button>
 

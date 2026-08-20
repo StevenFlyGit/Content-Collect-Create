@@ -48,7 +48,7 @@
   box-shadow: inset 0 -1px 0 transparent;
   transition: box-shadow .2s var(--ease), border-color .2s var(--ease);
 }
-.title-input::placeholder { color: rgba(245, 243, 237, .25); }
+.title-input::placeholder { color: rgba(245, 243, 237, .35); }
 .title-input:hover { box-shadow: inset 0 -1px 0 rgba(245, 243, 237, .12); }
 .title-input:focus,
 .title-input:focus-visible {
@@ -159,7 +159,7 @@
 
 /* ---------- 底部工具栏 ---------- */
 .toolbar {
-  position: fixed; left: 0; right: 0; bottom: 0; z-index: 9;
+  position: fixed; left: 0; right: 0; bottom: var(--kb-offset, 0px); z-index: 9;
   background: rgba(14, 12, 29, .85);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
@@ -168,7 +168,7 @@
 }
 .toolbar-inner {
   max-width: 760px; margin: 0 auto;
-  display: flex; flex-direction: column; gap: 10px;
+  display: flex; flex-direction: column; gap: 12px;
 }
 
 .reveal { opacity: 0; transform: translateY(8px); animation: reveal .5s var(--ease) forwards; }
@@ -180,7 +180,10 @@
   .capture-main { padding: 20px 16px 260px; }
   .editor { padding: 20px; border-radius: 16px; }
   .title-input { font-size: 22px; }
-  .toolbar-inner { gap: 8px; }
+  .toolbar-inner { gap: 12px; }
+  .action-row { gap: 10px; }
+  /* 移动端无 hover，附件删除按钮始终显示并放大到可点击尺寸 */
+  .attach .x { opacity: 1; width: 26px; height: 26px; font-size: 14px; }
 }
 
 /* 焦点可见（a11y） */
@@ -208,7 +211,22 @@
   color: var(--danger, #b84a4a);
 }
 
-.action-row { flex-wrap: wrap; }
-.action-row .secondary { border: 1px solid var(--line); color: var(--ink); padding: 10px 14px; border-radius: 10px; background: rgba(255,255,255,.05); cursor: pointer; }
+.action-row { display: flex; align-items: center; gap: 12px; flex-wrap: nowrap; }
+.action-row .secondary {
+  display: inline-flex; align-items: center; gap: 6px;
+  border: 1px solid var(--line);
+  color: var(--ink);
+  padding: 11px 18px;
+  min-height: 44px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, .06);
+  font-size: 14px; font-weight: 600;
+  cursor: pointer;
+  transition: all .25s var(--ease);
+}
+.action-row .secondary:hover:not(:disabled) {
+  background: rgba(255, 255, 255, .1);
+  border-color: rgba(255, 255, 255, .2);
+}
 .action-row .secondary:disabled, .action-row .primary:disabled { opacity: .55; cursor: not-allowed; }
 .status-chip.error { color: var(--danger, #b84a4a); }

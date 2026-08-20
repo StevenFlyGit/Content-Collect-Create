@@ -148,6 +148,23 @@ export default function CapturePage() {
     clearTimeout(saveTimer.current)
     clearTimeout(pulseTimer.current)
   }, [])
+  // 软键盘弹出时上抬底部工具栏，避免被遮挡（移动端真机有效）
+  useEffect(() => {
+    const viewport = window.visualViewport
+    if (!viewport) return undefined
+    const apply = () => {
+      const kb = Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop)
+      document.documentElement.style.setProperty('--kb-offset', kb > 0 ? `${kb}px` : '0px')
+    }
+    viewport.addEventListener('resize', apply)
+    viewport.addEventListener('scroll', apply)
+    apply()
+    return () => {
+      viewport.removeEventListener('resize', apply)
+      viewport.removeEventListener('scroll', apply)
+      document.documentElement.style.removeProperty('--kb-offset')
+    }
+  }, [])
   useEffect(() => { attachmentsRef.current = attachments }, [attachments])
   useEffect(() => () => {
     attachmentsRef.current.forEach((asset) => { if (asset.src?.startsWith('blob:')) URL.revokeObjectURL(asset.src) })
@@ -365,10 +382,10 @@ export default function CapturePage() {
           return <div className="attach" aria-label={attachment.label} key={attachment.id}><img src={attachment.src} alt={attachment.label || ''} />{statusBadge}<button className="x" type="button" aria-label="移除附件" onClick={() => removeAttachment(attachment.id)} disabled={submitting}>×</button></div>
         })}</div>}
       </form>
-      <div className="dropzone-hint reveal d2">提示：图片单个最大 20MB；音频最长 1 分钟。点击「保存草稿」只写入本地 IndexedDB；点击「提交灵感」才同步 RDS 与 OSS。</div>
+      <div className="dropzone-hint reveal d2">提示：图片单个最大 20MB；音频最长 1 分钟。点击「保存草稿」临时保存到当前浏览器中，点击「提交灵感」上传云端永久保存。</div>
       {note && <div className="capture-note" role="status">{note}</div>}
     </main>
-    <div className="toolbar" role="toolbar" aria-label="记录工具栏"><div className="toolbar-inner"><ModeToolbar mode={mode} onModeChange={handleModeChange} onFileSelected={handleFileSelected} disabled={submitting} /><div className="action-row"><TypeSelect valueId={typeId} valueLabel={type} types={types} onChange={onTypeChange} onCreate={createCustomType} disabled={submitting} /><button className="secondary" type="button" onClick={() => saveDraftNow('manual')} disabled={submitting}>保存草稿</button><button className="primary" type="submit" form="editorForm" disabled={submitting}>{submitting ? '提交中…' : '提交灵感'} <span aria-hidden="true">⌘↵</span></button></div></div></div>
+    <div className="toolbar" role="toolbar" aria-label="记录工具栏"><div className="toolbar-inner"><ModeToolbar mode={mode} onModeChange={handleModeChange} onFileSelected={handleFileSelected} disabled={submitting} /><div className="action-row"><TypeSelect valueId={typeId} valueLabel={type} types={types} onChange={onTypeChange} onCreate={createCustomType} disabled={submitting} /><button className="secondary" type="button" onClick={() => saveDraftNow('manual')} disabled={submitting}>保存草稿</button><button className="primary" type="submit" form="editorForm" disabled={submitting}>{submitting ? '提交中…' : '提交灵感'}</button></div></div></div>
     {overlay && <MediaCaptureOverlay mode={overlay} onCancel={() => setOverlay(null)} onCaptured={handleCaptured} />}
   </>
 }
