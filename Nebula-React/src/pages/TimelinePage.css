@@ -126,3 +126,14 @@
 .back:focus-visible, .nav-btn:focus-visible {
   outline: 2px solid var(--focus); outline-offset: 3px;
 }
+.empty { color: var(--ink-muted); text-align: center; padding: 36px; }
+.empty button { margin-left: 8px; color: var(--nebula-violet); }
+.datesec input { background: rgba(255,255,255,.06); border: 1px solid var(--line); color: var(--ink); border-radius: 8px; padding: 8px 12px; margin-right: 8px; }
+
+.timeline-tools { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+.timeline-tools input, .timeline-tools select { min-width: 220px; padding: 8px 12px; border: 1px solid var(--line); border-radius: var(--radius-pill); background: var(--surface); color: var(--ink); }
+.timeline-tools label { color: var(--ink-soft); font-size: 13px; }
+.timeline-scope { margin: 10px 0 0; color: var(--ink-muted); font-size: 12px; }
+.pagination-state { display: flex; justify-content: center; margin-top: 18px; color: var(--ink-muted); font-size: 13px; }
+.pagination-state .load-more { padding: 8px 18px; border: 1px solid var(--line); border-radius: var(--radius-pill); background: var(--surface); color: var(--ink); cursor: pointer; }
+.pagination-state .load-more:disabled, .icon-btn:disabled { opacity: .5; cursor: not-allowed; }

@@ -27,7 +27,7 @@ export default function NebulaView({ clusters, selected, onToggle }) {
       </svg>
 
       {clusters.map((c, i) => {
-        const sel = selected.has(i + 100)
+        const sel = selected.has(c.id)
         return (
           <div
             key={c.id}
@@ -36,8 +36,8 @@ export default function NebulaView({ clusters, selected, onToggle }) {
             role="button"
             tabIndex={0}
             aria-pressed={sel}
-            onClick={() => onToggle(i + 100)}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onToggle(i + 100) } }}
+            onClick={() => onToggle(c.id)}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onToggle(c.id) } }}
           >
             <span className="core" aria-hidden="true" />
             <span className="label">{c.label}</span>

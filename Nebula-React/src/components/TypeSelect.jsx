@@ -1,30 +1,72 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import './TypeSelect.css'
 
-const TYPES = [
-  { key: '先不分类', color: 'var(--ink-muted)' },
-  { key: '想法', color: 'var(--nebula-violet)' },
-  { key: '引用', color: 'var(--nebula-blue)' },
-  { key: '随感', color: 'var(--nebula-rose)' },
-  { key: '待办', color: 'var(--nebula-mint)' },
-  { key: '案例', color: 'var(--nebula-amber)' },
-  { key: '问题', color: 'var(--danger)' },
+const FALLBACK_TYPES = [
+  { id: '', slug: 'uncategorized', label: '先不分类', color_token: '--ink-muted' },
+  { id: '', slug: 'idea', label: '想法', color_token: '--nebula-violet' },
+  { id: '', slug: 'quote', label: '引用', color_token: '--nebula-blue' },
+  { id: '', slug: 'moment', label: '随感', color_token: '--nebula-rose' },
+  { id: '', slug: 'task', label: '待办', color_token: '--nebula-mint' },
+  { id: '', slug: 'case', label: '案例', color_token: '--nebula-amber' },
+  { id: '', slug: 'question', label: '问题', color_token: '--danger' },
 ]
 
-export default function TypeSelect({ value, onChange, pulse = false }) {
+const colorValue = (type) => {
+  const token = type?.color_token || '--ink-muted'
+  return token.startsWith('--') ? `var(${token})` : token
+}
+
+export default function TypeSelect({ valueId = '', valueLabel = '想法', types = [], onChange, onCreate, pulse = false, disabled = false }) {
   const [open, setOpen] = useState(false)
+  const [creating, setCreating] = useState(false)
+  const [customLabel, setCustomLabel] = useState('')
+  const [createError, setCreateError] = useState('')
+  const [creatingType, setCreatingType] = useState(false)
   const ref = useRef(null)
-  const current = TYPES.find((t) => t.key === value) || TYPES[0]
+  const options = useMemo(() => types.length ? types : FALLBACK_TYPES, [types])
+  const current = options.find((type) => valueId && type.id === valueId) || options.find((type) => type.label === valueLabel) || options[0]
 
   useEffect(() => {
-    const onDoc = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
+    const onDoc = (event) => { if (ref.current && !ref.current.contains(event.target)) setOpen(false) }
     document.addEventListener('click', onDoc)
     return () => document.removeEventListener('click', onDoc)
   }, [])
 
+  useEffect(() => {
+    if (disabled) {
+      setOpen(false)
+      setCreating(false)
+    }
+  }, [disabled])
+
   const choose = (next) => {
+    if (disabled) return
     onChange(next)
     setOpen(false)
+    setCreating(false)
+    setCreateError('')
+  }
+
+  const submitCustomType = async (event) => {
+    event.preventDefault()
+    event.stopPropagation()
+    const label = customLabel.trim()
+    if (!label) {
+      setCreateError('请输入类型名称')
+      return
+    }
+    if (!onCreate) return
+    setCreatingType(true)
+    setCreateError('')
+    try {
+      const created = await onCreate(label)
+      setCustomLabel('')
+      choose(created)
+    } catch (error) {
+      setCreateError(error.message || '创建类型失败')
+    } finally {
+      setCreatingType(false)
+    }
   }
 
   return (
@@ -32,31 +74,47 @@ export default function TypeSelect({ value, onChange, pulse = false }) {
       <button
         type="button"
         className={`type-trigger${pulse ? ' pulse' : ''}`}
-        data-type={value}
+        data-type={current?.label}
         aria-haspopup="listbox"
         aria-expanded={open}
-        onClick={() => setOpen((o) => !o)}
+        disabled={disabled}
+        onClick={() => setOpen((value) => !value)}
       >
-        <span className="swatch" style={{ background: current.color, color: current.color }} aria-hidden="true" />
-        <span>类型：{value}</span>
+        <span className="swatch" style={{ background: colorValue(current), color: colorValue(current) }} aria-hidden="true" />
+        <span>类型：{current?.label || valueLabel}</span>
         <span className="caret" aria-hidden="true">▾</span>
       </button>
 
       <div className={`type-menu${open ? ' open' : ''}`} role="listbox">
-        {TYPES.map((t) => (
+        {options.map((type) => (
           <button
-            key={t.key}
+            key={type.id || type.slug}
             type="button"
             className="type-item"
             role="option"
-            aria-selected={t.key === value}
-            data-type={t.key}
-            onClick={() => choose(t.key)}
+            aria-selected={(valueId && type.id === valueId) || (!valueId && type.label === valueLabel)}
+            data-type={type.label}
+            disabled={disabled}
+            onClick={() => choose(type)}
           >
-            <span className="swatch" style={{ background: t.color, color: t.color }} aria-hidden="true" />
-            {t.key}
+            <span className="swatch" style={{ background: colorValue(type), color: colorValue(type) }} aria-hidden="true" />
+            {type.label}
           </button>
         ))}
+        {onCreate && <div className="type-custom">
+          {!creating ? (
+            <button type="button" className="type-create-toggle" onClick={() => setCreating(true)} disabled={disabled}>＋ 新建自定义类型</button>
+          ) : (
+            <form onSubmit={submitCustomType}>
+              <input value={customLabel} onChange={(event) => setCustomLabel(event.target.value)} maxLength={40} placeholder="类型名称" aria-label="自定义类型名称" autoFocus />
+              <div className="type-create-actions">
+                <button type="button" onClick={() => { setCreating(false); setCreateError('') }} disabled={creatingType}>取消</button>
+                <button type="submit" disabled={creatingType}>{creatingType ? '创建中…' : '创建'}</button>
+              </div>
+              {createError && <span className="type-create-error" role="alert">{createError}</span>}
+            </form>
+          )}
+        </div>}
       </div>
     </div>
   )

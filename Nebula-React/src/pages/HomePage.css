@@ -145,3 +145,5 @@
 /* 方案 B 使用字符箭头；图标容器沿用原型的字号与光晕表现 */
 .action-card .ico { font-size: 28px; line-height: 1; }
 .action-card .arrow { font-size: 20px; }
+.empty { color: var(--ink-muted); text-align: center; padding: 24px; }
+.empty button { margin-left: 8px; color: var(--nebula-violet); }

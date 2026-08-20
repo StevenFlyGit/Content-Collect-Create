@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import './MediaCaptureOverlay.css'
 
-// 录音模式只开音频；拍照模式保留视频 + 音频（不影响截图）。
+// 录音模式只开音频；拍照模式只开视频，避免因麦克风权限被拒而阻断拍照。
 const AUDIO_MIME_CANDIDATES = [
   'audio/webm;codecs=opus',
   'audio/webm',
@@ -38,6 +38,7 @@ export default function MediaCaptureOverlay({ mode, onCancel, onCaptured }) {
   const recorderRef = useRef(null)
   const chunksRef = useRef([])
   const startedAtRef = useRef(0)
+  const limitTimerRef = useRef(null)
   const [error, setError] = useState('')
   const [recording, setRecording] = useState(false)
   const isPhoto = mode === 'camera'
@@ -46,6 +47,7 @@ export default function MediaCaptureOverlay({ mode, onCancel, onCaptured }) {
     if (recorderRef.current && recorderRef.current.state !== 'inactive') {
       try { recorderRef.current.stop() } catch { /* noop */ }
     }
+    clearTimeout(limitTimerRef.current)
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((t) => t.stop())
       streamRef.current = null
@@ -64,7 +66,7 @@ export default function MediaCaptureOverlay({ mode, onCancel, onCaptured }) {
         const stream = await navigator.mediaDevices.getUserMedia({
           // 拍照时才需要视频流；录音只开音频，避免不必要的摄像头指示灯与资源占用。
           video: isPhoto,
-          audio: true,
+          audio: !isPhoto,
         })
         if (cancelled) {
           stream.getTracks().forEach((t) => t.stop())
@@ -126,6 +128,11 @@ export default function MediaCaptureOverlay({ mode, onCancel, onCaptured }) {
       }
       rec.start()
       recorderRef.current = rec
+      limitTimerRef.current = setTimeout(() => {
+        if (rec.state !== 'inactive') rec.stop()
+        setRecording(false)
+      // 提前 0.5 秒触发停止，给 MediaRecorder 的异步收尾留出余量，避免正常自动停止被 60 秒校验误拒绝。
+      }, 59_500)
       setRecording(true)
     } catch (e) {
       setError(describeError(e))
@@ -143,7 +150,7 @@ export default function MediaCaptureOverlay({ mode, onCancel, onCaptured }) {
     <div className="capture-overlay" role="dialog" aria-modal="true" aria-label={isPhoto ? '拍照' : '录音'}>
       <div className="capture-panel">
         <div className="capture-head">
-          <span>{isPhoto ? '拍照' : '录音'}</span>
+          <span>{isPhoto ? '拍照' : '录音（最长 1 分钟）'}</span>
           <button type="button" className="capture-x" aria-label="关闭" onClick={cleanup}>×</button>
         </div>
 

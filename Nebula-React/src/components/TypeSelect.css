@@ -76,3 +76,14 @@
 .type-trigger.pulse { animation: typePulse .2s var(--ease); }
 @keyframes typePulse { from { transform: scale(1.05); } to { transform: scale(1); } }
 
+
+.type-custom { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--line-soft); }
+.type-create-toggle { width: 100%; padding: 8px 10px; text-align: left; color: var(--nebula-blue); font-size: 13px; border-radius: 8px; }
+.type-create-toggle:hover { background: var(--surface); }
+.type-custom form { display: grid; gap: 7px; padding: 4px; }
+.type-custom input { width: 100%; min-width: 0; padding: 8px 9px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink); }
+.type-create-actions { display: flex; justify-content: flex-end; gap: 6px; }
+.type-create-actions button { padding: 5px 9px; border: 1px solid var(--line); border-radius: 7px; color: var(--ink-soft); font-size: 12px; }
+.type-create-actions button[type="submit"] { color: var(--nebula-blue); border-color: rgba(125, 211, 252, .35); }
+.type-create-error { color: var(--danger); font-size: 11px; line-height: 1.4; }
+.type-trigger:disabled, .type-item:disabled { opacity: .55; cursor: not-allowed; }

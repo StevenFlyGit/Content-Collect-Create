@@ -14,7 +14,7 @@ const ACCEPT = {
  * - 图片 / 音频：点击触发本机文件选择器（<input type=file>），选中文件经 onFileSelected 上抛
  * - 拍照 / 录音：纯客户端 PWA 能力，仅在安全上下文（HTTPS / localhost）可用，否则禁用并提示
  */
-export default function ModeToolbar({ mode, onModeChange, onFileSelected }) {
+export default function ModeToolbar({ mode, onModeChange, onFileSelected, disabled = false }) {
   const secure = useMemo(() => isSecureContextSupported(), [])
   const fileRefs = useRef({})
 
@@ -57,14 +57,14 @@ export default function ModeToolbar({ mode, onModeChange, onFileSelected }) {
         <button
           key={m.key}
           type="button"
-          className={`mode-card${m.disabled ? ' disabled' : ''}${mode === m.key ? ' active' : ''}`}
+          className={`mode-card${m.disabled || disabled ? ' disabled' : ''}${mode === m.key ? ' active' : ''}`}
           role="radio"
           aria-checked={mode === m.key}
-          aria-disabled={m.disabled}
+          aria-disabled={m.disabled || disabled}
           title={m.title}
-          disabled={m.disabled}
+          disabled={m.disabled || disabled}
           onClick={() => {
-            if (m.disabled) return
+            if (m.disabled || disabled) return
             if (m.capture) onModeChange(m.key)
             else openPicker(m.key)
           }}
@@ -82,6 +82,7 @@ export default function ModeToolbar({ mode, onModeChange, onFileSelected }) {
         type="file"
         accept={ACCEPT.image}
         hidden
+        disabled={disabled}
         onChange={(e) => handleFileChange('image', e)}
       />
       <input
@@ -89,6 +90,7 @@ export default function ModeToolbar({ mode, onModeChange, onFileSelected }) {
         type="file"
         accept={ACCEPT.audio}
         hidden
+        disabled={disabled}
         onChange={(e) => handleFileChange('audio', e)}
       />
     </div>

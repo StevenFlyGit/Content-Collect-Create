@@ -1,0 +1,11 @@
+DROP TRIGGER IF EXISTS trg_asset_deletion_tasks_updated_at ON asset_deletion_tasks;
+DROP TRIGGER IF EXISTS trg_assets_updated_at ON assets;
+DROP TRIGGER IF EXISTS trg_inspirations_updated_at ON inspirations;
+DROP FUNCTION IF EXISTS touch_updated_at();
+DROP TABLE IF EXISTS asset_deletion_tasks;
+DROP TABLE IF EXISTS asset_derivatives;
+DROP TABLE IF EXISTS daily_boards;
+DROP TABLE IF EXISTS assets;
+DROP TABLE IF EXISTS inspirations;
+DROP TABLE IF EXISTS inspiration_types;
+DROP TABLE IF EXISTS workspaces;

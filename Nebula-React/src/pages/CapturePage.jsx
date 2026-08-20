@@ -1,297 +1,375 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import TopNav from '../components/TopNav.jsx'
 import ModeToolbar from '../components/ModeToolbar.jsx'
 import TypeSelect from '../components/TypeSelect.jsx'
 import CosmosBackground from '../components/CosmosBackground.jsx'
 import MediaCaptureOverlay from '../components/MediaCaptureOverlay.jsx'
 import { isSecureContextSupported } from '../lib/secure.js'
-import { uploadCapturedAsset } from '../lib/assetUpload.js'
+import { createInspiration, createInspirationType, deleteAsset, getInspirationTypes, updateInspiration, uploadAsset } from '../lib/api.js'
+import { deleteDraft, getAllDrafts, saveCompleteDraft } from '../lib/draftStore.js'
+import { validateLocalAsset } from '../lib/assetUpload.js'
 import './CapturePage.css'
 
-const DEMO_DATE = new Date(2026, 7, 18, 17, 42)
 const pad = (n) => String(n).padStart(2, '0')
 const WEEK = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
-const dateStamp = `${DEMO_DATE.getFullYear()} 年 ${DEMO_DATE.getMonth() + 1} 月 ${DEMO_DATE.getDate()} 日 · ${WEEK[DEMO_DATE.getDay()]} · ${pad(DEMO_DATE.getHours())}:${pad(DEMO_DATE.getMinutes())}`
-
-const SKETCH =
-  "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><defs><linearGradient id='g'><stop offset='0' stop-color='%23a78bfa'/><stop offset='1' stop-color='%237dd3fc'/></linearGradient></defs><rect width='200' height='200' fill='url(%23g)' opacity='.3'/><text x='100' y='110' text-anchor='middle' fill='%23f5f3ed' font-family='serif' font-size='18' font-style='italic'>草图</text></svg>"
-const OCR =
-  "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><rect width='200' height='200' fill='%23312e4a'/><text x='100' y='110' text-anchor='middle' fill='%23a78bfa' font-family='sans-serif' font-size='14'>OCR 中…</text></svg>"
+const newId = () => {
+  if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID()
+  const bytes = new Uint8Array(16)
+  if (globalThis.crypto?.getRandomValues) globalThis.crypto.getRandomValues(bytes)
+  else for (let index = 0; index < bytes.length; index += 1) bytes[index] = Math.floor(Math.random() * 256)
+  bytes[6] = (bytes[6] & 0x0f) | 0x40
+  bytes[8] = (bytes[8] & 0x3f) | 0x80
+  const hex = [...bytes].map((value) => value.toString(16).padStart(2, '0')).join('')
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`
+}
+const localDateStamp = (value) => {
+  const date = new Date(value)
+  return `${date.getFullYear()} 年 ${date.getMonth() + 1} 月 ${date.getDate()} 日 · ${WEEK[date.getDay()]} · ${pad(date.getHours())}:${pad(date.getMinutes())}`
+}
 
 export default function CapturePage() {
+  const [draftId, setDraftId] = useState(() => newId())
+  const [recordedAt, setRecordedAt] = useState(() => new Date().toISOString())
   const [mode, setMode] = useState('image')
   const [type, setType] = useState('想法')
+  const [typeId, setTypeId] = useState('')
+  const [typeIssue, setTypeIssue] = useState('')
+  const [types, setTypes] = useState([])
+  const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
   const [status, setStatus] = useState('saved')
-  const [savedText, setSavedText] = useState('已自动保存 · 17:42')
-  const [aiOpen, setAiOpen] = useState(false)
-  const [typePulse, setTypePulse] = useState(false)
-  const [overlay, setOverlay] = useState(null) // 'camera' | 'record' | null
+  const [savedText, setSavedText] = useState('尚未保存')
+  const [overlay, setOverlay] = useState(null)
   const [note, setNote] = useState('')
-  const [attachments, setAttachments] = useState([
-    { id: 'sketch', kind: 'image', label: '附件：草图.jpg', src: SKETCH },
-    { id: 'ocr', kind: 'processing', label: '处理中', src: OCR },
-  ])
+  const [hydrated, setHydrated] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [draftDirty, setDraftDirty] = useState(false)
+  const [attachments, setAttachments] = useState([])
   const saveTimer = useRef(null)
   const pulseTimer = useRef(null)
+  const attachmentsRef = useRef([])
 
-  useEffect(() => {
-    if (!body) return undefined
+  const snapshot = useCallback((attachmentList = attachmentsRef.current) => ({
+    draft_id: draftId,
+    title,
+    text_raw: body,
+    type_label: type,
+    type_id: typeId || undefined,
+    recorded_at: recordedAt,
+    local_status: 'pending',
+    sync_status: 'local',
+    attachments: attachmentList.map(({ src, ...asset }) => asset),
+  }), [body, draftId, recordedAt, title, type, typeId])
+
+  const persistAttachmentState = useCallback(async (attachmentList) => {
+    attachmentsRef.current = attachmentList
+    setAttachments(attachmentList)
+    await saveCompleteDraft(snapshot(attachmentList))
+  }, [snapshot])
+
+  const saveDraftNow = useCallback(async (reason = 'manual') => {
     setStatus('saving')
-    setSavedText('正在保存…')
-    clearTimeout(saveTimer.current)
-    saveTimer.current = setTimeout(() => {
+    setSavedText('正在保存草稿…')
+    try {
+      await saveCompleteDraft(snapshot())
+      const now = new Date()
       setStatus('saved')
-      const d = new Date()
-      setSavedText(`已自动保存 · ${pad(d.getHours())}:${pad(d.getMinutes())}`)
-    }, 800)
-    return () => clearTimeout(saveTimer.current)
-  }, [body])
+      setDraftDirty(false)
+      setSavedText(reason === 'auto' ? `草稿已保存 · ${pad(now.getHours())}:${pad(now.getMinutes())}` : '草稿已保存')
+      return true
+    } catch (error) {
+      setStatus('error')
+      setSavedText('草稿保存失败')
+      setNote(`草稿保存失败：${error.message || 'IndexedDB 写入失败'}`)
+      return false
+    }
+  }, [snapshot])
 
   useEffect(() => {
-    const timer = setTimeout(() => setAiOpen(true), 3000)
-    return () => clearTimeout(timer)
+    let active = true
+    getAllDrafts().then((drafts) => {
+      if (!active || !drafts.length) { if (active) setHydrated(true); return }
+      const draft = drafts[0]
+      setDraftId(draft.draft_id || draftId)
+      setRecordedAt(draft.recorded_at || new Date().toISOString())
+      setTitle(draft.title || '')
+      setBody(draft.text_raw || '')
+      setType(draft.type_label || '想法')
+      setTypeId(draft.type_id || '')
+      setTypeIssue('')
+      const restoredAttachments = (draft.attachments || []).map((asset) => ({ ...asset, src: asset.blob ? URL.createObjectURL(asset.blob) : '' }))
+      attachmentsRef.current = restoredAttachments
+      setAttachments(restoredAttachments)
+      setSavedText('已恢复本地草稿')
+      setStatus('saved')
+      setHydrated(true)
+    }).catch((error) => {
+      if (active) { setHydrated(true); setStatus('error'); setSavedText('草稿读取失败'); setNote(`无法读取本地草稿：${error.message}`) }
+    })
+    return () => { active = false }
   }, [])
+
+  useEffect(() => {
+    let active = true
+    getInspirationTypes().then((result) => { if (active) setTypes(result.data || []) }).catch(() => {})
+    return () => { active = false }
+  }, [])
+
+  useEffect(() => {
+    if (!types.length) return
+    const matchedById = typeId ? types.find((item) => item.id === typeId) : null
+    const matchedByLabel = types.find((item) => item.label === type)
+    if (matchedById) {
+      if (matchedById.label !== type) setType(matchedById.label)
+      setTypeIssue('')
+      return
+    }
+    if (matchedByLabel) {
+      if (typeId !== matchedByLabel.id) setTypeId(matchedByLabel.id)
+      setTypeIssue('')
+      return
+    }
+    if (typeId) {
+      setTypeId('')
+      setTypeIssue('本地草稿中的灵感类型已失效，请重新选择类型后再提交。')
+    }
+  }, [type, typeId, types])
+
+  useEffect(() => {
+    if (!hydrated || submitting || !draftDirty) return undefined
+    setStatus('saving')
+    setSavedText('等待自动保存…')
+    clearTimeout(saveTimer.current)
+    saveTimer.current = setTimeout(() => { saveDraftNow('auto') }, 2000)
+    return () => clearTimeout(saveTimer.current)
+  }, [attachments, body, draftDirty, hydrated, saveDraftNow, submitting, title, type, typeId])
 
   useEffect(() => () => {
     clearTimeout(saveTimer.current)
     clearTimeout(pulseTimer.current)
   }, [])
+  useEffect(() => { attachmentsRef.current = attachments }, [attachments])
+  useEffect(() => () => {
+    attachmentsRef.current.forEach((asset) => { if (asset.src?.startsWith('blob:')) URL.revokeObjectURL(asset.src) })
+  }, [])
 
-  const removeAttachment = (id) => {
-    setAttachments((items) => {
-      const target = items.find((i) => i.id === id)
-      if (target && target.src && target.src.startsWith('blob:')) {
-        URL.revokeObjectURL(target.src)
-      }
-      return items.filter((item) => item.id !== id)
-    })
+  const addAttachment = async ({ blob, kind, mime, durationMs = 0, label }) => {
+    try {
+      validateLocalAsset({ kind, mime, bytes: blob.size, durationMs })
+    } catch (error) {
+      setStatus('error'); setSavedText('草稿保存失败'); setNote(error.message); return
+    }
+    const id = newId()
+    const src = URL.createObjectURL(blob)
+    const nextAttachments = [...attachmentsRef.current, { id, kind, label: label || (kind === 'image' ? '图片' : '语音'), mime, blob, src, durationMs, pendingUpload: false, failed: false }]
+    setStatus('saving')
+    setSavedText('正在保存附件草稿…')
+    try {
+      await saveCompleteDraft(snapshot(nextAttachments))
+      attachmentsRef.current = nextAttachments
+      setAttachments(nextAttachments)
+      setDraftDirty(false)
+      setStatus('saved')
+      setSavedText('草稿已保存')
+      setNote(kind === 'audio' ? '音频已加入草稿，提交灵感时上传；最长 1 分钟。' : '图片已加入草稿，提交灵感时上传；单个最大 20MB。')
+    } catch (error) {
+      URL.revokeObjectURL(src)
+      setStatus('error')
+      setSavedText('草稿保存失败')
+      setNote(`草稿保存失败：${error.message || '附件 Blob 未能写入 IndexedDB'}`)
+    }
   }
 
-  // 拍照/录音为纯客户端 PWA 能力：安全上下文内打开浮层，其余模式切换编辑器输入态
+  const removeAttachment = async (id) => {
+    if (submitting) return
+    const target = attachmentsRef.current.find((item) => item.id === id)
+    if (!target) return
+    const nextAttachments = attachmentsRef.current.filter((item) => item.id !== id)
+    setStatus('saving')
+    setSavedText('正在移除附件…')
+    try {
+      // 先确认本地草稿已不再引用附件，再请求远端删除，避免远端已删除而恢复草稿仍指向旧 asset_id。
+      await saveCompleteDraft(snapshot(nextAttachments))
+      attachmentsRef.current = nextAttachments
+      setAttachments(nextAttachments)
+      setDraftDirty(false)
+      if (target.src?.startsWith('blob:')) URL.revokeObjectURL(target.src)
+      if (target.asset_id) await deleteAsset(target.asset_id)
+      setStatus('saved')
+      setSavedText('草稿已保存')
+      setNote('附件已从草稿移除。')
+    } catch (error) {
+      setStatus('error')
+      setSavedText('附件移除未完全成功')
+      setNote(`附件移除未完全成功：${error.message || '请稍后重试'}。请重新检查草稿后再提交。`)
+    }
+  }
+
   const handleModeChange = (key) => {
     if (key === 'camera' || key === 'record') {
-      if (!isSecureContextSupported()) {
-        setNote('拍照 / 录音需要 HTTPS 或 localhost 安全环境')
-        return
-      }
-      setOverlay(key)
-      return
+      if (!isSecureContextSupported()) { setNote('拍照 / 录音需要 HTTPS 或 localhost 安全环境'); return }
+      setOverlay(key); return
     }
     setMode(key)
   }
 
   const handleCaptured = async ({ blob, kind, mime, durationMs }) => {
-    const id = `cap-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
-    const label = kind === 'image' ? '照片' : '语音'
-    const att = {
-      id,
-      kind,
-      label,
-      src: URL.createObjectURL(blob),
-      blob,
-      pendingUpload: true,
-      failed: false,
-      durationMs: kind === 'audio' ? (durationMs || 0) : 0,
-    }
-    setAttachments((items) => [...items, att])
-    try {
-      const { asset_id, synced } = await uploadCapturedAsset({
-        blob,
-        kind: kind === 'image' ? 'image' : 'audio',
-        mime,
-        meta: kind === 'audio' ? { duration_ms: att.durationMs } : {},
-      })
-      setAttachments((items) =>
-        items.map((i) => (i.id === id ? { ...i, asset_id, synced, pendingUpload: false } : i))
-      )
-    } catch (e) {
-      setAttachments((items) =>
-        items.map((i) => (i.id === id ? { ...i, pendingUpload: false, failed: true } : i))
-      )
-      setNote('附件保存失败，已保留在本地草稿：' + (e && e.message ? e.message : '未知错误'))
-    }
+    setOverlay(null)
+    await addAttachment({ blob, kind: kind === 'image' ? 'image' : 'audio', mime, durationMs, label: kind === 'image' ? '照片' : '语音' })
   }
 
-  // 从本机文件选择器选中图片/音频：预览 + 解析真实时长 + 落库（与拍照/录音共用同一上传契约）
-  const readAudioDuration = (url) =>
-    new Promise((resolve) => {
-      const el = document.createElement('audio')
-      el.preload = 'metadata'
-      el.onloadedmetadata = () =>
-        resolve(Math.round((Number.isFinite(el.duration) ? el.duration : 0) * 1000))
-      el.onerror = () => resolve(0)
-      el.src = url
-    })
+  const readAudioDuration = (url) => new Promise((resolve) => {
+    const audio = document.createElement('audio')
+    audio.preload = 'metadata'
+    audio.onloadedmetadata = () => resolve(Number.isFinite(audio.duration) ? Math.round(audio.duration * 1000) : 0)
+    audio.onerror = () => resolve(0)
+    audio.src = url
+  })
 
   const handleFileSelected = async ({ kind, file }) => {
     if (!file) return
     const isImage = kind === 'image' && file.type.startsWith('image/')
     const isAudio = kind === 'audio' && file.type.startsWith('audio/')
-    if (!isImage && !isAudio) {
-      setNote(
-        `不支持的文件类型：${file.name}（${file.type || '未知类型'}）。请选择图片（jpg / png 等）或音频（mp3 / wav 等）文件。`
-      )
-      return
-    }
-    const id = `file-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
+    if (!isImage && !isAudio) { setNote('请选择有效的图片或音频文件'); return }
     const src = URL.createObjectURL(file)
     const durationMs = isAudio ? await readAudioDuration(src) : 0
-    const att = {
-      id,
-      kind,
-      label: kind === 'image' ? '图片' : '语音',
-      src,
-      blob: file,
-      pendingUpload: true,
-      failed: false,
-      durationMs,
+    URL.revokeObjectURL(src)
+    await addAttachment({ blob: file, kind, mime: file.type, durationMs, label: file.name })
+  }
+
+  const submitInspiration = async (event) => {
+    event.preventDefault()
+    if (submitting) return
+    if (typeIssue) {
+      setStatus('error')
+      setSavedText('类型需要重新选择')
+      setNote(typeIssue)
+      return
     }
-    setAttachments((items) => [...items, att])
+    if (!title.trim() && !body.trim() && attachmentsRef.current.length === 0) {
+      setStatus('error')
+      setSavedText('无法提交空白灵感')
+      setNote('请至少输入标题、正文，或添加一个图片/音频附件。')
+      return
+    }
+    const localSaved = await saveDraftNow('manual')
+    if (!localSaved) return
+    setSubmitting(true)
+    setStatus('saving')
+    setSavedText('正在提交灵感…')
+    setNote('')
+    let remoteCommitted = false
     try {
-      const { asset_id, synced } = await uploadCapturedAsset({
-        blob: file,
-        kind: kind === 'image' ? 'image' : 'audio',
-        mime: file.type,
-        meta: kind === 'audio' ? { duration_ms: durationMs } : {},
+      const typeInput = typeId ? { type_id: typeId } : { type_label: type }
+      const created = await createInspiration({
+        draft_id: draftId,
+        idempotency_key: draftId,
+        title: title.trim() || null,
+        text_raw: body,
+        ...typeInput,
+        recorded_at: recordedAt,
       })
-      setAttachments((items) =>
-        items.map((i) => (i.id === id ? { ...i, asset_id, synced, pendingUpload: false } : i))
-      )
-    } catch (e) {
-      setAttachments((items) =>
-        items.map((i) => (i.id === id ? { ...i, pendingUpload: false, failed: true } : i))
-      )
-      setNote('附件保存失败，已保留在本地草稿：' + (e && e.message ? e.message : '未知错误'))
+      const inspirationId = created.data.id
+      // 幂等重试时也先覆盖远端主记录，避免首次失败后再次编辑造成 RDS 内容陈旧。
+      await updateInspiration(inspirationId, {
+        title: title.trim() || null,
+        text_raw: body,
+        ...typeInput,
+        recorded_at: recordedAt,
+        sync_status: 'local',
+        processing_status: 'draft',
+      })
+      const uploaded = []
+      for (const asset of attachmentsRef.current) {
+        if (asset.synced && asset.asset_id) {
+          uploaded.push({ asset_id: asset.asset_id, reused: true })
+          continue
+        }
+        if (!asset.blob) throw new Error(`附件“${asset.label || asset.id}”缺少本地文件，无法继续提交`)
+        const uploading = attachmentsRef.current.map((item) => item.id === asset.id ? { ...item, pendingUpload: true, failed: false } : item)
+        await persistAttachmentState(uploading)
+        try {
+          const result = await uploadAsset({
+            blob: asset.blob,
+            kind: asset.kind,
+            mime: asset.mime,
+            durationMs: asset.durationMs,
+            inspirationId,
+            assetId: asset.asset_id || asset.id,
+            onPresigned: async ({ asset_id: assetId }) => {
+              const presigned = attachmentsRef.current.map((item) => item.id === asset.id ? { ...item, asset_id: assetId } : item)
+              await persistAttachmentState(presigned)
+            },
+          })
+          uploaded.push(result)
+          const synced = attachmentsRef.current.map((item) => item.id === asset.id ? { ...item, asset_id: result.asset_id, pendingUpload: false, failed: false, synced: true, sync_status: 'synced' } : item)
+          await persistAttachmentState(synced)
+        } catch (error) {
+          const failed = attachmentsRef.current.map((item) => item.id === asset.id ? { ...item, pendingUpload: false, failed: true, synced: false } : item)
+          try { await persistAttachmentState(failed) } catch { setAttachments(failed); attachmentsRef.current = failed }
+          throw error
+        }
+      }
+      const readyAssetIds = attachmentsRef.current.filter((asset) => asset.synced && asset.asset_id).map((asset) => asset.asset_id)
+      await updateInspiration(inspirationId, { sync_status: 'synced', processing_status: 'synced', asset_ids: readyAssetIds })
+      remoteCommitted = true
+      // 只有远端主记录、所有附件及最终状态更新均成功后，才清理 IndexedDB 草稿。
+      await deleteDraft(draftId)
+      attachmentsRef.current.forEach((asset) => { if (asset.src?.startsWith('blob:')) URL.revokeObjectURL(asset.src) })
+      attachmentsRef.current = []
+      setAttachments([])
+      setDraftId(newId())
+      setRecordedAt(new Date().toISOString())
+      setTitle('')
+      setBody('')
+      setDraftDirty(false)
+      setSubmitting(false)
+      setStatus('saved')
+      setSavedText('已提交 / 已同步 ✓')
+      setNote(`灵感与 ${uploaded.length} 个附件已完成入库，可继续记录下一条。`)
+    } catch (error) {
+      setSubmitting(false)
+      setStatus('error')
+      if (remoteCommitted) {
+        setSavedText('灵感已同步，本地草稿清理失败')
+        setNote(`远端已完成入库，但本地 IndexedDB 草稿清理失败：${error.message || '请稍后重试'}。本地副本已保留，不会再次显示为远端提交失败。`)
+      } else {
+        setSavedText('提交失败，草稿已保留')
+        setNote(`提交失败：${error.message || '请稍后重试'}。本地草稿未删除，可再次提交。`)
+      }
     }
   }
-
-  const onTypeChange = (next) => {
-    setType(next)
-    setAiOpen(false)
+  const onTypeChange = (next) => { setType(next.label); setTypeId(next.id || ''); setTypeIssue(''); setDraftDirty(true) }
+  const createCustomType = async (label) => {
+    const result = await createInspirationType({ label, color_token: '--ink-muted' })
+    setTypes((current) => [...current.filter((item) => item.id !== result.data.id), result.data])
+    setTypeIssue('')
+    return result.data
   }
+  const statusChip = <div className={`status-chip ${status === 'saving' ? 'saving' : status === 'error' ? 'error' : 'saved'}`}><span className="dot" /><span>{savedText}</span></div>
 
-  const onAcceptAi = () => {
-    setType('引用')
-    setAiOpen(false)
-  }
-
-  const onSubmit = (e) => {
-    e.preventDefault()
-    setStatus('saved')
-    setSavedText('已记录 ✓')
-    clearTimeout(pulseTimer.current)
-    setTypePulse(true)
-    pulseTimer.current = setTimeout(() => setTypePulse(false), 220)
-  }
-
-  const statusChip = (
-    <div className={`status-chip ${status === 'saving' ? 'saving' : 'saved'}`}>
-      <span className="dot" />
-      <span>{savedText}</span>
-    </div>
-  )
-
-  return (
-    <>
-      <CosmosBackground variant="capture" />
-      <TopNav variant="sub" title="记录灵感" backTo="/" right={statusChip} />
-
-      <main className="capture-main">
-        <p className="date-stamp reveal">{dateStamp}</p>
-
-        <form className="editor reveal d1" id="editorForm" autoComplete="off" onSubmit={onSubmit}>
-          <input className="title-input" type="text" placeholder="给这一刻起个名字（可留空）" aria-label="标题" />
-
-          <textarea
-            className="body-input"
-            placeholder={'写下此刻的想法……\n\n不必完整，先抓住那束光。\n粘贴图片、拖入文件、随时切换灵感类型。'}
-            aria-label="正文"
-            value={body}
-            onChange={(e) => setBody(e.target.value)}
-            autoFocus
-          />
-
-          {attachments.length > 0 && (
-            <div className="attachments" id="attachments">
-              {attachments.map((attachment) => {
-                const statusBadge = attachment.failed
-                  ? <span className="att-status failed">上传失败</span>
-                  : attachment.pendingUpload
-                    ? <span className="att-status">上传中…</span>
-                    : null
-                if (attachment.kind === 'audio') {
-                  const totalSec = Math.max(0, Math.round((attachment.durationMs || 0) / 1000))
-                  const mm = String(Math.floor(totalSec / 60)).padStart(2, '0')
-                  const ss = String(totalSec % 60).padStart(2, '0')
-                  return (
-                    <div className="attach audio" aria-label={attachment.label} key={attachment.id}>
-                      <div className="wave" aria-hidden="true">
-                        {[30, 60, 80, 50, 90, 40, 70, 55, 85, 35, 65, 75].map((h, i) => <i key={i} style={{ height: `${h}%` }} />)}
-                      </div>
-                      <audio
-                        className="audio-player"
-                        src={attachment.src}
-                        controls
-                        preload="metadata"
-                      />
-                      <div className="meta">
-                        <span>灵感语音</span>
-                        <span>{`${mm}:${ss}`}</span>
-                        {statusBadge}
-                      </div>
-                      <button className="x" type="button" aria-label="移除附件" onClick={() => removeAttachment(attachment.id)}>×</button>
-                    </div>
-                  )
-                }
-                return (
-                  <div className={`attach${attachment.kind === 'processing' ? ' processing' : ''}`} aria-label={attachment.label} key={attachment.id}>
-                    <img src={attachment.src} alt="" />
-                    {attachment.kind !== 'processing' && statusBadge}
-                    {attachment.kind !== 'processing' && <button className="x" type="button" aria-label="移除附件" onClick={() => removeAttachment(attachment.id)}>×</button>}
-                  </div>
-                )
-              })}
-            </div>
-          )}
-
-          {aiOpen && (
-            <div className="ai-suggest" id="aiSuggest">
-              <span className="badge">AI</span>
-              <span>看起来像 <strong>「引用」</strong>，要切换吗？</span>
-              <button type="button" onClick={onAcceptAi}>接受</button>
-            </div>
-          )}
-        </form>
-
-        <div className="dropzone-hint reveal d2">
-          提示：点击「图片」/「音频」从本机选择文件；也可粘贴图片、拖拽文件到上方；移动端支持拍照与录音（需 HTTPS / localhost）。
-        </div>
-        {note && (
-          <div className="capture-note" role="status">{note}</div>
-        )}
-      </main>
-
-      <div className="toolbar" role="toolbar" aria-label="记录工具栏">
-        <div className="toolbar-inner">
-          <ModeToolbar mode={mode} onModeChange={handleModeChange} onFileSelected={handleFileSelected} />
-          <div className="action-row">
-            <TypeSelect value={type} onChange={onTypeChange} pulse={typePulse} />
-            <button className="primary" type="submit" form="editorForm">
-              保存灵感 <span aria-hidden="true">⌘↵</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {overlay && (
-        <MediaCaptureOverlay
-          mode={overlay}
-          onCancel={() => setOverlay(null)}
-          onCaptured={handleCaptured}
-        />
-      )}
-    </>
-  )
+  return <>
+    <CosmosBackground variant="capture" />
+    <TopNav variant="sub" title="记录灵感" backTo="/" right={statusChip} />
+    <main className="capture-main">
+      <p className="date-stamp reveal">{localDateStamp(recordedAt)}</p>
+      <form className="editor reveal d1" id="editorForm" autoComplete="off" onSubmit={submitInspiration}>
+        <input className="title-input" type="text" placeholder="给这一刻起个名字（可留空）" aria-label="标题" value={title} disabled={submitting} onChange={(e) => { setTitle(e.target.value); setDraftDirty(true) }} />
+        <textarea className="body-input" placeholder={'写下此刻的想法……\n\n不必完整，先抓住那束光。\n粘贴图片、拖入文件、随时切换灵感类型。'} aria-label="正文" value={body} disabled={submitting} onChange={(e) => { setBody(e.target.value); setDraftDirty(true) }} autoFocus />
+        {attachments.length > 0 && <div className="attachments" id="attachments">{attachments.map((attachment) => {
+          const statusBadge = attachment.failed ? <span className="att-status failed">上传失败</span> : attachment.pendingUpload ? <span className="att-status">上传中…</span> : attachment.synced ? <span className="att-status">已上传</span> : <span className="att-status">本地草稿</span>
+          if (attachment.kind === 'audio') {
+            const totalSec = Math.max(0, Math.round((attachment.durationMs || 0) / 1000)); const mm = String(Math.floor(totalSec / 60)).padStart(2, '0'); const ss = String(totalSec % 60).padStart(2, '0')
+            return <div className="attach audio" aria-label={attachment.label} key={attachment.id}><div className="wave" aria-hidden="true">{[30,60,80,50,90,40,70,55,85,35,65,75].map((h, i) => <i key={i} style={{ height: `${h}%` }} />)}</div><audio className="audio-player" src={attachment.src} controls preload="metadata" /><div className="meta"><span>{attachment.label || '灵感语音'}</span><span>{mm}:{ss}</span>{statusBadge}</div><button className="x" type="button" aria-label="移除附件" onClick={() => removeAttachment(attachment.id)} disabled={submitting}>×</button></div>
+          }
+          return <div className="attach" aria-label={attachment.label} key={attachment.id}><img src={attachment.src} alt={attachment.label || ''} />{statusBadge}<button className="x" type="button" aria-label="移除附件" onClick={() => removeAttachment(attachment.id)} disabled={submitting}>×</button></div>
+        })}</div>}
+      </form>
+      <div className="dropzone-hint reveal d2">提示：图片单个最大 20MB；音频最长 1 分钟。点击「保存草稿」只写入本地 IndexedDB；点击「提交灵感」才同步 RDS 与 OSS。</div>
+      {note && <div className="capture-note" role="status">{note}</div>}
+    </main>
+    <div className="toolbar" role="toolbar" aria-label="记录工具栏"><div className="toolbar-inner"><ModeToolbar mode={mode} onModeChange={handleModeChange} onFileSelected={handleFileSelected} disabled={submitting} /><div className="action-row"><TypeSelect valueId={typeId} valueLabel={type} types={types} onChange={onTypeChange} onCreate={createCustomType} disabled={submitting} /><button className="secondary" type="button" onClick={() => saveDraftNow('manual')} disabled={submitting}>保存草稿</button><button className="primary" type="submit" form="editorForm" disabled={submitting}>{submitting ? '提交中…' : '提交灵感'} <span aria-hidden="true">⌘↵</span></button></div></div></div>
+    {overlay && <MediaCaptureOverlay mode={overlay} onCancel={() => setOverlay(null)} onCaptured={handleCaptured} />}
+  </>
 }
 

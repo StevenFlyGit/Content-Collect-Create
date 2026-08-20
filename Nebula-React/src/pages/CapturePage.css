@@ -208,3 +208,7 @@
   color: var(--danger, #b84a4a);
 }
 
+.action-row { flex-wrap: wrap; }
+.action-row .secondary { border: 1px solid var(--line); color: var(--ink); padding: 10px 14px; border-radius: 10px; background: rgba(255,255,255,.05); cursor: pointer; }
+.action-row .secondary:disabled, .action-row .primary:disabled { opacity: .55; cursor: not-allowed; }
+.status-chip.error { color: var(--danger, #b84a4a); }
