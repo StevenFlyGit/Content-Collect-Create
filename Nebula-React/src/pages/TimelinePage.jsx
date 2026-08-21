@@ -5,10 +5,11 @@ import DateWheel from '../components/DateWheel.jsx'
 import ViewSwitch from '../components/ViewSwitch.jsx'
 import InspirationSticky from '../components/InspirationSticky.jsx'
 import InspirationDetailDrawer from '../components/InspirationDetailDrawer.jsx'
+import InspirationDeleteConfirmModal, { DELETE_MESSAGES } from '../components/InspirationDeleteConfirmModal.jsx'
 import NebulaView from '../components/NebulaView.jsx'
 import SelectionBar from '../components/SelectionBar.jsx'
 import CosmosBackground from '../components/CosmosBackground.jsx'
-import { getInspirationTypes, listInspirations, saveDailyBoard, searchInspirations } from '../lib/api.js'
+import { deleteInspiration, getInspirationTypes, listInspirations, saveDailyBoard, searchInspirations } from '../lib/api.js'
 import './TimelinePage.css'
 
 const today = new Date()
@@ -75,6 +76,10 @@ export default function TimelinePage() {
   const [hasMore, setHasMore] = useState(false)
   const [loadingMore, setLoadingMore] = useState(false)
   const [detailId, setDetailId] = useState(null)
+  const [editId, setEditId] = useState(null)
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [deleteBusy, setDeleteBusy] = useState(false)
+  const [deleteError, setDeleteError] = useState('')
 
   const yearIdx = Math.max(0, yearValues.indexOf(date.year))
   const monthIdx = date.month - 1
@@ -215,12 +220,33 @@ export default function TimelinePage() {
       {state === 'loading' && <div className="empty">正在加载…</div>}
       {state === 'error' && <div className="empty">加载失败：{loadError}。<button type="button" onClick={() => loadPage({ targetPage: 1 })}>重试</button></div>}
       {state === 'ready' && !items.length && <div className="empty">{activeQuery || filter ? '当前搜索或筛选没有结果。' : '这一天还没有已提交灵感。'}</div>}
-      <div className="board" style={{ display: view === 'board' ? 'block' : 'none', minHeight: boardHeight }}>{items.map((sticky) => <InspirationSticky key={sticky.id} data={sticky} selected={selected.has(sticky.id)} onToggle={() => toggle(sticky.id)} onMove={(position) => moveSticky(sticky.id, position)} onOpen={(id) => setDetailId(id)} />)}</div>
+      <div className="board" style={{ display: view === 'board' ? 'block' : 'none', minHeight: boardHeight }}>{items.map((sticky) => <InspirationSticky key={sticky.id} data={sticky} selected={selected.has(sticky.id)} onToggle={() => toggle(sticky.id)} onMove={(position) => moveSticky(sticky.id, position)} onView={(id) => setDetailId(id)} onEdit={(id) => setEditId(id)} onDelete={(id) => { setDeleteTarget(id); setDeleteError('') }} />)}</div>
       {view === 'nebula' && <NebulaView clusters={clusters} selected={selected} onToggle={toggle} />}
       {state === 'ready' && items.length > 0 && <div className="pagination-state">{hasMore ? <button type="button" className="q load-more" onClick={() => loadPage({ targetPage: page + 1, append: true })} disabled={loadingMore}>{loadingMore ? '加载中…' : '加载更多'}</button> : <span>已加载全部 {total} 条灵感</span>}</div>}
       <div className="thumb-map" aria-hidden="true" />
     </section>
     {detailId && <InspirationDetailDrawer inspirationId={detailId} onClose={() => setDetailId(null)} onChanged={() => loadPage({ targetPage: 1 })} />}
+    {editId && <InspirationDetailDrawer inspirationId={editId} initialMode="edit" onClose={() => setEditId(null)} onChanged={() => loadPage({ targetPage: 1 })} />}
+    {deleteTarget && (
+      <InspirationDeleteConfirmModal
+        message={DELETE_MESSAGES[0]}
+        busy={deleteBusy}
+        error={deleteError}
+        onCancel={() => { setDeleteTarget(null); setDeleteError('') }}
+        onConfirm={async () => {
+          setDeleteBusy(true)
+          setDeleteError('')
+          try {
+            await deleteInspiration(deleteTarget)
+            setDeleteTarget(null)
+            loadPage({ targetPage: 1 })
+          } catch (err) {
+            setDeleteError(err.message || '删除失败')
+            setDeleteBusy(false)
+          }
+        }}
+      />
+    )}
     <SelectionBar count={selected.size} onClear={() => setSelected(new Set())} />
   </>
 }

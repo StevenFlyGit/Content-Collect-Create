@@ -1,0 +1,53 @@
+/* ---------- 灵感删除确认弹框（屏幕居中） ---------- */
+.delete-overlay {
+  position: fixed; inset: 0; z-index: 1200;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(20, 18, 16, .42);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  padding: 16px;
+  animation: deleteFade .2s var(--ease);
+}
+@keyframes deleteFade { from { opacity: 0; } to { opacity: 1; } }
+
+.delete-card {
+  width: min(420px, 92vw);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  padding: 28px 24px 20px;
+  text-align: center;
+  box-shadow: var(--shadow-lift);
+  animation: deletePop .24s var(--ease);
+}
+@keyframes deletePop { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: none; } }
+
+.delete-mark {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px; border-radius: 50%;
+  background: rgba(184, 74, 74, .12); color: var(--danger);
+  font-size: 22px; line-height: 1; margin-bottom: 14px;
+}
+
+.delete-text {
+  font-size: 15px; line-height: 1.8; color: var(--ink);
+  margin: 0 0 18px; letter-spacing: .5px;
+}
+
+.delete-error { color: var(--danger); font-size: 13px; margin: 0 0 12px; }
+
+.delete-actions { display: flex; gap: 12px; justify-content: center; }
+.delete-btn {
+  padding: 9px 22px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--surface-strong); color: var(--ink-soft);
+  font-size: 14px; cursor: pointer;
+  transition: color .2s var(--ease), background-color .2s var(--ease), border-color .2s var(--ease);
+}
+.delete-btn:hover { color: var(--ink); border-color: var(--focus-soft); }
+.delete-btn.danger { background: var(--danger); border-color: var(--danger); color: #fff; }
+.delete-btn.danger:hover { filter: brightness(1.06); }
+.delete-btn:disabled { opacity: .6; cursor: wait; }
+
+@media (prefers-reduced-motion: reduce) {
+  .delete-overlay, .delete-card { animation: none; }
+}

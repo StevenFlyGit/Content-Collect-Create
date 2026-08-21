@@ -118,6 +118,19 @@
 .note .pill.task   { color: var(--nebula-mint);   border-color: rgba(134,239,172,.3); }
 .note .excerpt { font-size: 14px; color: var(--ink); line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; margin: 0; }
 .note .footer { margin-top: auto; display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--ink-muted); letter-spacing: .5px; }
+.note-edit-btn {
+  margin-left: auto;
+  min-height: 28px; min-width: 44px;
+  padding: 4px 10px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--line-soft); border-radius: 6px;
+  background: var(--surface-strong); color: var(--ink-soft);
+  font-size: 11px; letter-spacing: .5px;
+  cursor: pointer;
+  transition: all .2s var(--ease);
+}
+.note-edit-btn:hover { color: var(--nebula-blue); border-color: rgba(125, 211, 252, .4); background: var(--surface); }
+.note-edit-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 
 .reveal { opacity: 0; transform: translateY(8px); animation: reveal .6s var(--ease) forwards; }
 .reveal.d1 { animation-delay: .08s; }

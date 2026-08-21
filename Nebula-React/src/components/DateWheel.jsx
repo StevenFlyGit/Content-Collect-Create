@@ -2,19 +2,21 @@ import { useEffect, useRef } from 'react'
 import './DateWheel.css'
 
 const ITEM_H = 36
+const COMPACT_H = 28
 
-/** 日期滚轮：点击、滚轮、键盘和拖动均落到同一个受控索引。 */
-export default function DateWheel({ values, index, onIndexChange, col, ariaLabel }) {
+/** 日期滚轮：点击、滚轮、键盘和拖动均落到同一个受控索引。compact 用于弹框内紧凑排版。 */
+export default function DateWheel({ values, index, onIndexChange, col, ariaLabel, compact }) {
   const containerRef = useRef(null)
   const trackRef = useRef(null)
   const draggingRef = useRef(false)
   const movedRef = useRef(false)
   const startYRef = useRef(0)
   const suppressClickUntilRef = useRef(0)
+  const itemH = compact ? COMPACT_H : ITEM_H
 
   const setTransform = (extra = 0) => {
     if (!trackRef.current) return
-    const pixelOffset = -(ITEM_H / 2) - index * ITEM_H + extra
+    const pixelOffset = -(itemH / 2) - index * itemH + extra
     const sign = pixelOffset < 0 ? '-' : '+'
     trackRef.current.style.transform = `translateY(calc(0px - var(--pad) ${sign} ${Math.abs(pixelOffset)}px))`
   }
@@ -30,7 +32,7 @@ export default function DateWheel({ values, index, onIndexChange, col, ariaLabel
       c.setAttribute('aria-valuenow', String(values[index] ?? ''))
       c.setAttribute('aria-valuetext', String(values[index] ?? ''))
     }
-  }, [index, values])
+  }, [index, values, itemH])
 
   const clamp = (value) => Math.max(0, Math.min(values.length - 1, value))
   const emit = (value) => {
@@ -95,7 +97,7 @@ export default function DateWheel({ values, index, onIndexChange, col, ariaLabel
       draggingRef.current = false
       const dy = e.clientY - startYRef.current
       const wasMoved = movedRef.current
-      const stepDelta = Math.round(-dy / ITEM_H)
+      const stepDelta = Math.round(-dy / itemH)
       trackRef.current?.style.setProperty('transition', '')
       emit(index + stepDelta)
       if (wasMoved) suppressClickUntilRef.current = performance.now() + 300
@@ -112,11 +114,11 @@ export default function DateWheel({ values, index, onIndexChange, col, ariaLabel
       el.removeEventListener('pointerup', onUp)
       el.removeEventListener('pointercancel', onUp)
     }
-  }, [index, values])
+  }, [index, values, itemH])
 
   return (
     <div
-      className="wheel"
+      className={`wheel${compact ? ' compact' : ''}`}
       data-col={col}
       tabIndex={0}
       role="spinbutton"

@@ -59,6 +59,13 @@
 .wheel::after  { top: calc(50% + 18px); }
 .wheel-divider { width: 1px; height: 84px; background: var(--line); flex-shrink: 0; }
 
+/* 紧凑变体：用于编辑/查看弹框顶部，行高缩小约 20% */
+.wheel.compact { --item-h: 28px; --pad: 56px; height: 140px; width: 84px; }
+.wheel.compact .wheel-item { font-size: 17px; }
+.wheel.compact .wheel-item.active { font-size: 23px; font-weight: 500; }
+.wheel.compact::before { top: calc(50% - 14px - 1px); }
+.wheel.compact::after  { top: calc(50% + 14px); }
+
 @media (max-width: 720px) {
   .wheels { gap: 12px; padding: 4px 12px 12px; }
   .wheel { width: 76px; --pad: 60px; }

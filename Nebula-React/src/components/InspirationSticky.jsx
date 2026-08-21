@@ -40,11 +40,15 @@ function AssetPreview({ attachment }) {
 }
 
 /**
- * 灵感白板贴片：短按切换多选，桌面端拖动后回传 x/y/z/rotation 坐标。
+ * 灵感卡片：单击主体=选中（用于创作），双击主体=查看详情，
+ * 左上角 × 删除，右下角「编辑」。附件与按钮点击区与卡片主体隔离。
  */
-export default function InspirationSticky({ data, selected, onToggle, onMove, onOpen }) {
+export default function InspirationSticky({ data, selected, onToggle, onMove, onView, onEdit, onDelete }) {
   const dragRef = useRef(null)
+  const clickTimerRef = useRef(null)
   const position = data.position || { x: 0, y: 0, z: 1, rotation: 0 }
+
+  const stop = (event) => event.stopPropagation()
 
   const handlePointerDown = (event) => {
     if (event.button !== 0) return
@@ -85,7 +89,17 @@ export default function InspirationSticky({ data, selected, onToggle, onMove, on
     if (!drag || drag.pointerId !== event.pointerId) return
     drag.element?.releasePointerCapture?.(event.pointerId)
     dragRef.current = null
-    if (!cancelled && !drag.moved) onToggle()
+    if (!cancelled && !drag.moved) {
+      // 延迟单击，给双击（查看）让路：双击时清除 timer，只触发 onView
+      clearTimeout(clickTimerRef.current)
+      clickTimerRef.current = setTimeout(() => onToggle?.(data.id), 220)
+    }
+  }
+
+  const handleDoubleClick = (event) => {
+    event.stopPropagation()
+    clearTimeout(clickTimerRef.current)
+    onView?.(data.id)
   }
 
   return (
@@ -94,7 +108,7 @@ export default function InspirationSticky({ data, selected, onToggle, onMove, on
       data-type={data.type}
       tabIndex={0}
       role="button"
-      aria-roledescription="可拖动灵感贴片"
+      aria-roledescription="灵感卡片"
       aria-pressed={selected}
       aria-label={`灵感 ${data.id}：${data.type}`}
       style={{ left: position.x, top: position.y, zIndex: position.z, '--sticky-rotation': `${position.rotation}deg` }}
@@ -102,19 +116,39 @@ export default function InspirationSticky({ data, selected, onToggle, onMove, on
       onPointerMove={handlePointerMove}
       onPointerUp={(event) => handlePointerEnd(event)}
       onPointerCancel={(event) => handlePointerEnd(event, true)}
+      onDoubleClick={handleDoubleClick}
       onKeyDown={(event) => {
+        if (event.target !== event.currentTarget) return
         if (event.key === 'Enter' || event.key === ' ') {
           event.preventDefault()
-          onToggle()
+          onToggle?.(data.id)
         }
       }}
     >
-      <div className="check" aria-hidden="true">{selected && <span>✓</span>}</div>
+      {onDelete && (
+        <button
+          type="button"
+          className="del-btn"
+          aria-label="删除灵感"
+          onPointerDown={stop}
+          onClick={(event) => { event.stopPropagation(); onDelete(data.id) }}
+          onDoubleClick={stop}
+        >×</button>
+      )}
 
       <div className="head">
         <span className="pill" style={{ color: `var(${data.color_token || '--ink-muted'})` }}>{data.type}</span>
-        <span>{data.time}</span>
-        {onOpen && <button type="button" className="view-btn" aria-label="查看灵感详情" onPointerDown={(event) => event.stopPropagation()} onClick={(event) => { event.stopPropagation(); onOpen(data.id) }}>查看</button>}
+        <span className="time">{data.time}</span>
+        {onEdit && (
+          <button
+            type="button"
+            className="edit-btn"
+            aria-label="编辑灵感"
+            onPointerDown={stop}
+            onClick={(event) => { event.stopPropagation(); onEdit(data.id) }}
+            onDoubleClick={stop}
+          >编辑</button>
+        )}
       </div>
 
       <p className={`text${data.quote ? ' quote' : ''}`}>{data.text}</p>

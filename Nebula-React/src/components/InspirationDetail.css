@@ -1,24 +1,27 @@
-/* ---------- 灵感详情 / 编辑 / 删除抽屉 ---------- */
+/* ---------- 灵感详情 / 编辑 / 删除弹框（PC 居中） ---------- */
 .detail-overlay {
-  position: fixed; inset: 0; z-index: 60;
+  position: fixed; inset: 0; z-index: 1100;
   background: rgba(7, 6, 15, .6);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
-  display: flex; justify-content: flex-end;
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px;
   animation: detailFade .18s var(--ease);
 }
 @keyframes detailFade { from { opacity: 0; } to { opacity: 1; } }
 
 .detail-panel {
-  width: min(440px, 100%);
-  height: 100%;
+  width: min(720px, 100%);
+  max-height: 85vh;
   background: var(--cosmos);
-  border-left: 1px solid var(--line);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
   box-shadow: var(--shadow-lift);
   display: flex; flex-direction: column;
-  animation: detailSlide .22s var(--ease);
+  overflow: hidden;
+  animation: detailPop .24s var(--ease);
 }
-@keyframes detailSlide { from { transform: translateX(24px); opacity: .6; } to { transform: none; opacity: 1; } }
+@keyframes detailPop { from { opacity: 0; transform: translateY(10px) scale(.98); } to { opacity: 1; transform: none; } }
 
 .detail-head {
   display: flex; align-items: center; justify-content: space-between;
@@ -45,7 +48,8 @@
 .detail-text { white-space: pre-wrap; word-break: break-word; font-size: 15px; line-height: 1.7; color: var(--ink); margin: 0 0 16px; }
 
 .detail-attachments { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
-.detail-image img { display: block; width: 100%; max-height: 280px; object-fit: cover; border-radius: 10px; border: 1px solid var(--line-soft); }
+.detail-image { display: block; margin-bottom: 10px; }
+.detail-image img { display: block; max-width: 100%; height: auto; object-fit: contain; border-radius: 10px; border: 1px solid var(--line-soft); }
 .detail-audio audio { display: block; width: 100%; }
 .detail-chip { font-size: 12px; padding: 4px 8px; border-radius: 6px; background: var(--surface-strong); color: var(--ink-soft); align-self: flex-start; }
 .detail-refresh { margin-top: 4px; font-size: 12px; color: var(--nebula-blue); background: none; border: 0; cursor: pointer; }
@@ -73,15 +77,6 @@
 
 .detail-error { color: var(--danger); font-size: 12px; line-height: 1.5; margin: 0 0 10px; }
 
-.detail-delete-confirm {
-  margin-top: 16px; padding: 14px;
-  border: 1px solid rgba(252, 165, 165, .35); border-radius: 12px;
-  background: rgba(252, 165, 165, .08);
-}
-.detail-delete-confirm p { margin: 0 0 12px; font-size: 13px; line-height: 1.6; color: var(--ink-soft); }
-.detail-delete-actions { display: flex; justify-content: flex-end; gap: 10px; }
-.detail-delete-actions .detail-btn { flex: 0 1 auto; min-width: 96px; }
-
 .detail-edit-form { display: grid; gap: 14px; }
 .detail-field { display: grid; gap: 6px; font-size: 13px; color: var(--ink-muted); }
 .detail-field input, .detail-field textarea, .detail-field select {
@@ -93,8 +88,31 @@
 .detail-field textarea { resize: vertical; line-height: 1.6; }
 .detail-edit-actions { display: flex; gap: 10px; margin-top: 4px; }
 
+/* 编辑态：顶部紧凑日期滚轮 + 时间 + 附件 */
+.edit-wheel-row {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  padding: 8px; margin-bottom: 4px;
+  background: var(--surface-strong);
+  border: 1px solid var(--line-soft);
+  border-radius: 12px;
+}
+.edit-wheel-row .wheel-divider { height: 56px; }
+.detail-field-label { font-size: 13px; color: var(--ink-muted); margin-top: 4px; }
+.detail-edit-attachments { margin-bottom: 4px; }
+.edit-att-list { display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
+.edit-att { display: flex; align-items: flex-start; gap: 10px; }
+.edit-att-image { display: block; max-width: 220px; flex: none; }
+.edit-att-image img { display: block; max-width: 100%; height: auto; object-fit: contain; border-radius: 8px; border: 1px solid var(--line-soft); }
+.edit-att audio { width: 100%; max-width: 320px; }
+.edit-att-del {
+  flex: none; padding: 4px 12px; border-radius: 999px;
+  border: 1px solid rgba(252, 165, 165, .4); background: transparent;
+  color: var(--danger); font-size: 12px; cursor: pointer;
+}
+.edit-att-del:hover { background: rgba(252, 165, 165, .12); }
+.edit-att-del:disabled { opacity: .6; cursor: wait; }
+
 @media (max-width: 720px) {
-  .detail-overlay { align-items: flex-end; }
-  .detail-panel { width: 100%; height: auto; max-height: 92vh; border-left: 0; border-top: 1px solid var(--line); border-radius: 18px 18px 0 0; }
-  @keyframes detailSlide { from { transform: translateY(24px); opacity: .6; } to { transform: none; opacity: 1; } }
+  .detail-overlay { align-items: flex-end; justify-content: center; }
+  .detail-panel { width: 100%; max-height: 92vh; border: 0; border-top: 1px solid var(--line); border-radius: 18px 18px 0 0; }
 }

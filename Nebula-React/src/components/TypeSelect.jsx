@@ -48,7 +48,14 @@ export default function TypeSelect({ valueId = '', valueLabel = '想法', types 
   }, [current?.label, open])
 
   useEffect(() => {
-    const onDoc = (event) => { if (ref.current && !ref.current.contains(event.target)) setOpen(false) }
+    const onDoc = (event) => {
+      if (!ref.current) return
+      if (ref.current.contains(event.target)) return
+      // 当 target 已不在 DOM 树中时，通常说明它原本在弹窗内部，点击后已被组件卸载。
+      // 此时不应关闭弹窗，否则“新建自定义类型”等会触发内容切换的内部按钮将导致弹窗误关。
+      if (!document.contains(event.target)) return
+      setOpen(false)
+    }
     document.addEventListener('click', onDoc)
     return () => document.removeEventListener('click', onDoc)
   }, [])
@@ -235,12 +242,17 @@ export default function TypeSelect({ valueId = '', valueLabel = '想法', types 
         {flash && <span className="type-flash" role="status">{flash}</span>}
         {onCreate && <div className="type-custom">
           {!creating ? (
-            <button type="button" className="type-create-toggle" onClick={() => setCreating(true)} disabled={disabled}>＋ 新建自定义类型</button>
+            <button
+              type="button"
+              className="type-create-toggle"
+              onClick={(event) => { event.stopPropagation(); setCreating(true) }}
+              disabled={disabled}
+            >＋ 新建自定义类型</button>
           ) : (
             <form onSubmit={submitCustomType}>
               <input value={customLabel} onChange={(event) => setCustomLabel(event.target.value)} maxLength={40} placeholder="类型名称" aria-label="自定义类型名称" autoFocus />
               <div className="type-create-actions">
-                <button type="button" onClick={() => { setCreating(false); setCreateError('') }} disabled={creatingType}>取消</button>
+                <button type="button" onClick={(event) => { event.stopPropagation(); setCreating(false); setCreateError('') }} disabled={creatingType}>取消</button>
                 <button type="submit" disabled={creatingType}>{creatingType ? '创建中…' : '创建'}</button>
               </div>
               {createError && <span className="type-create-error" role="alert">{createError}</span>}

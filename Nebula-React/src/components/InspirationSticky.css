@@ -26,40 +26,49 @@
   box-shadow: 0 0 0 1px var(--nebula-violet), 0 0 24px -4px var(--nebula-violet), var(--shadow-lift);
   z-index: 3;
 }
-.sticky .check {
-  position: absolute; top: 10px; right: 10px;
-  width: 20px; height: 20px;
-  border-radius: 50%;
-  border: 1.5px solid var(--line);
-  background: var(--cosmos-2);
-  display: flex; align-items: center; justify-content: center;
-  color: var(--cosmos-deep);
-  transition: all .2s var(--ease);
-}
-.sticky .check span {
-  display: block;
-  font-size: 12px;
-  line-height: 1;
-  transform: translate(0.5px, -0.5px);
-}
-.sticky.selected .check {
-  background: var(--nebula-violet);
-  border-color: var(--nebula-violet);
-  box-shadow: 0 0 12px var(--nebula-violet);
-}
 .sticky .head {
   display: flex; align-items: center; gap: 6px;
   font-size: 11px; color: var(--ink-muted);
   margin-bottom: 6px; letter-spacing: 1px;
+  padding-left: 22px;
 }
-.sticky .view-btn {
-  margin-left: auto;
-  padding: 2px 8px;
-  border: 1px solid var(--line-soft); border-radius: 999px;
-  background: var(--surface-strong); color: var(--ink-soft);
-  font-size: 11px; line-height: 1.6; cursor: pointer;
+.sticky .head .time { margin-left: auto; }
+.sticky .del-btn {
+  position: absolute; top: 10px; left: 10px;
+  flex: 0 0 auto;
+  width: 20px; height: 20px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  border: 1.5px solid var(--line);
+  background: var(--cosmos-2);
+  color: var(--ink-soft);
+  font-size: 15px; line-height: 1;
+  cursor: pointer;
+  transition: color .2s var(--ease), background-color .2s var(--ease), border-color .2s var(--ease), box-shadow .2s var(--ease);
+  z-index: 4;
 }
-.sticky .view-btn:hover { color: var(--ink); border-color: var(--focus-soft); }
+.sticky .del-btn:hover { color: #fff; background: var(--danger); border-color: var(--danger); box-shadow: 0 0 12px rgba(252, 165, 165, .6); }
+.sticky .edit-btn {
+  position: absolute; right: 10px; bottom: 10px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line-soft);
+  background: var(--surface-strong);
+  color: var(--ink-soft);
+  font-size: 11px; line-height: 1.5;
+  cursor: pointer;
+  opacity: 0; transform: translateY(4px);
+  transition: opacity .2s var(--ease), transform .2s var(--ease), color .2s var(--ease), border-color .2s var(--ease);
+  pointer-events: none;
+}
+.sticky:hover .edit-btn,
+.sticky:focus-within .edit-btn,
+.sticky.selected .edit-btn {
+  opacity: 1; transform: translateY(0); pointer-events: auto;
+}
+@media (max-width: 720px) {
+  .sticky .edit-btn { opacity: 1; transform: none; pointer-events: auto; }
+}
 .sticky .pill {
   font-size: 10px; padding: 2px 6px;
   border-radius: 4px;
