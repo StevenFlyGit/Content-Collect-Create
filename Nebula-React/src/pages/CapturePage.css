@@ -75,8 +75,14 @@
 /* ---------- 附件区 ---------- */
 .attachments {
   margin-top: 24px;
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 12px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.image-row {
+  display: flex; gap: 12px; overflow-x: auto; padding-bottom: 6px;
+  scroll-snap-type: x proximity;
+}
+.image-row .attach {
+  flex: 0 0 auto; width: 120px; scroll-snap-align: start;
 }
 .attach {
   position: relative; aspect-ratio: 1;
@@ -87,12 +93,13 @@
 }
 .attach img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .attach.audio {
-  aspect-ratio: auto; padding: 12px;
-  display: flex; flex-direction: column; gap: 10px;
+  aspect-ratio: auto; padding: 8px 10px;
+  width: 100%;
+  display: flex; flex-direction: column; gap: 6px;
   background: linear-gradient(135deg, rgba(167, 139, 250, .15), rgba(125, 211, 252, .05));
   border-color: rgba(167, 139, 250, .25);
 }
-.attach.audio .wave { flex: 1; display: flex; align-items: center; gap: 2px; min-height: 28px; }
+.attach.audio .wave { flex: 0 0 auto; display: flex; align-items: center; gap: 2px; min-height: 18px; }
 .attach.audio .wave i {
   flex: 1; height: 100%; border-radius: 1px;
   background: var(--nebula-violet); opacity: .6;
@@ -100,10 +107,11 @@
 }
 .attach.audio .wave i:nth-child(odd) { animation-delay: .2s; }
 .attach.audio .wave i:nth-child(3n) { animation-delay: .4s; }
+.attach.audio .wave.paused i { animation-play-state: paused; }
 @keyframes barDance { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(.4); } }
 .attach.audio .audio-player {
   width: 100%;
-  height: 34px;
+  height: 36px;
   /* accent-color 让原生 controls 的进度/音量主题色对齐品牌紫；不支持时回退无染色 */
   accent-color: var(--nebula-violet);
   background: transparent;
@@ -114,7 +122,40 @@
   background-color: rgba(167, 139, 250, .08);
   border-radius: 6px;
 }
-.attach.audio .meta { font-size: 11px; color: var(--ink-soft); display: flex; justify-content: space-between; }
+.attach.dragging { opacity: .55; cursor: grabbing; transform: scale(.98); transition: transform .15s var(--ease), opacity .15s var(--ease); }
+.attach.drag-over { outline: 2px dashed var(--nebula-violet); outline-offset: 2px; }
+.image-row .attach {
+  cursor: grab;
+  touch-action: pan-y pinch-zoom;
+  /* 禁止长按弹出让保存图片的系统菜单 / 文本选择，避免干扰拖拽 */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+.image-row.is-dragging { overflow-x: hidden; cursor: grabbing; user-select: none; }
+.image-row.is-dragging .attach { cursor: grabbing; }
+.image-row.is-dragging .attach { touch-action: none; }
+.attach.drag-ghost {
+  /* 坐标系统一：position:fixed + clientX/clientY 同为视口坐标系；
+     尺寸由 JS 按被拖图标实际 getBoundingClientRect 内联下发 */
+  position: fixed;
+  margin: 0;
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  border: 1px solid var(--nebula-violet);
+  background: var(--cosmos-2);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, .45);
+  pointer-events: none;
+  z-index: 1000;
+  opacity: .95;
+  transform: translateZ(0);
+}
+.attach.drag-ghost img { width: 100%; height: 100%; object-fit: cover; }
+@media (prefers-reduced-motion: reduce) {
+  .attach.audio .wave i { animation: none; }
+  .attach.dragging { opacity: 1; transform: none; }
+}
+.attach.audio .meta { font-size: 11px; line-height: 1.2; color: var(--ink-soft); display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .attach .x {
   position: absolute; top: 6px; right: 6px;
   width: 22px; height: 22px; border-radius: 50%;
@@ -122,6 +163,7 @@
   display: grid; place-items: center; font-size: 12px;
   border: 0; cursor: pointer; opacity: 0; transition: opacity .2s var(--ease);
 }
+.attach.audio .x { top: 4px; right: 4px; }
 .attach:hover .x { opacity: 1; }
 .attach.processing::after {
   content: ""; position: absolute; inset: 0;

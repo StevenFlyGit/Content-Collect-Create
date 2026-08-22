@@ -47,8 +47,8 @@ export default function ModeToolbar({ mode, onModeChange, onFileSelected, disabl
   }
 
   const handleFileChange = (key, e) => {
-    const file = e.target.files && e.target.files[0]
-    if (file && onFileSelected) onFileSelected({ kind: key, file })
+    const files = e.target.files && e.target.files.length ? Array.from(e.target.files) : []
+    if (files.length && onFileSelected) onFileSelected({ kind: key, files })
   }
 
   return (
@@ -81,6 +81,7 @@ export default function ModeToolbar({ mode, onModeChange, onFileSelected, disabl
         ref={(el) => { fileRefs.current.image = el }}
         type="file"
         accept={ACCEPT.image}
+        multiple
         hidden
         disabled={disabled}
         onChange={(e) => handleFileChange('image', e)}
