@@ -39,7 +39,8 @@ export function validateAudioDuration({ actualMs, declaredMs }) {
   if (!Number.isInteger(actualMs) || actualMs <= 0 || actualMs > MAX_AUDIO_DURATION_MS) {
     throw validationError('OSS 音频实际时长不可识别或超过 1 分钟', 'AUDIO_DURATION_EXCEEDED')
   }
-  if (declaredMs != null) {
+  // 声明时长为 0 / 缺省表示浏览器无法探测（未知），仅做边界校验，不与实际解析值交叉比对。
+  if (declaredMs != null && declaredMs > 0) {
     const declared = Number(declaredMs)
     if (!Number.isInteger(declared) || declared <= 0 || Math.abs(actualMs - declared) > DURATION_TOLERANCE_MS) {
       throw validationError('OSS 音频实际时长与声明不一致', 'AUDIO_DURATION_MISMATCH')
@@ -63,10 +64,14 @@ export async function resolveAudioDurationMs({ stream, mimeType, size, declaredM
     //  - AUDIO_METADATA_INVALID：parseStream 抛流错误（如 End-Of-Stream）
     //  - AUDIO_DURATION_UNREADABLE：解析成功但无可用时长
     if (isWebmMatroska(mimeType) && (error.code === 'AUDIO_METADATA_INVALID' || error.code === 'AUDIO_DURATION_UNREADABLE')) {
-      if (declaredMs == null) throw validationError('webm 音频缺少声明时长且服务端无法解析', 'AUDIO_DURATION_UNREADABLE')
+      if (!declaredMs || declaredMs <= 0) throw validationError('webm 音频缺少声明时长且服务端无法解析', 'AUDIO_DURATION_UNREADABLE')
       // 回退到前端声明时长，仅做边界校验（不再与实际解析值交叉比对）。
       return validateAudioDuration({ actualMs: declaredMs, declaredMs: null })
     }
-    throw error
+    // 其他格式（amr/aac/3gp/wma 等）服务端流式解析可能不被 music-metadata 支持，但其声明
+    // 时长来自前端 <audio> 元数据、可靠；声明存在时回退到声明值（仅做边界校验），避免对
+    // 浏览器可探测的常见录音格式二次报错。完全无法获取时长时接受为未知（null）。
+    if (declaredMs && declaredMs > 0) return validateAudioDuration({ actualMs: declaredMs, declaredMs: null })
+    return null
   }
 }

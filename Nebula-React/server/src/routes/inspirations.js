@@ -10,6 +10,19 @@ import { businessDateRange, currentBusinessDate } from '../time.js'
 const router = Router()
 const TYPE_LABEL_TO_SLUG = { '先不分类': 'uncategorized', '想法': 'idea', '引用': 'quote', '随感': 'moment', '待办': 'task', '案例': 'case', '问题': 'question' }
 
+// 归一化 recorded_at（方案 A：只硬覆盖未来时间，过去方向信任客户端）。
+// 未来时间（超过容忍阈值）不可能"提前记录"，一律用服务端当前时间覆盖；
+// 过去/现在方向保留客户端值（例如合法旧草稿的真实采集时间）。
+// FUTURE_TOLERANCE_MS 容忍客户端时钟最多快 1 分钟，避免"刚刚提交"被误判为未来。
+const FUTURE_TOLERANCE_MS = 60 * 1000
+function normalizeRecordedAt(value) {
+  if (!value) return new Date().toISOString()
+  const clientMs = new Date(value).getTime()
+  const nowMs = Date.now()
+  if (Number.isNaN(clientMs) || clientMs > nowMs + FUTURE_TOLERANCE_MS) return new Date().toISOString()
+  return value
+}
+
 async function resolveTypeId(client, workspaceId, input) {
   if (!input) return null
   if (input.type_id) {
@@ -150,7 +163,7 @@ router.post('/', async (req, res, next) => {
       if (existing.rows[0]) return existing.rows[0].id
       const typeId = await resolveTypeId(client, req.workspaceId, input)
       const id = input.id || randomUUID()
-      const recordedAt = input.recorded_at || new Date().toISOString()
+      const recordedAt = normalizeRecordedAt(input.recorded_at)
       await client.query(`
         INSERT INTO inspirations(id,workspace_id,recorded_at,title,text_raw,text_normalized,type_id,user_tags_json,board_position_json,processing_status,sync_status,is_quote,idempotency_key)
         VALUES($1,$2,$3,$4,$5,$5,$6,$7,$8,'draft','local',$9,$10)
@@ -251,7 +264,7 @@ router.patch('/:id', async (req, res, next) => {
       const fields = {
         title: input.title !== undefined ? input.title : undefined,
         text_raw: input.text_raw !== undefined ? input.text_raw : undefined,
-        recorded_at: input.recorded_at ?? undefined,
+        recorded_at: input.recorded_at !== undefined ? normalizeRecordedAt(input.recorded_at) : undefined,
         user_tags_json: input.user_tags_json ? JSON.stringify(input.user_tags_json) : undefined,
         board_position_json: input.board_position_json === null ? null : input.board_position_json ? JSON.stringify(input.board_position_json) : undefined,
         is_quote: input.is_quote ?? undefined,

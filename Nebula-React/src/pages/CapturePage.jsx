@@ -8,7 +8,7 @@ import MediaCaptureOverlay from '../components/MediaCaptureOverlay.jsx'
 import { isSecureContextSupported } from '../lib/secure.js'
 import { createInspiration, createInspirationType, deleteAsset, getInspirationTypes, updateInspiration, uploadAsset } from '../lib/api.js'
 import { deleteDraft, getAllDrafts, saveCompleteDraft } from '../lib/draftStore.js'
-import { validateLocalAsset } from '../lib/assetUpload.js'
+import { validateLocalAsset, AUDIO_EXT_RE, IMAGE_EXT_RE, readFileHead } from '../lib/assetUpload.js'
 import './CapturePage.css'
 
 const pad = (n) => String(n).padStart(2, '0')
@@ -106,7 +106,8 @@ export default function CapturePage() {
       if (!active || !drafts.length) { if (active) setHydrated(true); return }
       const draft = drafts[0]
       setDraftId(draft.draft_id || draftId)
-      setRecordedAt(draft.recorded_at || new Date().toISOString())
+      // 草稿恢复后立即以"当前时刻"覆盖陈旧时间戳，避免"昨晚草稿、今早提交、仍显示昨晚时间"
+      setRecordedAt(new Date().toISOString())
       setTitle(draft.title || '')
       setBody(draft.text_raw || '')
       setType(draft.type_label || '想法')
@@ -441,8 +442,9 @@ export default function CapturePage() {
     const errors = []
     for (const item of items) {
       try {
-        validateLocalAsset({ kind: item.kind, mime: item.mime, bytes: item.blob.size, durationMs: item.durationMs || 0 })
-        valid.push(item)
+        const result = validateLocalAsset({ kind: item.kind, mime: item.mime, bytes: item.blob.size, durationMs: item.durationMs || 0, filename: item.label, head: item.head })
+        // 用识别出的规范 MIME 覆盖原始（可能为空的变体）MIME，确保落库与上传声明一致。
+        valid.push({ ...item, mime: result?.mime || item.mime })
       } catch (error) {
         errors.push(`${item.label || '未命名文件'}：${error.message}`)
       }
@@ -486,16 +488,19 @@ export default function CapturePage() {
     if (!sourceFiles.length) return
     const items = []
     for (const f of sourceFiles) {
-      const isImage = kind === 'image' && f.type.startsWith('image/')
-      const isAudio = kind === 'audio' && f.type.startsWith('audio/')
+      // file.type 在 Windows / 部分 Android 上常为 '' 或变体类型，故同时按扩展名兜底识别。
+      const isImage = kind === 'image' && (f.type.startsWith('image/') || IMAGE_EXT_RE.test(f.name))
+      const isAudio = kind === 'audio' && (f.type.startsWith('audio/') || AUDIO_EXT_RE.test(f.name))
       if (!isImage && !isAudio) continue
+      // 读取文件头用于魔数识别（覆盖无扩展名 / 空 MIME 的兜底场景）。
+      const head = await readFileHead(f, 64)
       if (isAudio) {
         const src = URL.createObjectURL(f)
         const durationMs = await readAudioDuration(src)
         URL.revokeObjectURL(src)
-        items.push({ blob: f, kind, mime: f.type, durationMs, label: f.name })
+        items.push({ blob: f, kind, mime: f.type, durationMs, label: f.name, head })
       } else {
-        items.push({ blob: f, kind, mime: f.type, durationMs: 0, label: f.name })
+        items.push({ blob: f, kind, mime: f.type, durationMs: 0, label: f.name, head })
       }
     }
     if (!items.length) { setNote('请选择有效的图片或音频文件'); return }
@@ -517,6 +522,9 @@ export default function CapturePage() {
       setNote('请至少输入标题、正文，或添加一个图片/音频附件。')
       return
     }
+    // 提交前刷新为"实际提交瞬间"的时间戳，确保以提交时刻（而非页面打开或草稿里的旧时间）入库
+    const submitTime = new Date().toISOString()
+    setRecordedAt(submitTime)
     const localSaved = await saveDraftNow('manual')
     if (!localSaved) return
     setSubmitting(true)
@@ -532,7 +540,7 @@ export default function CapturePage() {
         title: title.trim() || null,
         text_raw: body,
         ...typeInput,
-        recorded_at: recordedAt,
+        recorded_at: submitTime,
       })
       const inspirationId = created.data.id
       // 幂等重试时也先覆盖远端主记录，避免首次失败后再次编辑造成 RDS 内容陈旧。
@@ -540,7 +548,7 @@ export default function CapturePage() {
         title: title.trim() || null,
         text_raw: body,
         ...typeInput,
-        recorded_at: recordedAt,
+        recorded_at: submitTime,
         sync_status: 'local',
         processing_status: 'draft',
       })

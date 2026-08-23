@@ -8,7 +8,7 @@ import { assetCompleteSchema, uuidSchema, validateAssetInput } from '../validato
 import { notFound, conflict } from '../errors.js'
 
 const router = Router()
-const extensionFor = (mime) => ({ 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif', 'audio/webm': 'webm', 'audio/mp4': 'm4a', 'audio/mp3': 'mp3', 'audio/m4a': 'm4a', 'audio/mpeg': 'mp3', 'audio/ogg': 'ogg' }[mime] || 'bin')
+const extensionFor = (mime) => ({ 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif', 'audio/webm': 'webm', 'audio/mp4': 'm4a', 'audio/mp3': 'mp3', 'audio/m4a': 'm4a', 'audio/mpeg': 'mp3', 'audio/ogg': 'ogg', 'audio/wav': 'wav', 'audio/aac': 'aac', 'audio/amr': 'amr', 'audio/3gpp': '3gp', 'audio/flac': 'flac', 'audio/x-ms-wma': 'wma' }[mime] || 'bin')
 
 export function validateCompletedObjectMetadata(asset, object) {
   const headers = object.res?.headers || object.headers || {}
