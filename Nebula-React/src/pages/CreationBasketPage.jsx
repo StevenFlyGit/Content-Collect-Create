@@ -20,6 +20,16 @@ const HS_CAT_LABEL = {
 }
 const FRESHNESS_LABEL = { fresh: '新鲜', aging: '较旧', expired: '过期', unknown: '未知时间' }
 
+// 灵感类型 slug → 中文短标签（PRD §2.4 + 与 inspiration_types 表对齐）
+const INSP_TYPE_LABEL = {
+  idea: '想法',
+  quote: '引用',
+  moment: '随感',
+  task: '待办',
+  case: '案例',
+  question: '问题',
+}
+
 export default function CreationBasketPage() {
   const navigate = useNavigate()
   const requestSeq = useRef(0)
@@ -28,6 +38,8 @@ export default function CreationBasketPage() {
   const [state, setState] = useState('loading')
   const [errorMsg, setErrorMsg] = useState('')
   const [busy, setBusy] = useState(false)
+  const [detail, setDetail] = useState(null)
+  const [inspDetail, setInspDetail] = useState(null)
 
   const load = useCallback(async () => {
     const seq = ++requestSeq.current
@@ -145,25 +157,47 @@ export default function CreationBasketPage() {
                     <button type="button" className="btn primary cta" onClick={() => navigate('/timeline')}>前往灵感库 →</button>
                   </div>
                 ) : inspirations.map((item) => (
-                  <div className="basket-item" key={item.basket_item_id}>
+                  <div
+                    className="basket-item basket-item--clickable"
+                    key={item.basket_item_id}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`查看灵感详情：${item.title || item.text || '（无标题）'}`}
+                    onClick={() => setInspDetail(item)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        setInspDetail(item)
+                      }
+                    }}
+                  >
                     <span className="bi-ico"><span className="dot" style={{ '--d': `var(${item.color_token})` }} /></span>
                     <div className="bi-body">
                       <p className="bi-title">{item.title || item.text || '（无标题）'}</p>
                       <div className="bi-meta">灵感 · {item.type}{item.time ? ` · ${item.time}` : ''}</div>
                     </div>
-                    <button type="button" className="bi-remove" title="移除并退回" aria-label="移除" onClick={() => handleRemove(item.basket_item_id)}>×</button>
+                    <button
+                      type="button"
+                      className="bi-remove"
+                      title="移除并退回"
+                      aria-label="移除"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleRemove(item.basket_item_id)
+                      }}
+                    >×</button>
                   </div>
                 ))}
               </div>
               <div className="basket-tips">
                 <h4>灵感类型 <small>支持 6 种类别</small></h4>
-                <ul className="cat-list">
-                  <li><span className="dot" style={{ '--d': 'var(--nebula-violet)' }} />想法</li>
-                  <li><span className="dot" style={{ '--d': 'var(--nebula-blue)' }} />引用</li>
-                  <li><span className="dot" style={{ '--d': 'var(--nebula-rose)' }} />随感</li>
-                  <li><span className="dot" style={{ '--d': 'var(--nebula-mint)' }} />待办</li>
-                  <li><span className="dot" style={{ '--d': 'var(--nebula-amber)' }} />案例</li>
-                  <li><span className="dot" style={{ '--d': 'var(--danger)' }} />问题</li>
+                <ul>
+                  <li><b style={{ color: 'var(--nebula-violet)' }}><span className="dot" style={{ '--d': 'var(--nebula-violet)' }} />想法</b></li>
+                  <li><b style={{ color: 'var(--nebula-blue)' }}><span className="dot" style={{ '--d': 'var(--nebula-blue)' }} />引用</b></li>
+                  <li><b style={{ color: 'var(--nebula-rose)' }}><span className="dot" style={{ '--d': 'var(--nebula-rose)' }} />随感</b></li>
+                  <li><b style={{ color: 'var(--nebula-mint)' }}><span className="dot" style={{ '--d': 'var(--nebula-mint)' }} />待办</b></li>
+                  <li><b style={{ color: 'var(--nebula-amber)' }}><span className="dot" style={{ '--d': 'var(--nebula-amber)' }} />案例</b></li>
+                  <li><b style={{ color: 'var(--danger)' }}><span className="dot" style={{ '--d': 'var(--danger)' }} />问题</b></li>
                 </ul>
               </div>
             </div>
@@ -189,7 +223,20 @@ export default function CreationBasketPage() {
                   const catLabel = HS_CAT_LABEL[item.category_source_raw] || HS_CAT_LABEL[item.category] || '其他'
                   const fresh = FRESHNESS_LABEL[item.freshness]
                   return (
-                    <div className="basket-item" key={item.basket_item_id}>
+                    <div
+                      className="basket-item basket-item--clickable"
+                      key={item.basket_item_id}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`查看热点详情：${item.title}`}
+                      onClick={() => setDetail(item)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          setDetail(item)
+                        }
+                      }}
+                    >
                       <span className="bi-ico">📡</span>
                       <div className="bi-body">
                         <p className="bi-title">{item.title}</p>
@@ -197,7 +244,16 @@ export default function CreationBasketPage() {
                           热点 · {catLabel}{fresh && fresh !== '未知时间' ? ` · ${fresh}` : ''} · 数据来源 AIHOT
                         </div>
                       </div>
-                      <button type="button" className="bi-remove" title="移除并退回" aria-label="移除" onClick={() => handleRemove(item.basket_item_id)}>×</button>
+                      <button
+                        type="button"
+                        className="bi-remove"
+                        title="移除并退回"
+                        aria-label="移除"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleRemove(item.basket_item_id)
+                        }}
+                      >×</button>
                     </div>
                   )
                 })}
@@ -205,16 +261,114 @@ export default function CreationBasketPage() {
               <div className="basket-tips">
                 <h4>热度趋势 <small>仅展示等级，不展示数值</small></h4>
                 <ul>
-                  <li><b style={{ color: 'var(--nebula-rose)' }}>● 飙升</b> · 话题突然引爆，关注度陡升</li>
-                  <li><b style={{ color: 'var(--danger)' }}>● 高热</b> · 持续讨论中，已成当下焦点</li>
-                  <li><b style={{ color: 'var(--nebula-amber)' }}>● 升温</b> · 缓慢上升，仍有发酵空间</li>
-                  <li><b style={{ color: 'var(--ink-muted)' }}>● 平稳</b> · 稳定关注，可作为常驻素材</li>
+                  <li><b style={{ color: 'var(--nebula-rose)' }}>● 飙升</b></li>
+                  <li><b style={{ color: 'var(--danger)' }}>● 高热</b></li>
+                  <li><b style={{ color: 'var(--nebula-amber)' }}>● 升温</b></li>
+                  <li><b style={{ color: 'var(--ink-muted)' }}>● 平稳</b></li>
                 </ul>
               </div>
             </div>
           </div>
         )}
       </main>
+
+      {/* 热点详情弹窗（点击整张热点卡片即触发） */}
+      {detail && (() => {
+        const catLabel = HS_CAT_LABEL[detail.category_source_raw] || HS_CAT_LABEL[detail.category] || '其他'
+        const freshLabel = FRESHNESS_LABEL[detail.freshness]
+        const freshOk = freshLabel && freshLabel !== '未知时间'
+        const detailUrl = detail.source_url || detail.ai_hot_url
+        const publishedAt = detail.published_at ? new Date(detail.published_at).toLocaleString('zh-CN', { hour12: false }) : ''
+        const capturedAt = detail.captured_at ? new Date(detail.captured_at).toLocaleString('zh-CN', { hour12: false }) : ''
+        return (
+          <div
+            className="bsk-detail-mask"
+            role="dialog"
+            aria-modal="true"
+            aria-label={`热点详情：${detail.title}`}
+            onClick={() => setDetail(null)}
+          >
+            <div className="bsk-detail-card" onClick={(e) => e.stopPropagation()}>
+              <button type="button" className="bsk-detail-close" aria-label="关闭" onClick={() => setDetail(null)}>×</button>
+              <div className="bsk-detail-tags">
+                <span className="bsk-tag">{catLabel}</span>
+                {freshOk && <span className="bsk-fresh">{freshLabel}</span>}
+                {typeof detail.rank === 'number' && <span className="bsk-rank">第 {detail.rank} 名</span>}
+              </div>
+              <h3 className="bsk-detail-title">{detail.title}</h3>
+              {detail.summary && <p className="bsk-detail-summary">{detail.summary}</p>}
+              <div className="bsk-detail-meta">
+                {detail.source_name && <div>来源：{detail.source_name}</div>}
+                {publishedAt && <div>发布时间：{publishedAt}</div>}
+                {!publishedAt && capturedAt && <div>收录时间：{capturedAt}</div>}
+                <div className="bsk-detail-aihot">数据来源：AIHOT</div>
+              </div>
+              {detailUrl && (
+                <a
+                  className="btn primary bsk-detail-link"
+                  href={detailUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >查看原文 →</a>
+              )}
+            </div>
+          </div>
+        )
+      })()}
+
+      {/* 灵感详情弹窗（点击整张灵感卡片即触发） */}
+      {inspDetail && (() => {
+        const inspTypeLabel = INSP_TYPE_LABEL[inspDetail.type_slug] || inspDetail.type || '未分类'
+        const colorVar = inspDetail.color_token || '--ink-muted'
+        const recordedAt = inspDetail.recorded_at
+          ? new Date(inspDetail.recorded_at).toLocaleString('zh-CN', { hour12: false })
+          : ''
+        const addedAt = inspDetail.added_at
+          ? new Date(inspDetail.added_at).toLocaleString('zh-CN', { hour12: false })
+          : ''
+        const displayTitle = inspDetail.title || inspDetail.text || '（无标题）'
+        return (
+          <div
+            className="bsk-insp-detail-mask"
+            role="dialog"
+            aria-modal="true"
+            aria-label={`灵感详情：${displayTitle}`}
+            onClick={() => setInspDetail(null)}
+          >
+            <div className="bsk-insp-detail-card" onClick={(e) => e.stopPropagation()}>
+              <button type="button" className="bsk-insp-detail-close" aria-label="关闭" onClick={() => setInspDetail(null)}>×</button>
+              <div className="bsk-insp-detail-tags">
+                <span
+                  className="bsk-insp-tag"
+                  style={{ '--accent': `var(${colorVar})` }}
+                >
+                  <span className="dot" />
+                  {inspTypeLabel}
+                </span>
+              </div>
+              {inspDetail.title && <h3 className="bsk-insp-detail-title">{inspDetail.title}</h3>}
+              {inspDetail.text && (
+                <p className="bsk-insp-detail-body">{inspDetail.text}</p>
+              )}
+              <div className="bsk-insp-detail-meta">
+                {recordedAt && <div>记录时间：{recordedAt}</div>}
+                {!recordedAt && addedAt && <div>记录时间：{addedAt}</div>}
+                {addedAt && recordedAt && <div>加入创作篮：{addedAt}</div>}
+                <div className="bsk-insp-detail-id">灵感 ID：<code>{inspDetail.inspiration_id}</code></div>
+              </div>
+              <button
+                type="button"
+                className="btn primary bsk-insp-detail-remove"
+                onClick={() => {
+                  const id = inspDetail.basket_item_id
+                  setInspDetail(null)
+                  handleRemove(id)
+                }}
+              >移除并退回</button>
+            </div>
+          </div>
+        )
+      })()}
     </>
   )
 }

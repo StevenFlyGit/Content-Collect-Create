@@ -27,16 +27,20 @@ export default function DateWheel({ values, index, onIndexChange, col, ariaLabel
     setTransform(0)
     const c = containerRef.current
     if (c) {
-      c.setAttribute('aria-valuemin', String(values[0] ?? ''))
-      c.setAttribute('aria-valuemax', String(values[values.length - 1] ?? ''))
+      // 循环滚轮：语义上无绝对最小/最大，value 由父级据 index 反算
       c.setAttribute('aria-valuenow', String(values[index] ?? ''))
       c.setAttribute('aria-valuetext', String(values[index] ?? ''))
     }
   }, [index, values, itemH])
 
-  const clamp = (value) => Math.max(0, Math.min(values.length - 1, value))
+  // 循环（无限）滚轮：index 在 [0, len) 内取模环绕，到两端仍可继续滚
+  const wrap = (value) => {
+    const len = values.length
+    if (len <= 0) return 0
+    return ((value % len) + len) % len
+  }
   const emit = (value) => {
-    const next = clamp(value)
+    const next = wrap(value)
     if (next !== index) onIndexChange(next)
   }
 
@@ -59,13 +63,15 @@ export default function DateWheel({ values, index, onIndexChange, col, ariaLabel
     const el = containerRef.current
     if (!el) return undefined
     const onKey = (e) => {
+      const len = values.length
       const map = {
         ArrowUp: index - 1,
         ArrowDown: index + 1,
         PageUp: index - 3,
         PageDown: index + 3,
-        Home: 0,
-        End: values.length - 1,
+        // 循环模式下 Home/End 不再跳到绝对首尾，而是大步前进/后退一圈
+        Home: index - len,
+        End: index + len,
       }
       if (!(e.key in map)) return
       e.preventDefault()
@@ -128,11 +134,9 @@ export default function DateWheel({ values, index, onIndexChange, col, ariaLabel
       <div className="wheel-track" ref={trackRef}>
         <div className="wheel-pad" aria-hidden="true" />
         {values.map((value, i) => {
-          const dist = Math.abs(i - index)
           const className = [
             'wheel-item',
             i === index ? 'active' : '',
-            dist > 1 && dist <= 3 ? 'dim' : '',
           ].filter(Boolean).join(' ')
           return (
             <div

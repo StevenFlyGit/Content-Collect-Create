@@ -2,7 +2,7 @@
    创作篮页 · CreationBasketPage
    视觉严格对照原型 nebula-hotspot-creation-basket.html（V4）
    ============================================================ */
-.basket-wrap { max-width: 1180px; margin: 0 auto; padding: 28px 24px 120px; }
+.basket-wrap { max-width: 1180px; margin: 0 auto; padding: 24px 24px 80px; }
 
 .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 22px; flex-wrap: wrap; }
 .page-title { font-size: 26px; font-weight: 750; margin: 0; letter-spacing: .3px; }
@@ -45,14 +45,13 @@
 .basket-list .empty .desc { font-size: 13px; color: var(--ink-muted); max-width: 360px; margin: 0 auto 16px; line-height: 1.7; }
 .basket-list .empty .cta { display: inline-flex; align-items: center; gap: 6px; }
 
-.basket-tips { padding: 14px 16px; border-radius: var(--radius-card); background: var(--cosmos-2); border: 1px dashed var(--line-soft); }
+.basket-tips { padding: 12px 16px; border-radius: var(--radius-card); background: var(--cosmos-2); border: 1px dashed var(--line-soft); min-height: 148px; display: flex; flex-direction: column; }
 .basket-tips h4 { margin: 0 0 8px; font-size: 13px; font-weight: 700; color: var(--ink); display: flex; align-items: center; gap: 6px; }
 .basket-tips h4 small { font-weight: 400; color: var(--ink-muted); font-size: 11.5px; margin-left: 6px; }
-.basket-tips ul { margin: 0; padding-left: 20px; color: var(--ink-muted); font-size: 12.5px; line-height: 1.85; }
-.basket-tips li b { color: var(--ink-soft); font-weight: 600; }
-.basket-tips .cat-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; margin: 0; padding: 0; list-style: none; }
-.basket-tips .cat-list li { display: flex; align-items: center; gap: 9px; font-size: 13px; color: var(--ink-soft); padding: 4px 2px; }
-.basket-tips .cat-list li .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--d, var(--nebula-violet)); box-shadow: 0 0 8px var(--d, var(--nebula-violet)); flex: none; }
+.basket-tips ul { margin: 0; padding-left: 0; list-style: none; color: var(--ink-muted); font-size: 12.5px; line-height: 1.8; display: grid; grid-template-columns: 1fr 1fr; column-gap: 18px; row-gap: 4px; }
+.basket-tips li { display: flex; align-items: center; min-width: 0; }
+.basket-tips li b { color: var(--ink-soft); font-weight: 600; display: inline-flex; align-items: center; gap: 6px; flex: none; }
+.basket-tips li b .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--d, var(--nebula-violet)); box-shadow: 0 0 8px var(--d, var(--nebula-violet)); flex: none; }
 
 /* ---------- 缩略卡 ---------- */
 .basket-item { display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; border-radius: var(--radius-card); background: var(--surface-glass); border: 1px solid var(--line); box-shadow: var(--shadow-soft); transition: all .25s var(--ease); }
@@ -72,4 +71,48 @@
 @media (max-width: 920px) {
   .basket-grid { grid-template-columns: 1fr; gap: 18px; }
   .basket-col { min-height: auto; }
+  .basket-tips { min-height: 0; }
+}
+
+/* ---------- 热点卡片可点击反馈（仅作用于 hotspot 项） ---------- */
+.basket-item--clickable { cursor: pointer; outline: none; }
+.basket-item--clickable:hover { border-color: var(--line); transform: translateX(-2px); }
+.basket-item--clickable:focus-visible { border-color: var(--nebula-violet); box-shadow: 0 0 0 3px rgba(167, 139, 250, .28); }
+
+/* ---------- 热点详情弹窗 ---------- */
+@keyframes bsk-detail-in { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: none; } }
+.bsk-detail-mask { position: fixed; inset: 0; z-index: 70; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(7, 6, 15, .55); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); animation: reveal .25s var(--ease); }
+.bsk-detail-card { position: relative; width: min(560px, 100%); padding: 24px; border-radius: var(--radius-panel); background: var(--cosmos-2); border: 1px solid var(--line); box-shadow: var(--shadow-lift); display: flex; flex-direction: column; gap: 14px; animation: bsk-detail-in .28s var(--ease); }
+.bsk-detail-close { position: absolute; top: 14px; right: 14px; width: 30px; height: 30px; border-radius: 8px; color: var(--ink-muted); background: var(--surface); border: 1px solid var(--line-soft); font-size: 18px; line-height: 1; cursor: pointer; transition: all .2s var(--ease); }
+.bsk-detail-close:hover { color: var(--danger); border-color: rgba(252, 165, 165, .4); }
+.bsk-detail-tags { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding-right: 28px; }
+.bsk-tag { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: var(--radius-pill); font-size: 12px; font-weight: 600; background: var(--cosmos-3); color: var(--ink-soft); border: 1px solid var(--line); }
+.bsk-fresh { font-size: 11.5px; color: var(--ink-muted); padding: 2px 8px; border-radius: var(--radius-pill); border: 1px dashed var(--line-soft); }
+.bsk-rank { font-size: 11.5px; color: var(--nebula-amber); font-weight: 600; padding: 2px 8px; border-radius: var(--radius-pill); border: 1px solid var(--line-soft); }
+.bsk-detail-title { font-size: 20px; font-weight: 750; margin: 0; line-height: 1.4; color: var(--ink); padding-right: 28px; }
+.bsk-detail-summary { font-size: 14px; color: var(--ink-soft); line-height: 1.8; margin: 0; white-space: pre-wrap; }
+.bsk-detail-meta { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--ink-muted); border-top: 1px solid var(--line-soft); padding-top: 12px; }
+.bsk-detail-aihot { color: var(--nebula-blue); font-weight: 600; }
+.bsk-detail-link { align-self: flex-start; text-decoration: none; }
+
+/* ---------- 灵感详情弹窗（与热点 Modal 视觉一致，独立命名空间避免互相影响） ---------- */
+@keyframes bsk-insp-detail-in { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: none; } }
+.bsk-insp-detail-mask { position: fixed; inset: 0; z-index: 70; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(7, 6, 15, .55); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); animation: reveal .25s var(--ease); }
+.bsk-insp-detail-card { position: relative; width: min(560px, 100%); padding: 24px; border-radius: var(--radius-panel); background: var(--cosmos-2); border: 1px solid var(--line); box-shadow: var(--shadow-lift); display: flex; flex-direction: column; gap: 14px; animation: bsk-insp-detail-in .28s var(--ease); }
+.bsk-insp-detail-close { position: absolute; top: 14px; right: 14px; width: 30px; height: 30px; border-radius: 8px; color: var(--ink-muted); background: var(--surface); border: 1px solid var(--line-soft); font-size: 18px; line-height: 1; cursor: pointer; transition: all .2s var(--ease); }
+.bsk-insp-detail-close:hover { color: var(--danger); border-color: rgba(252, 165, 165, .4); }
+.bsk-insp-detail-tags { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding-right: 28px; }
+.bsk-insp-tag { display: inline-flex; align-items: center; gap: 6px; padding: 3px 12px; border-radius: var(--radius-pill); font-size: 12px; font-weight: 600; background: var(--cosmos-3); color: var(--accent, var(--ink-soft)); border: 1px solid var(--accent, var(--line)); box-shadow: 0 0 12px -4px var(--accent, transparent); }
+.bsk-insp-tag .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent, var(--nebula-violet)); box-shadow: 0 0 8px var(--accent, var(--nebula-violet)); flex: none; }
+.bsk-insp-detail-title { font-size: 20px; font-weight: 750; margin: 0; line-height: 1.4; color: var(--ink); padding-right: 28px; }
+.bsk-insp-detail-body { font-size: 14.5px; color: var(--ink-soft); line-height: 1.85; margin: 0; white-space: pre-wrap; word-break: break-word; }
+.bsk-insp-detail-meta { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--ink-muted); border-top: 1px solid var(--line-soft); padding-top: 12px; }
+.bsk-insp-detail-id code { font-size: 11.5px; color: var(--ink-muted); background: var(--surface); border: 1px solid var(--line-soft); padding: 1px 6px; border-radius: 6px; font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace; }
+.bsk-insp-detail-remove { align-self: flex-start; }
+
+@media (max-width: 920px) {
+  .bsk-detail-card { width: 100%; padding: 20px; }
+  .bsk-detail-title { font-size: 17px; }
+  .bsk-insp-detail-card { width: 100%; padding: 20px; }
+  .bsk-insp-detail-title { font-size: 17px; }
 }

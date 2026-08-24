@@ -32,7 +32,7 @@ img.icon {
 
 /* ---------- 星云背景（共享，可整站复用） ---------- */
 .cosmos {
-  position: fixed; inset: 0; z-index: -2;
+  position: fixed; inset: 0; z-index: 0;
   background:
     radial-gradient(ellipse 80% 60% at 20% 10%, rgba(167, 139, 250, .22), transparent 60%),
     radial-gradient(ellipse 60% 60% at 80% 30%, rgba(125, 211, 252, .16), transparent 60%),

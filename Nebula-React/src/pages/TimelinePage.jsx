@@ -17,7 +17,10 @@ import './TimelinePage.css'
 
 const today = new Date()
 const PAGE_SIZE = 20
-const yearValues = Array.from({ length: 11 }, (_, index) => today.getFullYear() - 5 + index)
+// 年份使用超长循环窗口（±100 年），配合 DateWheel 的循环 wrap，
+// 可从今年持续向上/向下滚动而不触顶空白；实际跨度远不会到边界。
+const YEAR_OFFSET = 100
+const yearValues = Array.from({ length: YEAR_OFFSET * 2 + 1 }, (_, index) => today.getFullYear() - YEAR_OFFSET + index)
 const monthValues = Array.from({ length: 12 }, (_, index) => String(index + 1).padStart(2, '0'))
 const daysIn = (year, month) => new Date(year, month, 0).getDate()
 const dateKey = ({ year, month, day }) => `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
@@ -75,6 +78,8 @@ export default function TimelinePage() {
   const [boardDirty, setBoardDirty] = useState(false)
   const [layoutVersion, setLayoutVersion] = useState(0)
   const [page, setPage] = useState(1)
+  // 加入创作篮成功后的提示弹窗（不在此直接跳转，交给用户选择）
+  const [basketPrompt, setBasketPrompt] = useState(null)
   const [total, setTotal] = useState(0)
   const [hasMore, setHasMore] = useState(false)
   const [loadingMore, setLoadingMore] = useState(false)
@@ -84,7 +89,7 @@ export default function TimelinePage() {
   const [deleteBusy, setDeleteBusy] = useState(false)
   const [deleteError, setDeleteError] = useState('')
 
-  const yearIdx = Math.max(0, yearValues.indexOf(date.year))
+  const yearIdx = yearValues.indexOf(date.year)
   const monthIdx = date.month - 1
   const totalDays = daysIn(date.year, date.month)
   const dayValues = useMemo(() => Array.from({ length: totalDays }, (_, index) => String(index + 1).padStart(2, '0')), [totalDays])
@@ -195,20 +200,21 @@ export default function TimelinePage() {
     setActiveQuery('')
   }
 
-  // 空状态引导：开始记录 → /capture；按类型快速记录 → /capture?type=slug 预选；随机灵感提示 → toast
+  // 空状态引导：开始记录 → /capture；按类型快速记录 → /capture?type=slug 预选；
+  // 随机灵感提示 → 仅由组件内 .te-prompt 行内淡入展示，不弹 toast
   const handleEmptyRecord = () => navigate('/capture')
   const handleEmptyPickType = (slug, label) => {
     navigate(slug ? `/capture?type=${encodeURIComponent(slug)}` : '/capture')
     showToast(`准备记录「${label}」`)
   }
-  const handleEmptyRandom = () => showToast('已为你生成一条灵感提示')
+  const handleEmptyRandom = () => {}
 
-  // 决策 1：把所选灵感写入创作篮（origin='inspiration'），随后跳转创作篮
+  // 决策 1：把所选灵感写入创作篮（origin='inspiration'），随后交给用户在弹窗里决定下一步
   const handleAddInspirations = async (ids) => {
     try {
       await Promise.all(ids.map((id) => addToBasket({ origin: 'inspiration', inspiration_id: id })))
-      showToast(`已加入创作篮（${ids.length} 条灵感）`)
-      window.setTimeout(() => navigate('/creation-basket'), 500)
+      // 弹窗提供两个按钮（继续添加灵感 / 前往创作篮），不再自动跳转
+      setBasketPrompt({ count: ids.length })
     } catch (err) {
       showToast(`加入失败：${err.message}`)
       throw err
@@ -301,5 +307,25 @@ export default function TimelinePage() {
       onClear={() => setSelected(new Set())}
       onAdd={handleAddInspirations}
     />
+    {basketPrompt && (
+      <div className="tl-basket-snack" role="status" aria-live="polite">
+        <span className="tl-basket-snack__msg">
+          <span className="tl-basket-snack__tick" aria-hidden="true">✓</span>
+          已加入创作篮（{basketPrompt.count} 条灵感）
+        </span>
+        <div className="tl-basket-snack__btns">
+          <button
+            type="button"
+            className="tl-basket-snack__btn tl-basket-snack__btn--ghost"
+            onClick={() => setBasketPrompt(null)}
+          >继续添加灵感</button>
+          <button
+            type="button"
+            className="tl-basket-snack__btn tl-basket-snack__btn--primary"
+            onClick={() => { setBasketPrompt(null); navigate('/creation-basket') }}
+          >前往创作篮 →</button>
+        </div>
+      </div>
+    )}
   </>
 }

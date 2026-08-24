@@ -48,7 +48,7 @@
 .view-switch button.active { background: var(--ink); color: var(--cosmos-deep); }
 
 /* ---------- 白板区 ---------- */
-.board-wrap { max-width: 1280px; margin: 0 auto; padding: 8px 24px 200px; }
+.board-wrap { max-width: 1280px; margin: 0 auto; padding: 8px 24px 150px; }
 .board-head {
   display: flex; align-items: center; justify-content: space-between;
   margin: 0 auto 16px; max-width: 1280px;
@@ -145,3 +145,78 @@
 .pagination-state { display: flex; justify-content: center; margin-top: 18px; color: var(--ink-muted); font-size: 13px; }
 .pagination-state .load-more { padding: 8px 18px; border: 1px solid var(--line); border-radius: var(--radius-pill); background: var(--surface); color: var(--ink); cursor: pointer; }
 .pagination-state .load-more:disabled, .icon-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+/* 加入创作篮成功提示 —— 底部轻量级一行提示条（替代原先的整页 Modal） */
+/* 位置：固定在 SelectionBar 正上方，留 12px 间距避免遮挡；z-index 略高于 SelectionBar */
+/* 关键：用 left:50% + 持续的 translateX(-50%) 居中；任何 keyframe 也必须包含 -50%，
+   否则动画结束后回到 base 的"空 transform"，元素会跳到 left:50% 偏移自身宽度。 */
+.tl-basket-snack {
+  position: fixed;
+  left: 50%;
+  bottom: 96px;
+  z-index: 31;
+  transform: translateX(-50%);
+  display: flex; align-items: center; gap: 14px;
+  max-width: min(640px, calc(100vw - 32px));
+  padding: 8px 8px 8px 16px;
+  background: var(--cosmos-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  box-shadow: 0 8px 28px -10px rgba(0, 0, 0, .55), 0 0 18px -6px rgba(167, 139, 250, .25);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  color: var(--ink);
+  font-size: 13px;
+  animation: tl-basket-snack-in .28s var(--ease);
+}
+.tl-basket-snack__msg {
+  display: inline-flex; align-items: center; gap: 8px;
+  white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+}
+.tl-basket-snack__tick {
+  display: inline-grid; place-items: center;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: rgba(134, 239, 172, .18);
+  color: var(--success, #86efac);
+  font-size: 12px; font-weight: 700; line-height: 1;
+}
+.tl-basket-snack__btns { display: flex; gap: 6px; flex-shrink: 0; }
+.tl-basket-snack__btn {
+  min-height: 32px;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  font-size: 12px; font-weight: 600;
+  cursor: pointer; border: 1px solid transparent;
+  transition: background .2s var(--ease), border-color .2s var(--ease), filter .2s var(--ease), transform .15s var(--ease);
+}
+.tl-basket-snack__btn:active { transform: translateY(1px); }
+.tl-basket-snack__btn--ghost {
+  background: transparent;
+  border-color: var(--line);
+  color: var(--ink-soft);
+}
+.tl-basket-snack__btn--ghost:hover {
+  background: rgba(255, 255, 255, .06);
+  border-color: rgba(255, 255, 255, .2);
+  color: var(--ink);
+}
+.tl-basket-snack__btn--primary {
+  background: linear-gradient(135deg, var(--nebula-violet), var(--nebula-rose));
+  color: var(--cosmos-deep);
+  border-color: rgba(167, 139, 250, .45);
+}
+.tl-basket-snack__btn--primary:hover { filter: brightness(1.08); }
+@keyframes tl-basket-snack-in {
+  from { opacity: 0; transform: translate(-50%, 16px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+@media (max-width: 720px) {
+  /* SelectionBar 在移动端 bottom:16px + padding ~44px → 顶部约 64px；提示条放 80px 之上 */
+  .tl-basket-snack { bottom: 80px; padding: 8px 6px 8px 12px; gap: 8px; max-width: calc(100vw - 24px); }
+  .tl-basket-snack__msg { font-size: 12px; }
+  .tl-basket-snack__btn { font-size: 12px; padding: 6px 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tl-basket-snack { animation: none; }
+}

@@ -23,7 +23,7 @@ router.get('/', async (req, res, next) => {
   try {
     const ws = req.workspaceId
     const insp = await query(
-      `SELECT bi.id AS basket_item_id, i.id AS inspiration_id, i.title, i.text_raw, t.label AS type_label, t.color_token, i.recorded_at
+      `SELECT bi.id AS basket_item_id, i.id AS inspiration_id, i.title, i.text_raw, t.label AS type_label, t.slug AS type_slug, t.color_token, i.recorded_at, bi.added_at
        FROM creation_basket_items bi
        JOIN inspirations i ON i.id = bi.inspiration_id
        LEFT JOIN inspiration_types t ON t.id = i.type_id
@@ -47,8 +47,10 @@ router.get('/', async (req, res, next) => {
       title: row.title,
       text: row.text_raw,
       type: row.type_label || '先不分类',
+      type_slug: row.type_slug || null,
       color_token: row.color_token || '--ink-muted',
       time: formatTime(row.recorded_at),
+      recorded_at: row.recorded_at,
       added_at: row.added_at,
     }))
     const hotspots = hs.rows.map((row) => ({

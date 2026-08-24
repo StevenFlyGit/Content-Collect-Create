@@ -740,7 +740,7 @@ export default function CapturePage() {
         )}
       </form>
       <div className="dropzone-hint reveal d2">提示：图片单个最大 20MB；音频最长 1 分钟。点击「保存草稿」临时保存到当前浏览器中，点击「提交灵感」上传云端永久保存。</div>
-      {note && <div className="capture-note" role="status">{note}</div>}
+      {note && <div className={`capture-note ${status === 'error' ? 'capture-note--error' : 'capture-note--success'}`} role="status">{note}</div>}
     </main>
     <div className="toolbar" role="toolbar" aria-label="记录工具栏"><div className="toolbar-inner"><ModeToolbar mode={mode} onModeChange={handleModeChange} onFileSelected={handleFileSelected} disabled={submitting} /><div className="action-row"><TypeSelect valueId={typeId} valueLabel={type} types={types} onChange={onTypeChange} onCreate={createCustomType} onTypesChange={setTypes} onArchivedActive={handleArchivedActiveType} disabled={submitting} /><button className="secondary" type="button" onClick={() => saveDraftNow('manual')} disabled={submitting}>保存草稿</button><button className="primary" type="submit" form="editorForm" disabled={submitting}>{submitting ? '提交中…' : '提交灵感'}</button></div></div></div>
     {overlay && <MediaCaptureOverlay mode={overlay} onCancel={() => setOverlay(null)} onCaptured={handleCaptured} />}
