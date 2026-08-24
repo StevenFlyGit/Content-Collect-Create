@@ -10,6 +10,8 @@ import NebulaView from '../components/NebulaView.jsx'
 import SelectionBar from '../components/SelectionBar.jsx'
 import CosmosBackground from '../components/CosmosBackground.jsx'
 import { deleteInspiration, getInspirationTypes, listInspirations, saveDailyBoard, searchInspirations } from '../lib/api.js'
+import { addToBasket } from '../lib/hotspots.js'
+import { showToast } from '../lib/toast.js'
 import './TimelinePage.css'
 
 const today = new Date()
@@ -192,6 +194,18 @@ export default function TimelinePage() {
     setActiveQuery('')
   }
 
+  // 决策 1：把所选灵感写入创作篮（origin='inspiration'），随后跳转创作篮
+  const handleAddInspirations = async (ids) => {
+    try {
+      await Promise.all(ids.map((id) => addToBasket({ origin: 'inspiration', inspiration_id: id })))
+      showToast(`已加入创作篮（${ids.length} 条灵感）`)
+      window.setTimeout(() => navigate('/creation-basket'), 500)
+    } catch (err) {
+      showToast(`加入失败：${err.message}`)
+      throw err
+    }
+  }
+
   return <>
     <CosmosBackground variant="timeline" />
     <TopNav variant="timeline" title="灵感库" backTo="/" right={<>
@@ -247,6 +261,11 @@ export default function TimelinePage() {
         }}
       />
     )}
-    <SelectionBar count={selected.size} onClear={() => setSelected(new Set())} />
+    <SelectionBar
+      count={selected.size}
+      selected={selected}
+      onClear={() => setSelected(new Set())}
+      onAdd={handleAddInspirations}
+    />
   </>
 }

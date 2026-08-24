@@ -1,5 +1,7 @@
+import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import Icon from './Icon.jsx'
+import { getBasket } from '../lib/hotspots.js'
 import './TopNav.css'
 
 /**
@@ -7,14 +9,28 @@ import './TopNav.css'
  */
 export default function TopNav({ variant = 'home', title, backTo = '/', backLabel = '返回', right = null }) {
   const { pathname } = useLocation()
+  const [basketTotal, setBasketTotal] = useState(0)
+
+  // 创作篮数量角标：进入任意页面时拉取一次，导航切换即随页面重挂载刷新
+  useEffect(() => {
+    let active = true
+    getBasket()
+      .then((r) => {
+        if (!active) return
+        const d = r.data || {}
+        setBasketTotal((d.inspirations?.length || 0) + (d.hotspots?.length || 0))
+      })
+      .catch(() => {})
+    return () => { active = false }
+  }, [])
 
   if (variant === 'home') {
     const links = [
       { to: '/', label: '工作台' },
       { to: '/capture', label: '记录' },
       { to: '/timeline', label: '灵感库' },
-      { to: '#', label: '热点' },
-      { to: '#', label: '项目' },
+      { to: '/hotspots', label: '热点' },
+      { to: '/creation-basket', label: '创作篮', badge: true },
     ]
     return (
       <nav className="nav">
@@ -31,6 +47,7 @@ export default function TopNav({ variant = 'home', title, backTo = '/', backLabe
                 className={`nav-link${l.to !== '#' && pathname === l.to ? ' active' : ''}`}
               >
                 {l.label}
+                {l.badge && basketTotal > 0 && <span className="badge">{basketTotal}</span>}
               </Link>
             ))}
             <span className="avatar" title="St">S</span>

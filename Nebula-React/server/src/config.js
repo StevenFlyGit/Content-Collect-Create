@@ -22,6 +22,12 @@ export const config = {
   presignTtl: Number(required('PRESIGN_TTL_SECONDS', '300')),
   pendingAssetTtlMinutes: Number(required('PENDING_ASSET_TTL_MINUTES', '30')),
   cleanupIntervalSeconds: Number(required('CLEANUP_INTERVAL_SECONDS', '300')),
+  // AIHOT 上游代理配置（复刻 Code-10 极薄代理）
+  aihotUpstreamBase: required('AIHOT_UPSTREAM_BASE', 'https://aihot.virxact.com'),
+  aihotApiPrefix: required('AIHOT_API_PREFIX', '/api/v1'),
+  aihotMinPollInterval: Number(required('AIHOT_MIN_POLL_INTERVAL', '60')),
+  aihotTimeoutMs: Number(required('AIHOT_TIMEOUT_MS', '20000')),
+  aihotUserAgent: required('AIHOT_USER_AGENT', 'nebula-inspiration-api/0.1'),
   oss: {
     region: required('OSS_REGION'),
     endpoint: required('OSS_ENDPOINT'),

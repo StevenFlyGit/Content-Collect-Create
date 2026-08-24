@@ -49,6 +49,7 @@
 }
 .nav-link:hover { color: var(--ink-soft); background: var(--surface); }
 .nav-link.active { color: var(--ink); background: var(--surface-strong); border: 1px solid var(--line); }
+.nav-link .badge { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 5px; margin-left: 6px; border-radius: var(--radius-pill); background: var(--nebula-violet); color: #1a1430; font-size: 11px; font-weight: 700; }
 .avatar {
   width: 36px; height: 36px; border-radius: 50%;
   background: linear-gradient(135deg, var(--nebula-rose), var(--nebula-amber));

@@ -102,6 +102,11 @@ img.icon {
   }
 }
 
+/* ---------- 全局 Toast（热点页 / 创作篮页共用） ---------- */
+.toast{position:fixed;left:50%;bottom:96px;transform:translate(-50%,20px);z-index:80;display:flex;align-items:center;gap:8px;padding:11px 20px;border-radius:var(--radius-pill);background:rgba(22,20,42,.95);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);color:var(--ink);font-size:13.5px;box-shadow:var(--shadow-lift);opacity:0;pointer-events:none;transition:opacity .3s var(--ease),transform .3s var(--ease)}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast .tick{color:var(--success);font-weight:800}
+
 /* scheme-B 页面背景差异：工作台有顶部光弧，记录页与灵感库使用各自的静态光晕 */
 .cosmos-home {
   background:
