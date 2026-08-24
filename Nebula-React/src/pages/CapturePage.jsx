@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { createPortal } from 'react-dom'
 import TopNav from '../components/TopNav.jsx'
 import ModeToolbar from '../components/ModeToolbar.jsx'
@@ -29,6 +30,7 @@ const localDateStamp = (value) => {
 }
 
 export default function CapturePage() {
+  const [searchParams] = useSearchParams()
   const [draftId, setDraftId] = useState(() => newId())
   const [recordedAt, setRecordedAt] = useState(() => new Date().toISOString())
   const [mode, setMode] = useState('image')
@@ -130,6 +132,19 @@ export default function CapturePage() {
     getInspirationTypes().then((result) => { if (active) setTypes(result.data || []) }).catch(() => {})
     return () => { active = false }
   }, [])
+
+  // 空状态「按类型快速记录」入口：从 /capture?type=slug 直达并预选灵感类型。
+  // 放在 hydrated 之后执行，避免覆盖本地草稿恢复出的类型；slug 缺失或不匹配则不做处理。
+  const presetType = searchParams.get('type')
+  useEffect(() => {
+    if (!presetType || !hydrated || !types.length) return
+    const matched = types.find((item) => item.slug === presetType || item.id === presetType || item.label === presetType)
+    if (matched) {
+      setTypeId(matched.id || '')
+      setType(matched.label)
+      setTypeIssue('')
+    }
+  }, [presetType, hydrated, types])
 
   useEffect(() => {
     if (!types.length) return

@@ -92,6 +92,14 @@
   pointer-events: none;
 }
 
+/* 空状态底板：去掉内边距，让 .te-nebula 背景层贴边铺满整个底板（含四边四角）；
+   内容由 TimelineEmptyState 内部的 .te-empty 居中。 */
+.board--empty {
+  padding: 0;
+  display: grid;
+  place-items: center;
+}
+
 /* 缩略地图 */
 .thumb-map {
   display: none;

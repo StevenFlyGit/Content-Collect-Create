@@ -7,6 +7,7 @@ import InspirationSticky from '../components/InspirationSticky.jsx'
 import InspirationDetailDrawer from '../components/InspirationDetailDrawer.jsx'
 import InspirationDeleteConfirmModal, { DELETE_MESSAGES } from '../components/InspirationDeleteConfirmModal.jsx'
 import NebulaView from '../components/NebulaView.jsx'
+import TimelineEmptyState from '../components/TimelineEmptyState.jsx'
 import SelectionBar from '../components/SelectionBar.jsx'
 import CosmosBackground from '../components/CosmosBackground.jsx'
 import { deleteInspiration, getInspirationTypes, listInspirations, saveDailyBoard, searchInspirations } from '../lib/api.js'
@@ -194,6 +195,14 @@ export default function TimelinePage() {
     setActiveQuery('')
   }
 
+  // 空状态引导：开始记录 → /capture；按类型快速记录 → /capture?type=slug 预选；随机灵感提示 → toast
+  const handleEmptyRecord = () => navigate('/capture')
+  const handleEmptyPickType = (slug, label) => {
+    navigate(slug ? `/capture?type=${encodeURIComponent(slug)}` : '/capture')
+    showToast(`准备记录「${label}」`)
+  }
+  const handleEmptyRandom = () => showToast('已为你生成一条灵感提示')
+
   // 决策 1：把所选灵感写入创作篮（origin='inspiration'），随后跳转创作篮
   const handleAddInspirations = async (ids) => {
     try {
@@ -233,9 +242,34 @@ export default function TimelinePage() {
       <header className="board-head"><div className="board-title"><strong>{date.month} 月 {date.day} 日</strong> 白板 · 已加载 {items.length}/{total} 条灵感</div><div className="board-actions"><button type="button" className={`icon-btn${boardDirty ? ' active' : ''}`} title="保存布局" aria-label="保存布局" onClick={saveBoard} disabled={savingBoard || !boardDirty}>{savingBoard ? '…' : '⌘'}</button></div></header>
       {state === 'loading' && <div className="empty">正在加载…</div>}
       {state === 'error' && <div className="empty">加载失败：{loadError}。<button type="button" onClick={() => loadPage({ targetPage: 1 })}>重试</button></div>}
-      {state === 'ready' && !items.length && <div className="empty">{activeQuery || filter ? '当前搜索或筛选没有结果。' : '这一天还没有已提交灵感。'}</div>}
-      <div className="board" style={{ display: view === 'board' ? 'block' : 'none', minHeight: boardHeight }}>{items.map((sticky) => <InspirationSticky key={sticky.id} data={sticky} selected={selected.has(sticky.id)} onToggle={() => toggle(sticky.id)} onMove={(position) => moveSticky(sticky.id, position)} onView={(id) => setDetailId(id)} onEdit={(id) => setEditId(id)} onDelete={(id) => { setDeleteTarget(id); setDeleteError('') }} />)}</div>
-      {view === 'nebula' && <NebulaView clusters={clusters} selected={selected} onToggle={toggle} />}
+      {/* 空状态：搜索/筛选无结果 → 保留原占位文案；当天无灵感 → 方案 B「星云初生」 */}
+      {state === 'ready' && !items.length && (activeQuery || filter) && (
+        <div className="empty">当前搜索或筛选没有结果。</div>
+      )}
+      {state === 'ready' && !items.length && !activeQuery && !filter && view === 'board' && (
+        <div className="board board--empty" style={{ minHeight: boardHeight }}>
+          <TimelineEmptyState
+            view="board"
+            types={types.map((type) => ({ ...type, slug: type.slug || type.id || type.label }))}
+            onRecord={handleEmptyRecord}
+            onPickType={handleEmptyPickType}
+            onRandom={handleEmptyRandom}
+          />
+        </div>
+      )}
+      {state === 'ready' && !items.length && !activeQuery && !filter && view === 'nebula' && (
+        <div className="board board--empty" style={{ minHeight: boardHeight }}>
+          <TimelineEmptyState
+            view="nebula"
+            types={types.map((type) => ({ ...type, slug: type.slug || type.id || type.label }))}
+            onRecord={handleEmptyRecord}
+            onPickType={handleEmptyPickType}
+            onRandom={handleEmptyRandom}
+          />
+        </div>
+      )}
+      <div className="board" style={{ display: view === 'board' && items.length ? 'block' : 'none', minHeight: boardHeight }}>{items.map((sticky) => <InspirationSticky key={sticky.id} data={sticky} selected={selected.has(sticky.id)} onToggle={() => toggle(sticky.id)} onMove={(position) => moveSticky(sticky.id, position)} onView={(id) => setDetailId(id)} onEdit={(id) => setEditId(id)} onDelete={(id) => { setDeleteTarget(id); setDeleteError('') }} />)}</div>
+      {view === 'nebula' && items.length > 0 && <NebulaView clusters={clusters} selected={selected} onToggle={toggle} />}
       {state === 'ready' && items.length > 0 && <div className="pagination-state">{hasMore ? <button type="button" className="q load-more" onClick={() => loadPage({ targetPage: page + 1, append: true })} disabled={loadingMore}>{loadingMore ? '加载中…' : '加载更多'}</button> : <span>已加载全部 {total} 条灵感</span>}</div>}
       <div className="thumb-map" aria-hidden="true" />
     </section>
