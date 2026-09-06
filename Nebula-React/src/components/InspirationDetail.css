@@ -112,6 +112,37 @@
 .edit-att-del:hover { background: rgba(252, 165, 165, .12); }
 .edit-att-del:disabled { opacity: .6; cursor: wait; }
 
+/* 编辑态：添加素材面板（选图 / 选音频 / 拍照 / 录音） */
+.edit-att-add { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.edit-att-add-btn {
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--line-soft);
+  background: var(--surface-strong);
+  color: var(--ink-soft);
+  font-size: 12px; cursor: pointer;
+  transition: color .2s var(--ease), border-color .2s var(--ease), background-color .2s var(--ease);
+}
+.edit-att-add-btn:hover { color: var(--ink); border-color: rgba(167, 139, 250, .45); background: rgba(167, 139, 250, .1); }
+.edit-att-add-btn:disabled { opacity: .6; cursor: not-allowed; }
+.edit-att-hint { font-size: 11px; color: var(--ink-muted); line-height: 1.6; margin: 6px 0 0; }
+.edit-att-notice { font-size: 12px; color: var(--nebula-mint); margin: 6px 0 0; }
+
+/* 本次新增、尚未上传的本地附件 */
+.edit-att--new {
+  border: 1px dashed rgba(167, 139, 250, .35);
+  border-radius: 10px; padding: 8px;
+  background: rgba(167, 139, 250, .06);
+}
+.edit-att-name { font-size: 12px; color: var(--ink-soft); word-break: break-all; }
+.edit-att-status {
+  flex: none; align-self: flex-start;
+  font-size: 11px; padding: 2px 8px; border-radius: 999px;
+  background: var(--surface-strong); color: var(--ink-muted);
+  border: 1px solid var(--line-soft);
+}
+.edit-att-status.failed { color: var(--danger); border-color: rgba(252, 165, 165, .4); }
+
 @media (max-width: 720px) {
   .detail-overlay { align-items: flex-end; justify-content: center; }
   .detail-panel { width: 100%; max-height: 92vh; border: 0; border-top: 1px solid var(--line); border-radius: 18px 18px 0 0; }

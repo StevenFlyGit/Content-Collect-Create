@@ -2,6 +2,14 @@ import { useRef, useState } from 'react'
 import { getAssetAccessUrl } from '../lib/api.js'
 import './InspirationSticky.css'
 
+/**
+ * 卡片层级上限。卡片是 .board 内的绝对定位元素，与页面级固定 UI 同处根层叠上下文；
+ * TopNav / SelectionBar 为 30、加入创作篮提示条为 31，卡片必须始终低于它们，
+ * 否则选中置顶时会盖住顶部导航和底部操作栏。因此卡片组最高可用层级为 29。
+ */
+const CARD_Z_TOP = 29
+const CARD_Z_HOVER = 28
+
 function AssetPreview({ attachment }) {
   const [url, setUrl] = useState(attachment.preview_url || '')
   const [refreshing, setRefreshing] = useState(false)
@@ -47,6 +55,7 @@ export default function InspirationSticky({ data, selected, onToggle, onMove, on
   const dragRef = useRef(null)
   const clickTimerRef = useRef(null)
   const position = data.position || { x: 0, y: 0, z: 1, rotation: 0 }
+  const zIndexBase = Number.isFinite(position.z) ? position.z : 1
 
   const stop = (event) => event.stopPropagation()
 
@@ -111,7 +120,10 @@ export default function InspirationSticky({ data, selected, onToggle, onMove, on
       aria-roledescription="灵感卡片"
       aria-pressed={selected}
       aria-label={`灵感 ${data.id}：${data.type}`}
-      style={{ left: position.x, top: position.y, zIndex: position.z, '--sticky-rotation': `${position.rotation}deg` }}
+      // z-index 由 inline style 写入，会压过 CSS 里同属性的 :hover / :active 规则，
+      // 因此置顶档位必须在这里算好：选中 → 组内最高层 29；未选中 → 沿用白板布局记录的 z，
+      // 但夹到 27 以内，为 hover(28) 与选中(29) 留出置顶空间。
+      style={{ left: position.x, top: position.y, zIndex: selected ? CARD_Z_TOP : Math.min(zIndexBase, CARD_Z_HOVER - 1), '--sticky-rotation': `${position.rotation}deg` }}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={(event) => handlePointerEnd(event)}

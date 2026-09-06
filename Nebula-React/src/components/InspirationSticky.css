@@ -19,13 +19,17 @@
   transform: translateY(-3px) rotate(0deg) !important;
   box-shadow: 0 0 0 1px rgba(167, 139, 250, .5), 0 20px 40px -8px rgba(167, 139, 250, .3);
   border-color: rgba(167, 139, 250, .4);
-  z-index: 2;
+  /* 需 !important：卡片的 z-index 由 inline style 写入，普通 CSS 规则压不过它 */
+  z-index: 28 !important;
 }
 .sticky.selected {
   border-color: var(--nebula-violet);
   box-shadow: 0 0 0 1px var(--nebula-violet), 0 0 24px -4px var(--nebula-violet), var(--shadow-lift);
-  z-index: 3;
+  z-index: 29 !important;
 }
+/* 拖动中同样置顶，避免拖过其它已保存卡片时被盖住；
+   与 .selected 同值，特异性也相同，靠声明顺序保证两者互不打架 */
+.sticky:active { z-index: 29 !important; }
 .sticky .head {
   display: flex; align-items: center; gap: 6px;
   font-size: 11px; color: var(--ink-muted);
