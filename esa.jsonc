@@ -1,0 +1,12 @@
+{
+  // ESA Pages 构建（仓库根执行）：
+  //   构建 由根 package.json 的 build script 转发到 Nebula-React 子项目（内部 npm install + vite build）
+  //   静态产物 在 Nebula-React/dist；VITE_API_BASE 由该子目录 .env.production 注入（直连 FC）
+  "name": "content-collect-create-pages",
+  "installCommand": "npm install",
+  "buildCommand": "npm run build",
+  "assets": {
+    "directory": "./Content-Collect-Create/Nebula-React/dist",
+    "notFoundStrategy": "singlePageApplication"
+  }
+}
