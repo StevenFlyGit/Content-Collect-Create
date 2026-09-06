@@ -1,0 +1,56 @@
+/* ============================================================
+   创作空间页 · CreationSpacePage
+   视觉严格对照 docs/creation-studio/prototype.html（space-* 段）
+   ============================================================ */
+/* position:relative + z-index:1：抬到 .cosmos 背景（fixed z-0）之上，否则内容被不透明背景盖住呈空白页 */
+.space-wrap { position: relative; z-index: 1; max-width: 1180px; margin: 0 auto; padding: 24px 24px 100px; }
+.space-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; margin-bottom: 28px; flex-wrap: wrap; }
+.space-kicker { color: var(--nebula-violet); font-size: 12px; letter-spacing: 2.4px; text-transform: uppercase; margin: 0 0 8px; }
+.space-title { font-size: 34px; line-height: 1.2; margin: 0; letter-spacing: .3px; }
+.space-sub { color: var(--ink-muted); margin: 10px 0 0; font-size: 15px; }
+
+.space-empty { position: relative; min-height: 560px; overflow: hidden; display: grid; place-items: center; padding: 80px 24px; border: 1px solid var(--line); border-radius: 28px; background: radial-gradient(circle at 50% 30%, rgba(167, 139, 250, .13), transparent 34%), linear-gradient(145deg, rgba(255, 255, 255, .06), rgba(255, 255, 255, .025)); box-shadow: var(--shadow-lift); text-align: center; }
+.space-empty::before, .space-empty::after { content: ""; position: absolute; border-radius: 50%; pointer-events: none; }
+.space-empty::before { width: 480px; height: 480px; border: 1px solid rgba(167, 139, 250, .18); box-shadow: 0 0 90px rgba(167, 139, 250, .12), inset 0 0 80px rgba(125, 211, 252, .06); animation: spaceOrbit 18s linear infinite; }
+.space-empty::after { width: 720px; height: 720px; border: 1px dashed rgba(125, 211, 252, .12); animation: spaceOrbitReverse 30s linear infinite; }
+.space-empty-content { position: relative; z-index: 1; max-width: 520px; }
+.space-orb { width: 96px; height: 96px; margin: 0 auto 24px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #f5f3ed 0 3%, var(--nebula-violet) 14%, rgba(167, 139, 250, .35) 48%, transparent 70%); box-shadow: 0 0 20px rgba(167, 139, 250, .58), 0 0 80px rgba(125, 211, 252, .22); animation: spacePulse 3.6s ease-in-out infinite; }
+.space-empty h2 { margin: 0; font-size: 28px; }
+.space-empty p { margin: 12px auto 26px; color: var(--ink-muted); font-size: 15px; line-height: 1.8; max-width: 400px; }
+
+.space-project { position: relative; overflow: hidden; border: 1px solid var(--line); border-radius: 24px; padding: 30px; background: linear-gradient(135deg, rgba(167, 139, 250, .12), rgba(125, 211, 252, .06) 48%, rgba(255, 255, 255, .04)); box-shadow: var(--shadow-lift); }
+.space-project::after { content: ""; position: absolute; width: 280px; height: 280px; right: -80px; top: -100px; border-radius: 50%; background: radial-gradient(circle, rgba(249, 168, 212, .2), transparent 66%); animation: spaceFloat 9s ease-in-out infinite; pointer-events: none; }
+.space-project-head { position: relative; z-index: 1; display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
+.space-project h2 { margin: 0; font-size: 24px; }
+.space-project .desc { color: var(--ink-muted); margin: 8px 0 0; }
+.space-project-meta { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: 8px; margin: 24px 0; }
+.space-project-actions { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.space-platforms { display: flex; flex-wrap: wrap; gap: 8px; }
+.space-progress { position: relative; z-index: 1; height: 5px; overflow: hidden; border-radius: 99px; background: rgba(255, 255, 255, .08); margin: 24px 0 0; }
+.space-progress span { display: block; height: 100%; width: 42%; border-radius: inherit; background: linear-gradient(90deg, var(--nebula-violet), var(--nebula-blue), var(--nebula-rose)); animation: spaceProgress 2.4s ease-in-out infinite; }
+
+.space-pill { font-size: 12px; border: 1px solid var(--line); border-radius: 999px; padding: 4px 11px; color: var(--ink-muted); }
+.space-pill.violet { color: var(--nebula-violet); background: rgba(167, 139, 250, .1); border-color: var(--line); }
+.space-pill.muted { opacity: .75; }
+.space-small { font-size: 12px; color: var(--ink-muted); }
+.space-btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 9px 17px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface-glass); font-size: 14px; min-height: 40px; cursor: pointer; color: var(--ink); transition: all .2s var(--ease); }
+.space-btn:hover { filter: brightness(1.12); }
+.space-btn.primary { background: linear-gradient(135deg, var(--nebula-violet), var(--nebula-rose)); color: var(--cosmos-deep); font-weight: 600; border-color: transparent; }
+.space-loading { padding: 80px 20px; text-align: center; color: var(--ink-muted); }
+
+@keyframes spaceOrbit { to { transform: rotate(360deg); } }
+@keyframes spaceOrbitReverse { to { transform: rotate(-360deg); } }
+@keyframes spacePulse { 0%, 100% { transform: scale(.92); opacity: .75; } 50% { transform: scale(1.08); opacity: 1; } }
+@keyframes spaceFloat { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(-28px, 24px); } }
+@keyframes spaceProgress { 0% { transform: translateX(-120%); } 100% { transform: translateX(260%); } }
+
+@media (max-width: 720px) {
+  .space-wrap { padding: 34px 16px 80px; }
+  .space-head { align-items: flex-start; flex-direction: column; }
+  .space-title { font-size: 28px; }
+  .space-empty { min-height: 500px; padding: 56px 20px; }
+  .space-empty::before { width: 330px; height: 330px; }
+  .space-empty::after { width: 500px; height: 500px; }
+  .space-project { padding: 22px; }
+  .space-project-head { flex-direction: column; }
+}

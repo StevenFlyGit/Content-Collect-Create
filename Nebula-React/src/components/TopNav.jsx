@@ -30,6 +30,7 @@ export default function TopNav({ variant = 'home', title, backTo = '/', backLabe
       { to: '/capture', label: '记录' },
       { to: '/timeline', label: '灵感库' },
       { to: '/hotspots', label: '热点' },
+      { to: '/creation-space', label: '创作空间', prefixMatch: '/creation' },
       { to: '/creation-basket', label: '创作篮', badge: true },
     ]
     return (
@@ -44,7 +45,7 @@ export default function TopNav({ variant = 'home', title, backTo = '/', backLabe
               <Link
                 key={l.label}
                 to={l.to}
-                className={`nav-link${l.to !== '#' && pathname === l.to ? ' active' : ''}`}
+                className={`nav-link${(l.to !== '#' && (pathname === l.to || (l.prefixMatch && pathname.startsWith(l.prefixMatch)))) ? ' active' : ''}`}
               >
                 {l.label}
                 {l.badge && basketTotal > 0 && <span className="badge">{basketTotal}</span>}

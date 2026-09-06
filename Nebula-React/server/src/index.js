@@ -13,6 +13,7 @@ import boardRoutes from './routes/boards.js'
 import hotspotRoutes from './routes/hotspots.js'
 import snapshotRoutes from './routes/snapshot.js'
 import basketRoutes from './routes/creationBasket.js'
+import creationLlmRoutes from './routes/creationLlm.js'
 import { startCleanupScheduler } from './cleanup.js'
 import { workspaceRateLimit } from './rateLimit.js'
 
@@ -53,6 +54,7 @@ app.use('/api/daily-boards', boardRoutes)
 app.use('/api/hotspots', hotspotRoutes)
 app.use('/api/hotspot-snapshots', snapshotRoutes)
 app.use('/api/creation-basket', basketRoutes)
+app.use('/api/llm/creation', creationLlmRoutes)
 app.use((req, res) => res.status(404).json({ error: '接口不存在', code: 'NOT_FOUND', request_id: req.requestId }))
 app.use((error, req, res, next) => errorResponse(res, error, req))
 

@@ -28,6 +28,14 @@ export const config = {
   aihotMinPollInterval: Number(required('AIHOT_MIN_POLL_INTERVAL', '60')),
   aihotTimeoutMs: Number(required('AIHOT_TIMEOUT_MS', '20000')),
   aihotUserAgent: required('AIHOT_USER_AGENT', 'nebula-inspiration-api/0.1'),
+  // 无状态创作 LLM 代理（backend-design.md §6）：未配置密钥时走确定性本地回退
+  llm: {
+    baseUrl: required('LLM_BASE_URL', 'https://api.openai.com/v1'),
+    apiKey: required('LLM_API_KEY', ''),
+    model: required('LLM_MODEL', 'gpt-4o-mini'),
+    rateLimitWindowMs: Number(required('LLM_RATE_LIMIT_WINDOW_MS', '60000')),
+    rateLimitMax: Number(required('LLM_RATE_LIMIT_MAX', '20')),
+  },
   oss: {
     region: required('OSS_REGION'),
     endpoint: required('OSS_ENDPOINT'),

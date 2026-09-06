@@ -1,0 +1,591 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Nebula · 创作篮与内容创作原型</title><style>/* ============================================================
+   Nebula Edition · 设计令牌（Design Tokens）
+   ------------------------------------------------------------
+   本文件是「设计侧 → 工程侧」的唯一变量来源。
+   变量名与设计稿（scheme-B-nebula/*.html 的 :root）完全一致，
+   组件内可直接粘贴 var(--nebula-violet) 等，零翻译、零映射。
+   ============================================================ */
+:root {
+  /* 宇宙底色 */
+  --cosmos-deep: #07060f;
+  --cosmos: #0e0c1d;
+  --cosmos-2: #16142a;
+
+  /* 玻璃表面 */
+  --surface: rgba(255, 255, 255, 0.04);
+  --surface-glass: rgba(255, 255, 255, 0.06);
+  --surface-strong: rgba(255, 255, 255, 0.09);
+
+  /* 描边 */
+  --line: rgba(255, 255, 255, 0.10);
+  --line-soft: rgba(255, 255, 255, 0.06);
+
+  /* 文本 */
+  --ink: #f5f3ed;
+  --ink-soft: #d8d4c8;
+  --ink-muted: #8d8879;
+
+  /* 星云色系（类型色 + 强调） */
+  --nebula-violet: #a78bfa;
+  --nebula-blue:   #7dd3fc;
+  --nebula-rose:   #f9a8d4;
+  --nebula-mint:   #86efac;
+  --nebula-amber:  #fcd34d;
+
+  /* 语义色 */
+  /* 键盘焦点环：品牌紫（取代默认浏览器蓝，避免误以为是系统蓝框） */
+  --focus: #a78bfa;
+  --focus-soft: rgba(167, 139, 250, .35);
+  --success: #86efac;
+  --danger: #fca5a5;
+
+  /* 圆角 */
+  --radius-panel: 20px;
+  --radius-card: 14px;
+  --radius-pill: 999px;
+
+  /* 阴影 */
+  --shadow-soft: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -12px rgba(0,0,0,.5);
+  --shadow-lift: 0 2px 4px rgba(0,0,0,.4), 0 24px 48px -16px rgba(0,0,0,.6);
+
+  /* 缓动 */
+  --ease: cubic-bezier(.2,.7,.3,1);
+}
+
+/* ============================================================
+   基础样式 / 重置 / 共享背景与动效
+   ============================================================ */
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0; padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+  font-size: 16px; line-height: 1.7;
+  color: var(--ink);
+  background: var(--cosmos-deep);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  overscroll-behavior: none;
+}
+
+button { font: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+input, textarea { font: inherit; color: inherit; }
+a { color: inherit; text-decoration: none; }
+
+/* ---------- 图标兜底（所有 <Icon> 渲染出的 <img> 都受此约束） ---------- */
+img.icon {
+  display: inline-block;
+  vertical-align: middle;
+  user-select: none;
+  -webkit-user-drag: none;
+  pointer-events: none;
+  /* 兜底：防止 SVG 自带 width/height 属性把元素撑大 */
+  max-width: 100%;
+  height: auto;
+}
+
+/* ---------- 星云背景（共享，可整站复用） ---------- */
+.cosmos {
+  position: fixed; inset: 0; z-index: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 10%, rgba(167, 139, 250, .22), transparent 60%),
+    radial-gradient(ellipse 60% 60% at 80% 30%, rgba(125, 211, 252, .16), transparent 60%),
+    radial-gradient(ellipse 50% 60% at 60% 90%, rgba(249, 168, 212, .14), transparent 60%),
+    radial-gradient(ellipse 60% 40% at 0% 60%, rgba(134, 239, 172, .08), transparent 60%),
+    var(--cosmos-deep);
+  overflow: hidden;
+}
+.cosmos::before, .cosmos::after {
+  content: ""; position: absolute; inset: -20%;
+  background:
+    radial-gradient(2px 2px at 20% 30%, rgba(255,255,255,.6), transparent),
+    radial-gradient(1px 1px at 60% 20%, rgba(255,255,255,.4), transparent),
+    radial-gradient(1.5px 1.5px at 80% 60%, rgba(255,255,255,.5), transparent),
+    radial-gradient(1px 1px at 30% 80%, rgba(255,255,255,.35), transparent),
+    radial-gradient(2px 2px at 90% 10%, rgba(255,255,255,.5), transparent),
+    radial-gradient(1px 1px at 10% 50%, rgba(255,255,255,.4), transparent),
+    radial-gradient(1.5px 1.5px at 50% 90%, rgba(255,255,255,.4), transparent),
+    radial-gradient(1px 1px at 70% 70%, rgba(255,255,255,.3), transparent);
+  background-size: 600px 600px;
+  animation: drift 40s linear infinite;
+  pointer-events: none;
+}
+.cosmos::after {
+  background-size: 800px 800px;
+  animation-duration: 60s;
+  animation-direction: reverse;
+  opacity: .6;
+}
+@keyframes drift {
+  from { transform: translate(0, 0); }
+  to   { transform: translate(-60px, -60px); }
+}
+
+/* 顶部光弧 */
+.arc {
+  position: fixed; top: -20%; right: -10%;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(167, 139, 250, .18), transparent 60%);
+  filter: blur(40px);
+  z-index: -1; pointer-events: none;
+  animation: arcFloat 20s ease-in-out infinite;
+}
+@keyframes arcFloat {
+  0%, 100% { transform: translate(0, 0); }
+  50%      { transform: translate(-40px, 30px); }
+}
+
+/* ---------- 入场动效（共享） ---------- */
+.reveal { opacity: 0; transform: translateY(8px); animation: reveal .6s var(--ease) forwards; }
+.reveal.d1 { animation-delay: .08s; }
+.reveal.d2 { animation-delay: .16s; }
+.reveal.d3 { animation-delay: .24s; }
+.reveal.d4 { animation-delay: .32s; }
+.reveal.d5 { animation-delay: .40s; }
+@keyframes reveal { to { opacity: 1; transform: none; } }
+
+/* ---------- 焦点可见（a11y） ---------- */
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+
+/* ---------- 降低动效偏好 ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
+
+/* ---------- 全局 Toast（热点页 / 创作篮页共用） ---------- */
+.toast{position:fixed;left:50%;bottom:96px;transform:translate(-50%,20px);z-index:80;display:flex;align-items:center;gap:8px;padding:11px 20px;border-radius:var(--radius-pill);background:rgba(22,20,42,.95);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);color:var(--ink);font-size:13.5px;box-shadow:var(--shadow-lift);opacity:0;pointer-events:none;transition:opacity .3s var(--ease),transform .3s var(--ease)}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast .tick{color:var(--success);font-weight:800}
+
+/* scheme-B 页面背景差异：工作台有顶部光弧，记录页与灵感库使用各自的静态光晕 */
+.cosmos-home {
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 10%, rgba(167, 139, 250, .22), transparent 60%),
+    radial-gradient(ellipse 60% 60% at 80% 30%, rgba(125, 211, 252, .16), transparent 60%),
+    radial-gradient(ellipse 50% 60% at 60% 90%, rgba(249, 168, 212, .14), transparent 60%),
+    radial-gradient(ellipse 60% 40% at 0% 60%, rgba(134, 239, 172, .08), transparent 60%),
+    var(--cosmos-deep);
+}
+.cosmos-capture {
+  background:
+    radial-gradient(ellipse 70% 50% at 70% 15%, rgba(167, 139, 250, .22), transparent 60%),
+    radial-gradient(ellipse 50% 60% at 20% 70%, rgba(125, 211, 252, .14), transparent 60%),
+    radial-gradient(ellipse 40% 50% at 90% 90%, rgba(249, 168, 212, .10), transparent 60%),
+    var(--cosmos-deep);
+}
+.cosmos-timeline {
+  background:
+    radial-gradient(ellipse 70% 60% at 30% 30%, rgba(167, 139, 250, .25), transparent 60%),
+    radial-gradient(ellipse 60% 50% at 80% 70%, rgba(125, 211, 252, .14), transparent 60%),
+    radial-gradient(ellipse 40% 40% at 50% 90%, rgba(249, 168, 212, .12), transparent 60%),
+    var(--cosmos-deep);
+}
+.cosmos-capture::after, .cosmos-timeline::after { opacity: .5; background-size: 900px 900px; animation-duration: 80s; }
+
+/* ---------- 顶部导航：外层 sticky + 内层居中 ---------- */
+.nav {
+  position: sticky; top: 0; z-index: 30;
+  background: linear-gradient(to bottom, rgba(14, 12, 29, .85), rgba(14, 12, 29, 0));
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.nav.timeline-nav {
+  z-index: 20;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
+}
+/* scheme-B 时间线返回控件保留透明边框，保证其占位高度与原型一致；记录页原型没有该边框。 */
+.timeline-nav .back { border: 1px solid transparent; }
+.nav-inner {
+  max-width: 1280px; margin: 0 auto;
+  padding: 20px 32px;
+  display: flex; align-items: center; gap: 32px;
+}
+.timeline-nav-inner { padding: 16px 24px; gap: 16px; }
+.brand {
+  display: flex; align-items: center; gap: 12px;
+  font-family: "Songti SC", "STSong", "Noto Serif SC", Georgia, serif;
+  font-size: 20px; letter-spacing: 1.5px;
+  color: var(--ink);
+}
+.brand-mark {
+  width: 32px; height: 32px; border-radius: 10px;
+  background: linear-gradient(135deg, var(--nebula-violet), var(--nebula-blue), var(--nebula-rose));
+  position: relative;
+  box-shadow: 0 0 24px rgba(167, 139, 250, .5);
+}
+.brand-mark::after {
+  content: ""; position: absolute; inset: 4px;
+  background: var(--cosmos); border-radius: 7px;
+}
+.brand-mark::before {
+  content: ""; position: absolute; inset: 9px;
+  background: linear-gradient(135deg, var(--nebula-violet), var(--nebula-blue));
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(167, 139, 250, .8);
+}
+.nav-links { display: flex; gap: 4px; align-items: center; }
+.nav-link {
+  padding: 8px 14px; border-radius: var(--radius-pill);
+  color: var(--ink-muted); font-size: 14px;
+  transition: all .2s var(--ease);
+}
+.nav-link:hover { color: var(--ink-soft); background: var(--surface); }
+.nav-link.active { color: var(--ink); background: var(--surface-strong); border: 1px solid var(--line); }
+.nav-link .badge { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 5px; margin-left: 6px; border-radius: var(--radius-pill); background: var(--nebula-violet); color: #1a1430; font-size: 11px; font-weight: 700; }
+.avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--nebula-rose), var(--nebula-amber));
+  display: grid; place-items: center; color: var(--cosmos-deep);
+  font-size: 14px; font-weight: 600;
+  margin-left: 8px;
+  box-shadow: 0 0 16px rgba(249, 168, 212, .3);
+}
+
+/* ---------- 创作空间 ---------- */
+.space-wrap { max-width: 1180px; margin: 0 auto; padding: 56px 24px 100px; }
+.space-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; margin-bottom: 28px; }
+.space-kicker { color: var(--nebula-violet); font-size: 12px; letter-spacing: 2.4px; text-transform: uppercase; margin: 0 0 8px; }
+.space-title { font-size: 34px; line-height: 1.2; margin: 0; letter-spacing: .3px; }
+.space-sub { color: var(--ink-muted); margin: 10px 0 0; font-size: 15px; }
+.space-empty { position: relative; min-height: 560px; overflow: hidden; display: grid; place-items: center; padding: 80px 24px; border: 1px solid var(--line); border-radius: 28px; background: radial-gradient(circle at 50% 30%, rgba(167,139,250,.13), transparent 34%), linear-gradient(145deg, rgba(255,255,255,.06), rgba(255,255,255,.025)); box-shadow: var(--shadow-lift); text-align: center; }
+.space-empty::before, .space-empty::after { content: ""; position: absolute; border-radius: 50%; pointer-events: none; }
+.space-empty::before { width: 480px; height: 480px; border: 1px solid rgba(167,139,250,.18); box-shadow: 0 0 90px rgba(167,139,250,.12), inset 0 0 80px rgba(125,211,252,.06); animation: spaceOrbit 18s linear infinite; }
+.space-empty::after { width: 720px; height: 720px; border: 1px dashed rgba(125,211,252,.12); animation: spaceOrbitReverse 30s linear infinite; }
+.space-empty-content { position: relative; z-index: 1; max-width: 520px; }
+.space-orb { width: 96px; height: 96px; margin: 0 auto 24px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #f5f3ed 0 3%, var(--nebula-violet) 14%, rgba(167,139,250,.35) 48%, transparent 70%); box-shadow: 0 0 20px rgba(167,139,250,.58), 0 0 80px rgba(125,211,252,.22); animation: spacePulse 3.6s ease-in-out infinite; }
+.space-empty h2 { margin: 0; font-size: 28px; }
+.space-empty p { margin: 12px auto 26px; color: var(--ink-muted); font-size: 15px; line-height: 1.8; }
+.space-project { position: relative; overflow: hidden; border: 1px solid var(--line); border-radius: 24px; padding: 30px; background: linear-gradient(135deg, rgba(167,139,250,.12), rgba(125,211,252,.06) 48%, rgba(255,255,255,.04)); box-shadow: var(--shadow-lift); }
+.space-project::after { content: ""; position: absolute; width: 280px; height: 280px; right: -80px; top: -100px; border-radius: 50%; background: radial-gradient(circle, rgba(249,168,212,.2), transparent 66%); animation: spaceFloat 9s ease-in-out infinite; pointer-events: none; }
+.space-project-head { position: relative; z-index: 1; display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
+.space-project h2 { margin: 0; font-size: 24px; }
+.space-project .desc { color: var(--ink-muted); margin: 8px 0 0; }
+.space-project-meta { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: 8px; margin: 24px 0; }
+.space-project-actions { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.space-platforms { display: flex; flex-wrap: wrap; gap: 8px; }
+.space-platforms .pill { border-color: var(--line); }
+.space-progress { position: relative; z-index: 1; height: 5px; overflow: hidden; border-radius: 99px; background: rgba(255,255,255,.08); margin: 24px 0 0; }
+.space-progress span { display: block; height: 100%; width: 42%; border-radius: inherit; background: linear-gradient(90deg, var(--nebula-violet), var(--nebula-blue), var(--nebula-rose)); animation: spaceProgress 2.4s ease-in-out infinite; }
+@keyframes spaceOrbit { to { transform: rotate(360deg); } }
+@keyframes spaceOrbitReverse { to { transform: rotate(-360deg); } }
+@keyframes spacePulse { 0%,100% { transform: scale(.92); opacity: .75; } 50% { transform: scale(1.08); opacity: 1; } }
+@keyframes spaceFloat { 0%,100% { transform: translate(0,0); } 50% { transform: translate(-28px,24px); } }
+@keyframes spaceProgress { 0% { transform: translateX(-120%); } 100% { transform: translateX(260%); } }
+@media (max-width: 720px) {
+  .space-wrap { padding: 34px 16px 80px; }
+  .space-head { align-items: flex-start; flex-direction: column; }
+  .space-title { font-size: 28px; }
+  .space-empty { min-height: 500px; padding: 56px 20px; }
+  .space-empty::before { width: 330px; height: 330px; }
+  .space-empty::after { width: 500px; height: 500px; }
+  .space-project { padding: 22px; }
+  .space-project-head { flex-direction: column; }
+}
+
+/* ---------- 子页面导航 ---------- */
+.topbar {
+  position: sticky; top: 0; z-index: 10;
+  background: linear-gradient(to bottom, rgba(14, 12, 29, .85), rgba(14, 12, 29, 0));
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  border-bottom: 1px solid var(--line);
+}
+.topbar-inner {
+  max-width: 1280px; margin: 0 auto;
+  padding: 16px 24px;
+  display: flex; align-items: center; gap: 16px;
+}
+.back {
+  display: flex; align-items: center; gap: 6px;
+  color: var(--ink-muted); font-size: 14px; padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  transition: all .2s var(--ease);
+  flex-shrink: 0;
+}
+.back img.icon { width: 14px; height: 14px; flex-shrink: 0; }
+.back:hover { color: var(--ink); background: var(--surface); border-color: var(--line); }
+.nav-title, .topbar-title {
+  font-family: "Songti SC", "STSong", "Noto Serif SC", Georgia, serif;
+  font-size: 18px; letter-spacing: 2px;
+  flex: 1; text-align: center;
+}
+.nav-tools { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+.nav-btn {
+  padding: 8px 14px; border-radius: var(--radius-pill);
+  color: var(--ink-soft); font-size: 13px;
+  transition: all .2s var(--ease);
+  display: inline-flex; align-items: center; gap: 6px;
+  border: 1px solid transparent;
+}
+.nav-btn:hover { background: var(--surface); border-color: var(--line); }
+
+.status-chip {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; color: var(--ink-soft);
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  flex-shrink: 0;
+}
+.status-chip .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ink-muted); }
+.status-chip.saving .dot { background: var(--nebula-amber); box-shadow: 0 0 8px var(--nebula-amber); animation: pulse 1.2s infinite; }
+.status-chip.saved  .dot { background: var(--nebula-mint); box-shadow: 0 0 8px var(--nebula-mint); }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
+
+@media (max-width: 960px) {
+  /* 首页原型在窄视口给 nav 外层留出 16px / 20px 空间，内部 .nav-inner 保持桌面内边距。 */
+  .nav:not(.timeline-nav) { padding: 16px 20px; }
+  .nav:not(.timeline-nav) .nav-links .nav-link { display: none; }
+}
+
+@media (max-width: 720px) {
+  .timeline-nav-inner { padding: 12px 16px; gap: 8px; }
+  .topbar-inner { padding: 14px 16px; gap: 8px; }
+  .topbar-title { font-size: 15px; letter-spacing: 1px; }
+  .status-chip { font-size: 11px; padding: 3px 8px; }
+  .nav-tools .nav-btn { display: none; }
+}
+
+
+
+/* ============================================================
+   创作篮页 · CreationBasketPage
+   视觉严格对照原型 nebula-hotspot-creation-basket.html（V4）
+   ============================================================ */
+.basket-wrap { max-width: 1180px; margin: 0 auto; padding: 24px 24px 80px; }
+
+.page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 22px; flex-wrap: wrap; }
+.page-title { font-size: 26px; font-weight: 750; margin: 0; letter-spacing: .3px; }
+.page-sub { color: var(--ink-muted); font-size: 14px; margin-top: 6px; }
+
+/* ---------- 顶部状态条 ---------- */
+.basket-headbar { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 14px 20px; border-radius: var(--radius-panel); background: linear-gradient(135deg, rgba(167, 139, 250, .10), rgba(125, 211, 252, .06)); border: 1px solid var(--line); margin-bottom: 22px; flex-wrap: wrap; }
+.basket-headbar .h-title { font-size: 13.5px; color: var(--ink-muted); display: flex; align-items: center; gap: 10px; }
+.basket-headbar .h-title b { color: var(--ink); font-weight: 700; font-size: 15px; }
+.basket-headbar .h-counters { display: flex; gap: 12px; align-items: center; font-size: 13px; color: var(--ink-muted); flex-wrap: wrap; }
+.basket-headbar .h-pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: var(--radius-pill); background: var(--cosmos-2); border: 1px solid var(--line-soft); }
+.basket-headbar .h-pill b { color: var(--ink); font-weight: 700; }
+.basket-headbar .h-pill[data-col=i] .b-dot { color: var(--nebula-violet); }
+.basket-headbar .h-pill[data-col=h] .b-dot { color: var(--nebula-amber); }
+.basket-headbar .h-clear { font-size: 12.5px; color: var(--ink-muted); background: transparent; border: 1px solid var(--line-soft); padding: 6px 12px; border-radius: var(--radius-pill); cursor: pointer; transition: all .2s var(--ease); display: none; align-items: center; gap: 4px; }
+.basket-headbar .h-clear:hover { color: var(--danger); border-color: rgba(252, 165, 165, .4); }
+.basket-headbar.has-items .h-clear { display: inline-flex; }
+
+/* ---------- 双区并排 ---------- */
+.basket-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: stretch; }
+.basket-col { display: flex; flex-direction: column; gap: 14px; padding: 22px; border-radius: var(--radius-panel); background: var(--surface); border: 1px solid var(--line-soft); box-shadow: var(--shadow-soft); min-height: 640px; }
+.basket-col-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 14px; border-bottom: 1px solid var(--line-soft); flex-wrap: wrap; }
+.basket-col-head h3 { display: flex; align-items: center; gap: 10px; margin: 0; font-size: 18px; font-weight: 700; letter-spacing: .2px; }
+.basket-col-head .count { font-size: 12.5px; font-weight: 600; color: var(--ink-muted); background: var(--cosmos-2); border: 1px solid var(--line-soft); padding: 3px 10px; border-radius: var(--radius-pill); }
+.basket-col-head .ico { width: 34px; height: 34px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; font-size: 18px; background: var(--surface-strong); border: 1px solid var(--line); }
+.basket-col-head h3 .ico[data-col=i] { background: linear-gradient(135deg, rgba(167, 139, 250, .20), rgba(125, 211, 252, .10)); }
+.basket-col-head h3 .ico[data-col=h] { background: linear-gradient(135deg, rgba(252, 211, 77, .20), rgba(249, 168, 212, .10)); }
+.col-actions { display: flex; gap: 8px; flex: none; }
+.col-btn { padding: 6px 12px; border-radius: var(--radius-pill); font-size: 12.5px; font-weight: 600; cursor: pointer; transition: all .2s var(--ease); }
+.col-btn.ghost { background: var(--surface-glass); border: 1px solid var(--line); color: var(--ink-soft); }
+.col-btn.ghost:hover { background: var(--surface-strong); color: var(--ink); border-color: rgba(167, 139, 250, .4); }
+.col-btn.text { background: transparent; border: 1px solid var(--line-soft); color: var(--ink-muted); }
+.col-btn.text:hover:not(:disabled) { color: var(--danger); border-color: rgba(252, 165, 165, .4); }
+.col-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+.basket-list { display: flex; flex-direction: column; gap: 10px; flex: 1; min-height: 0; }
+.basket-list .empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 34px 22px; border: 1px dashed var(--line); border-radius: var(--radius-card); background: rgba(255, 255, 255, .015); color: var(--ink-muted); font-size: 14px; line-height: 1.7; min-height: 260px; }
+.basket-list .empty .big { font-size: 48px; display: block; margin-bottom: 10px; filter: drop-shadow(0 0 18px rgba(167, 139, 250, .35)); }
+.basket-list .empty .ttl { font-size: 16px; color: var(--ink-soft); font-weight: 600; margin-bottom: 8px; }
+.basket-list .empty .desc { font-size: 13px; color: var(--ink-muted); max-width: 360px; margin: 0 auto 16px; line-height: 1.7; }
+.basket-list .empty .cta { display: inline-flex; align-items: center; gap: 6px; }
+
+.basket-tips { padding: 12px 16px; border-radius: var(--radius-card); background: var(--cosmos-2); border: 1px dashed var(--line-soft); min-height: 148px; display: flex; flex-direction: column; }
+.basket-tips h4 { margin: 0 0 8px; font-size: 13px; font-weight: 700; color: var(--ink); display: flex; align-items: center; gap: 6px; }
+.basket-tips h4 small { font-weight: 400; color: var(--ink-muted); font-size: 11.5px; margin-left: 6px; }
+.basket-tips ul { margin: 0; padding-left: 0; list-style: none; color: var(--ink-muted); font-size: 12.5px; line-height: 1.8; display: grid; grid-template-columns: 1fr 1fr; column-gap: 18px; row-gap: 4px; }
+.basket-tips li { display: flex; align-items: center; min-width: 0; }
+.basket-tips li b { color: var(--ink-soft); font-weight: 600; display: inline-flex; align-items: center; gap: 6px; flex: none; }
+.basket-tips li b .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--d, var(--nebula-violet)); box-shadow: 0 0 8px var(--d, var(--nebula-violet)); flex: none; }
+
+/* ---------- 缩略卡 ---------- */
+/* 卡片改为「选择」模式：整卡点击切换选中；× 与「查看」按钮绝对定位，不占 flex 流 */
+.basket-item { position: relative; display: flex; gap: 12px; align-items: flex-start; padding: 14px 40px 40px 16px; border-radius: var(--radius-card); background: var(--surface-glass); border: 1px solid var(--line); box-shadow: var(--shadow-soft); transition: all .25s var(--ease); }
+.basket-item:hover { border-color: rgba(167, 139, 250, .4); transform: translateX(-2px); }
+.bi-ico { width: 36px; height: 36px; border-radius: 10px; flex: none; display: inline-flex; align-items: center; justify-content: center; font-size: 17px; background: var(--surface-strong); border: 1px solid var(--line); }
+.bi-ico .dot { width: 14px; height: 14px; border-radius: 50%; background: var(--d, var(--nebula-violet)); box-shadow: 0 0 12px var(--d, var(--nebula-violet)); }
+.bi-body { flex: 1; min-width: 0; }
+.bi-title { font-size: 14.5px; font-weight: 650; margin: 0 0 4px; color: var(--ink); line-height: 1.45; }
+.bi-meta { font-size: 12px; color: var(--ink-muted); }
+/* × 移除按钮：缩小尺寸并贴向右上角 */
+.bi-remove { position: absolute; top: 7px; right: 7px; width: 20px; height: 20px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; color: var(--ink-muted); background: transparent; border: none; font-size: 12px; line-height: 1; transition: all .2s var(--ease); cursor: pointer; }
+.bi-remove:hover { color: var(--danger); background: rgba(252, 165, 165, .12); }
+/* 「查看」按钮：右下角，点击打开详情弹窗（与灵感库 edit-btn 同款胶囊视觉） */
+.bi-view { position: absolute; right: 10px; bottom: 10px; padding: 3px 12px; border-radius: 999px; border: 1px solid var(--line-soft); background: var(--surface-strong); color: var(--ink-soft); font-size: 11.5px; line-height: 1.5; cursor: pointer; transition: color .2s var(--ease), border-color .2s var(--ease), background-color .2s var(--ease), box-shadow .2s var(--ease); }
+.bi-view:hover { color: var(--nebula-violet); border-color: rgba(167, 139, 250, .5); background: var(--surface); box-shadow: 0 0 12px -4px rgba(167, 139, 250, .6); }
+
+/* 选中态：与灵感库 .sticky.selected 完全同值 */
+.basket-item.selected { border-color: var(--nebula-violet); box-shadow: 0 0 0 1px var(--nebula-violet), 0 0 24px -4px var(--nebula-violet), var(--shadow-lift); }
+
+.empty { grid-column: 1 / -1; text-align: center; padding: 56px 20px; color: var(--ink-muted); font-size: 14px; line-height: 1.7; border: 1px dashed var(--line); border-radius: var(--radius-card); background: rgba(255, 255, 255, .015); }
+.empty button { margin-left: 8px; color: var(--nebula-violet); text-decoration: underline; }
+
+/* ---------- 响应式 ---------- */
+@media (max-width: 920px) {
+  .basket-grid { grid-template-columns: 1fr; gap: 18px; }
+  .basket-col { min-height: auto; }
+  .basket-tips { min-height: 0; }
+}
+
+/* ---------- 卡片可交互反馈（选择模式：整卡点击 = 切换选中） ---------- */
+.basket-item--clickable { cursor: pointer; outline: none; }
+.basket-item--clickable:hover { border-color: rgba(167, 139, 250, .4); transform: translateX(-2px); }
+.basket-item--clickable:focus-visible { border-color: var(--nebula-violet); box-shadow: 0 0 0 3px rgba(167, 139, 250, .28); }
+.basket-item--clickable.selected:focus-visible { box-shadow: 0 0 0 1px var(--nebula-violet), 0 0 24px -4px var(--nebula-violet), 0 0 0 3px rgba(167, 139, 250, .28); }
+
+/* ---------- 热点详情弹窗 ---------- */
+@keyframes bsk-detail-in { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: none; } }
+.bsk-detail-mask { position: fixed; inset: 0; z-index: 70; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(7, 6, 15, .55); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); animation: reveal .25s var(--ease); }
+.bsk-detail-card { position: relative; width: min(560px, 100%); padding: 24px; border-radius: var(--radius-panel); background: var(--cosmos-2); border: 1px solid var(--line); box-shadow: var(--shadow-lift); display: flex; flex-direction: column; gap: 14px; animation: bsk-detail-in .28s var(--ease); }
+.bsk-detail-close { position: absolute; top: 14px; right: 14px; width: 30px; height: 30px; border-radius: 8px; color: var(--ink-muted); background: var(--surface); border: 1px solid var(--line-soft); font-size: 18px; line-height: 1; cursor: pointer; transition: all .2s var(--ease); }
+.bsk-detail-close:hover { color: var(--danger); border-color: rgba(252, 165, 165, .4); }
+.bsk-detail-tags { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding-right: 28px; }
+.bsk-tag { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: var(--radius-pill); font-size: 12px; font-weight: 600; background: var(--cosmos-3); color: var(--ink-soft); border: 1px solid var(--line); }
+.bsk-fresh { font-size: 11.5px; color: var(--ink-muted); padding: 2px 8px; border-radius: var(--radius-pill); border: 1px dashed var(--line-soft); }
+.bsk-rank { font-size: 11.5px; color: var(--nebula-amber); font-weight: 600; padding: 2px 8px; border-radius: var(--radius-pill); border: 1px solid var(--line-soft); }
+.bsk-detail-title { font-size: 20px; font-weight: 750; margin: 0; line-height: 1.4; color: var(--ink); padding-right: 28px; }
+.bsk-detail-summary { font-size: 14px; color: var(--ink-soft); line-height: 1.8; margin: 0; white-space: pre-wrap; }
+.bsk-detail-meta { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--ink-muted); border-top: 1px solid var(--line-soft); padding-top: 12px; }
+.bsk-detail-aihot { color: var(--nebula-blue); font-weight: 600; }
+.bsk-detail-link { align-self: flex-start; text-decoration: none; }
+
+/* ---------- 灵感详情弹窗（与热点 Modal 视觉一致，独立命名空间避免互相影响） ---------- */
+@keyframes bsk-insp-detail-in { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: none; } }
+.bsk-insp-detail-mask { position: fixed; inset: 0; z-index: 70; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(7, 6, 15, .55); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); animation: reveal .25s var(--ease); }
+.bsk-insp-detail-card { position: relative; width: min(560px, 100%); padding: 24px; border-radius: var(--radius-panel); background: var(--cosmos-2); border: 1px solid var(--line); box-shadow: var(--shadow-lift); display: flex; flex-direction: column; gap: 14px; animation: bsk-insp-detail-in .28s var(--ease); }
+.bsk-insp-detail-close { position: absolute; top: 14px; right: 14px; width: 30px; height: 30px; border-radius: 8px; color: var(--ink-muted); background: var(--surface); border: 1px solid var(--line-soft); font-size: 18px; line-height: 1; cursor: pointer; transition: all .2s var(--ease); }
+.bsk-insp-detail-close:hover { color: var(--danger); border-color: rgba(252, 165, 165, .4); }
+.bsk-insp-detail-tags { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding-right: 28px; }
+.bsk-insp-tag { display: inline-flex; align-items: center; gap: 6px; padding: 3px 12px; border-radius: var(--radius-pill); font-size: 12px; font-weight: 600; background: var(--cosmos-3); color: var(--accent, var(--ink-soft)); border: 1px solid var(--accent, var(--line)); box-shadow: 0 0 12px -4px var(--accent, transparent); }
+.bsk-insp-tag .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent, var(--nebula-violet)); box-shadow: 0 0 8px var(--accent, var(--nebula-violet)); flex: none; }
+.bsk-insp-detail-title { font-size: 20px; font-weight: 750; margin: 0; line-height: 1.4; color: var(--ink); padding-right: 28px; }
+.bsk-insp-detail-body { font-size: 14.5px; color: var(--ink-soft); line-height: 1.85; margin: 0; white-space: pre-wrap; word-break: break-word; }
+.bsk-insp-detail-meta { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--ink-muted); border-top: 1px solid var(--line-soft); padding-top: 12px; }
+.bsk-insp-detail-id code { font-size: 11.5px; color: var(--ink-muted); background: var(--surface); border: 1px solid var(--line-soft); padding: 1px 6px; border-radius: 6px; font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace; }
+.bsk-insp-detail-remove { align-self: flex-start; }
+
+@media (max-width: 920px) {
+  .bsk-detail-card { width: 100%; padding: 20px; }
+  .bsk-detail-title { font-size: 17px; }
+  .bsk-insp-detail-card { width: 100%; padding: 20px; }
+  .bsk-insp-detail-title { font-size: 17px; }
+}
+
+/* ---------- 底部多选操作栏 ---------- */
+.selection-bar {
+  position: fixed; left: 50%; bottom: 24px;
+  transform: translateX(-50%) translateY(20px);
+  display: flex; align-items: center; gap: 16px;
+  padding: 10px 12px 10px 18px;
+  background: var(--cosmos-2);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  border-radius: var(--radius-pill);
+  box-shadow: 0 10px 40px -10px rgba(167, 139, 250, .4), 0 0 24px -4px rgba(167, 139, 250, .3);
+  z-index: 30;
+  opacity: 0; pointer-events: none;
+  transition: all .3s var(--ease);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+.selection-bar.show {
+  opacity: 1; pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
+}
+.selection-bar .count { font-size: 14px; display: flex; align-items: center; gap: 8px; }
+.selection-bar .count strong {
+  font-family: "Songti SC", "STSong", "Noto Serif SC", Georgia, serif;
+  font-size: 18px;
+}
+.selection-bar .divider { width: 1px; height: 20px; background: var(--line); }
+.selection-bar .btn {
+  padding: 8px 14px;
+  border-radius: var(--radius-pill);
+  font-size: 14px;
+  transition: background .2s var(--ease);
+}
+.selection-bar .btn.ghost:hover { background: var(--surface); }
+.selection-bar .btn.primary {
+  background: linear-gradient(135deg, var(--nebula-violet), var(--nebula-rose));
+  color: var(--cosmos-deep);
+  font-weight: 600;
+}
+.selection-bar .btn.primary:hover { filter: brightness(1.1); }
+
+@media (max-width: 720px) {
+  .selection-bar {
+    left: 16px; right: 16px; transform: none; bottom: 16px;
+    padding: 8px 8px 8px 14px;
+  }
+  .selection-bar.show { transform: none; }
+  .selection-bar .count { font-size: 13px; }
+}
+
+/* 原型直接内嵌当前项目的 tokens/base/nav/basket/SelectionBar 样式；下方只补创作流程。 */
+:root{--ink-muted:#aaa4b6}body{min-width:320px}.cosmos{pointer-events:none}main,.proto-bar{position:relative;z-index:1}.proto-bar{padding:7px 24px;background:#0b0915;border-bottom:1px solid var(--line-soft);font-size:11px;color:var(--ink-muted);display:flex;align-items:center;gap:15px;flex-wrap:wrap}.proto-bar a{color:var(--nebula-violet)}.proto-bar details{margin-left:auto}.proto-bar summary{cursor:pointer}.demo-options{padding:8px 0;display:flex;gap:12px;align-items:center;flex-wrap:wrap}.demo-options label{display:flex;gap:6px}.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:9px 17px;border:1px solid var(--line);border-radius:999px;background:var(--surface-glass);font-size:14px;min-height:40px}.btn.primary{background:linear-gradient(135deg,var(--nebula-violet),var(--nebula-rose));color:var(--cosmos-deep);font-weight:600}.btn.ghost{background:transparent}.btn.small{padding:5px 12px;font-size:12px;min-height:32px}.btn:hover{filter:brightness(1.12)}button:disabled{opacity:.4;cursor:not-allowed}.btn.danger{color:var(--danger)}button:focus-visible,a:focus-visible,textarea:focus-visible,input:focus-visible{outline:3px solid var(--nebula-violet);outline-offset:3px}.nav-inner{justify-content:space-between}.nav-links .nav-link{cursor:default}.nav-links button.nav-link{cursor:pointer}.nav-link.active{display:inline-flex!important}.basket-wrap{padding-bottom:125px}.basket-item{min-height:108px}.basket-item.selected:hover{border-color:var(--nebula-violet)}.selected-mark{position:absolute;right:37px;top:7px;color:var(--nebula-violet);font-size:12px}.basket-col{min-height:600px}.basket-tips{min-height:120px}.empty button{color:inherit;text-decoration:none;margin:10px 0 0}.bi-remove{width:24px;height:24px}.bi-view{min-height:28px}.selection-bar{max-width:calc(100vw - 32px)}.selection-bar .count{white-space:nowrap}.selection-bar .btn{white-space:nowrap}.selection-bar .divider{flex:none}.muted{color:var(--ink-muted)}.small{font-size:12px}.row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.between{justify-content:space-between}.pill{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:4px 11px;color:var(--ink-muted)}.pill.violet{color:var(--nebula-violet);background:rgba(167,139,250,.1)}.eyebrow{font-size:11px;letter-spacing:2px;color:var(--nebula-violet);margin:0 0 10px}.panel{padding:26px;border:1px solid var(--line);border-radius:20px;background:rgba(22,20,42,.88);box-shadow:var(--shadow-soft);min-width:0}.panel h2{font-size:18px;margin:0 0 8px}.panel p{margin:8px 0}.label{display:block;font-size:14px;font-weight:600;margin:22px 0 9px}.label:first-child{margin-top:0}.label small{font-weight:400;color:var(--ink-muted);margin-left:7px}.field{display:block;width:100%;color:var(--ink);background:#100e20;border:1px solid var(--line);padding:13px 15px;border-radius:12px;line-height:1.8;resize:vertical;font-size:15px}.field::placeholder{color:#96909f}.title-field{font-size:23px;font-weight:600;resize:none;overflow:hidden}.outline-field{min-height:355px;font-size:15px;line-height:1.95}.point-field{min-height:105px}.field[aria-invalid=true]{border-color:var(--danger)}.actions{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-top:22px}.save-status{font-size:12px;color:var(--nebula-mint)}.notice{border:1px solid #725048;background:#35232b;color:#ffcebd;padding:12px 16px;border-radius:11px;margin:14px 0;font-size:13px}.notice.success{border-color:#32583f;background:#183327;color:#b8ebc3}.notice.info{border-color:#50426e;background:#251e37;color:#d6c4fc}.flow-head{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;margin:10px 0 24px}.flow-head h1{font-size:28px;margin:0;line-height:1.5;text-wrap:balance}.flow-head p{font-size:14px;color:var(--ink-muted);margin:6px 0}.step-labels{display:flex;align-items:center;gap:14px;font-size:12px;color:var(--ink-muted);margin-bottom:22px;flex-wrap:wrap}.step-labels .current{color:var(--nebula-violet)}.plan-layout{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:22px;align-items:start}.context-box{font-size:13px}.context-box h3{font-size:14px;margin:20px 0 8px}.context-box ul{padding-left:18px;color:var(--ink-soft)}.context-box li{margin:8px 0}.context-box .label{font-size:13px}.context-box .muted{white-space:pre-wrap;overflow-wrap:anywhere}.platform-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:20px}.platform-choice{text-align:left;padding:28px;border:1px solid var(--line);border-radius:18px;background:var(--surface);display:flex;flex-direction:column;gap:13px;color:var(--ink)}.platform-choice[aria-pressed=true]{border-color:var(--nebula-violet);box-shadow:0 0 0 1px var(--nebula-violet);background:rgba(167,139,250,.1)}.platform-choice strong{font-size:21px}.platform-choice p{font-size:14px;color:var(--ink-muted);margin:0}.platform-icon{display:grid;place-items:center;border-radius:12px;width:48px;height:48px;font-size:12px;color:var(--nebula-rose);background:#45283e}.platform-icon.wx{color:var(--nebula-mint);background:#1d3c31}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;align-items:center}.tabs .btn[aria-selected=true]{background:rgba(167,139,250,.16);border-color:var(--nebula-violet)}.draft-layout{display:grid;grid-template-columns:minmax(0,1.8fr) minmax(280px,1fr);gap:22px;align-items:start}.paper-shell{border:1px solid #cec6d7;border-radius:16px;overflow:hidden;background:#f7f5ef}.paper-tools{background:#eae5df;color:#5e5369;padding:10px 16px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;font-size:12px}.paper-tools .btn{border-color:#c8bdce;color:#51475c;background:transparent}.paper{padding:28px 32px;color:#272132}.paper .label{color:#655c71;font-size:12px;margin-top:14px}.paper .field{background:transparent;color:#272132;border-color:transparent;padding:8px 0}.paper .field:hover{border-color:#d0c4d4}.paper textarea{overflow:hidden}.paper .title-field{font-size:25px}.paper .body-field{min-height:430px;line-height:1.95;resize:vertical}.paper .extra-field{min-height:65px;font-size:13px}.preview-body{white-space:pre-wrap;line-height:1.95;overflow-wrap:anywhere}.preview-title{font-size:25px;line-height:1.5;margin:0 0 20px;overflow-wrap:anywhere}.chat{min-height:640px;display:flex;flex-direction:column}.chat-history{display:flex;flex-direction:column;gap:12px;flex:1;margin-top:20px}.message{padding:13px;border:1px solid var(--line);background:var(--surface);border-radius:13px;font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere}.message.user{background:#322444;margin-left:25px}.message small{display:block;color:var(--nebula-violet);margin-bottom:6px}.chat-compose{margin-top:30px}.chips{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px}.chat-compose .btn.primary{width:100%;margin-top:10px}.loading{padding:80px 20px;text-align:center}.spinner{width:45px;height:45px;border:2px solid #4d3d65;border-top-color:var(--nebula-violet);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 22px}@keyframes spin{to{transform:rotate(360deg)}}dialog{border:1px solid #514463;border-radius:20px;background:var(--cosmos-2);color:var(--ink);padding:0;max-height:90dvh;max-width:calc(100vw - 32px);width:600px;box-shadow:var(--shadow-lift)}dialog::backdrop{background:rgba(7,6,15,.66);backdrop-filter:blur(5px)}.modal-inner{padding:28px;position:relative}.modal-inner h2{font-size:24px;margin:4px 35px 8px 0}.modal-close{position:absolute;top:18px;right:18px;width:30px;height:30px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink-muted)}.modal-intro{font-size:13px;color:var(--ink-muted);margin:0 0 16px}.modal-inner .field{font-size:14px}.brief-thought{min-height:130px}.brief-optional{margin-top:18px;color:var(--ink-soft);font-size:13px}.brief-optional summary{cursor:pointer}.brief-optional .field{min-height:70px}.details-text{white-space:pre-wrap;color:var(--ink-soft);font-size:15px;overflow-wrap:anywhere}.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:100px;z-index:100;background:#2d2440;color:var(--ink);border:1px solid #735990;border-radius:12px;padding:12px 20px;max-width:90vw;font-size:13px;pointer-events:none}.toast:empty{display:none}[hidden]{display:none!important}@media(max-width:920px){.plan-layout,.draft-layout{grid-template-columns:1fr}.context-box{order:2}.nav:not(.timeline-nav){padding:0}.nav-inner{padding:18px 24px;gap:12px}.chat{min-height:450px}.basket-col{min-height:auto}}@media(max-width:600px){.basket-wrap{padding:20px 16px 115px}.basket-col{padding:17px}.basket-col-head h3{font-size:17px}.col-btn{padding:6px 9px}.basket-headbar{padding:14px}.basket-headbar .h-counters{gap:7px}.basket-headbar .h-pill{padding:4px 8px}.selection-bar{gap:9px}.selection-bar .btn{padding:8px 11px;font-size:13px}.selection-bar .count{gap:4px}.selection-bar .divider{display:none}.platform-grid{grid-template-columns:1fr}.platform-choice{padding:22px}.panel{padding:20px}.flow-head h1{font-size:24px}.actions .btn.primary{width:100%}.paper{padding:20px}.paper .title-field{font-size:22px}.field{font-size:16px}.modal-inner{padding:23px 20px}.modal-inner .field{font-size:16px}.modal-inner h2{font-size:22px}.modal-inner .actions{flex-direction:column-reverse;align-items:stretch}.modal-inner .actions .btn{width:100%}.proto-bar{padding:6px 16px}.proto-bar details{margin-left:0}.step-labels{gap:9px}.avatar{display:none}.title-field{font-size:21px}.outline-field{min-height:420px}}@media(pointer:coarse){.btn,.bi-view,.bi-remove,.modal-close{min-height:44px}.bi-remove{width:36px;top:0;right:0}.bi-view{bottom:2px}.basket-item{padding-bottom:48px}.selected-mark{right:42px}}@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.reveal{opacity:1;transform:none}}
+</style></head><body><div class="cosmos"></div><div class="proto-bar"><span>交互原型 · 示例素材 / 模拟 LLM · 本地保存</span><a href="backend-design.md">后端功能设计</a><details><summary>演示设置</summary><div class="demo-options"><label><input type="checkbox" id="fail-next">下次生成失败</label><button class="btn small" id="reset">重置示例</button></div></details></div><nav class="nav"><div class="nav-inner"><div class="brand"><span class="brand-mark"></span><span>Nebula</span></div><div class="nav-links"><span class="nav-link">工作台</span><span class="nav-link">记录</span><span class="nav-link">灵感库</span><span class="nav-link">热点</span><button class="nav-link" id="nav-space">创作空间</button><button class="nav-link active" id="nav-basket">创作篮</button><span class="avatar">S</span></div></div></nav><main class="basket-wrap" id="app"></main><div id="selection-root"></div><dialog id="modal" aria-labelledby="modal-title"></dialog><div id="toast" class="toast" role="status" aria-live="polite"></div>
+<script>
+const KEY='nebula-basket-creation-prototype-v2',STYLE='nebula-writing-style-v2';
+const sample=[{id:'i1',origin:'inspiration',title:'别急着追 AI 工具，先完成一件小事',text:'想写给刚开始接触 AI 的普通人：工具越收越多，真正动手却越来越少。从一个手头真实的小任务开始，让工具服务于自己的想法。',meta:'想法 · 09:42'},{id:'i2',origin:'inspiration',title:'收藏不等于掌握，作品才是反馈',text:'把学习目标从看完教程换成做出一件能用的作品。一篇文章、一张表格，都能带来真实反馈。',meta:'随感 · 昨天 21:16'},{id:'i3',origin:'inspiration',title:'普通人的 AI 入门，应该更简单一点',text:'不讲复杂术语，不制造焦虑，给读者一个今天就能开始的小练习。',meta:'想法 · 昨天 18:05'},{id:'h1',origin:'hotspot',title:'从工具尝鲜，到让 AI 参与日常工作',text:'示例热点：围绕任务拆解、写作辅助和个人工作流的讨论。仅用于演示，不代表真实新闻报道。',meta:'产品 · 示例 · 数据来源 AIHOT'},{id:'h2',origin:'hotspot',title:'AI 学习：少一点清单，多一点实践',text:'示例热点：工具收藏与实际使用之间的落差，成为学习方法讨论的切入点。',meta:'技巧 · 示例 · 数据来源 AIHOT'},{id:'h3',origin:'hotspot',title:'把自己的想法放进内容，而不是只追逐热点',text:'示例热点：同一个话题可以有不同角度，创作应保留作者自己的判断。',meta:'行业 · 示例 · 数据来源 AIHOT'}];
+const $=s=>document.querySelector(s),clone=x=>JSON.parse(JSON.stringify(x)),esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function defaultStyle(){try{return localStorage.getItem(STYLE)||''}catch{return ''}}
+function fresh(){return {items:clone(sample),selected:[],step:'basket',brief:{supplement:'',purpose:'',style:defaultStyle()},sources:[],plan:null,planVersion:0,confirmed:null,chosen:[],targets:[],platform:'xhs',drafts:{xhs:null,wechat:null},undo:{xhs:[],wechat:[]},messages:{xhs:[],wechat:[]},preview:false,completed:false,busy:null,error:null}}
+let s;try{s=JSON.parse(localStorage.getItem(KEY)||'null')||fresh();if(s.busy)s.error={kind:s.busy.kind,message:'上次模拟生成被中断，已保留输入，请重试。'};s.busy=null;if(!Array.isArray(s.chosen))s.chosen=s.chosen?[s.chosen]:[];if(!s.targets)s.targets=[];if(!s.brief.supplement)s.brief.supplement=s.brief.thought||'';delete s.brief.thought}catch{s=fresh()}
+let saveTimer,toastTimer,saveFailed=false,modalKind=null,confirmFn=null;
+function save(){clearTimeout(saveTimer);try{localStorage.setItem(KEY,JSON.stringify(s));saveFailed=false}catch{saveFailed=true}const el=$('#save-state');if(el)el.textContent=saveFailed?'尚未保存，请下载备份':'已保存在此浏览器'}
+function saveSoon(){const el=$('#save-state');if(el)el.textContent='保存中…';clearTimeout(saveTimer);saveTimer=setTimeout(save,400)}
+function toast(t){$('#toast').textContent=t;clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').textContent='',3200)}
+function openModal(kind,body){modalKind=kind;$('#modal').innerHTML='<div class="modal-inner"><button class="modal-close" aria-label="关闭弹窗" id="close-modal">×</button>'+body+'</div>';$('#modal').showModal();$('#close-modal').onclick=closeModal;bindModal()}
+function closeModal(){save();$('#modal').close();modalKind=null;confirmFn=null}
+function confirmBox(title,body,fn,label='继续'){confirmFn=fn;openModal('confirm','<h2 id="modal-title">'+esc(title)+'</h2><p class="details-text">'+esc(body)+'</p><div class="actions"><button class="btn ghost" id="cancel-modal">取消</button><button class="btn primary" id="confirm-modal">'+esc(label)+'</button></div>')}
+$('#modal').addEventListener('cancel',()=>{modalKind=null;confirmFn=null;save()});
+function banner(){return s.error?'<div class="notice" role="alert">'+esc(s.error.message)+(s.step==='write'&&(s.error.kind==='draft'||s.error.kind==='drafts')?' <button class="btn small" id="retry-draft">'+(s.error.kind==='drafts'?'重试已选平台':'重试当前平台')+'</button>':'')+'</div>':''}
+function status(){return '<span class="save-status" id="save-state">'+(saveFailed?'尚未保存，请下载备份':'已保存在此浏览器')+'</span>'}
+function flow(){return '<div class="step-labels"><span>创作篮</span><span>→</span><span class="'+(s.step==='plan'?'current':'')+'">选题与大纲</span><span>→</span><span class="'+(s.step==='platform'?'current':'')+'">选择平台</span><span>→</span><span class="'+(s.step==='write'?'current':'')+'">内容创作</span></div>'}
+function head(title,sub,buttons=''){return '<div class="flow-head"><div><p class="eyebrow">NEBULA · CREATION</p><h1>'+title+'</h1><p>'+sub+'</p></div>'+buttons+'</div>'}
+function render(){const y=scrollY;$('#app').innerHTML=s.step==='basket'?basket():s.step==='space'?creationSpace():flow()+(s.step==='plan'?planPage():s.step==='platform'?platformPage():writePage());$('#selection-root').innerHTML=s.step==='basket'&&s.selected.length?'<div class="selection-bar show" role="region" aria-label="已选素材操作栏"><div class="count" aria-live="polite">已选 <strong>'+s.selected.length+'</strong> 项素材</div><div class="divider"></div><button class="btn ghost" id="clear-selection">清空</button><button class="btn primary" id="start-create">开始创作 →</button></div>':'';const basketNav=$('#nav-basket'),spaceNav=$('#nav-space');if(basketNav)basketNav.classList.toggle('active',s.step==='basket');if(spaceNav)spaceNav.classList.toggle('active',s.step==='space'||['plan','platform','write'].includes(s.step));bind();resize();scrollTo(0,y)}
+function card(i){const active=s.selected.includes(i.id);return '<div class="basket-item basket-item--clickable '+(active?'selected':'')+'" data-card="'+i.id+'" role="button" tabindex="0" aria-pressed="'+active+'" aria-label="选择'+(i.origin==='inspiration'?'灵感：':'热点：')+esc(i.title)+'"><span class="bi-ico">'+(i.origin==='inspiration'?'<span class="dot"></span>':'📡')+'</span><div class="bi-body"><p class="bi-title">'+esc(i.title)+'</p><div class="bi-meta">'+(i.origin==='inspiration'?'灵感 · ':'热点 · ')+esc(i.meta)+'</div></div>'+(active?'<span class="selected-mark">✓ 已选</span>':'')+'<button class="bi-view" data-view="'+i.id+'">查看</button><button class="bi-remove" data-remove="'+i.id+'" aria-label="移除'+esc(i.title)+'">×</button></div>'}
+function hasCreation(){return !!((s.sources||[]).length||s.plan||s.confirmed||s.drafts?.xhs||s.drafts?.wechat)}
+function resumeCreation(){if(s.busy){s.step=s.busy.kind==='plan'?'plan':'write'}else if(s.drafts.xhs||s.drafts.wechat)s.step='write';else if(s.confirmed)s.step='platform';else if(s.plan||s.sources.length)s.step='plan';else s.step='basket';s.error=null;save();render();scrollTo(0,0)}
+function creationStage(){if(s.busy?.kind==='plan')return '正在整理选题与大纲';if(s.busy?.kind==='drafts')return '正在生成小红书与微信公众号内容';if(s.busy?.kind==='draft')return '正在生成'+name(s.busy.platform)+'内容';if(!s.plan)return '选题与大纲生成未完成，可继续重试';if(!s.confirmed)return '选题与大纲待确认';const count=(s.drafts.xhs?1:0)+(s.drafts.wechat?1:0);return count?'已有 '+count+' 个平台版本，可继续修改':'大纲已确认，等待开始平台创作'}
+function creationSpace(){if(!hasCreation())return '<div class="space-wrap"><div class="space-head"><div><p class="space-kicker">NEBULA · CREATION SPACE</p><h1 class="space-title">创作空间</h1><p class="space-sub">把还没完成的创作，接着写下去。</p></div></div><section class="space-empty"><div class="space-empty-content"><div class="space-orb" aria-hidden="true"></div><h2>当前没有创作中的项目</h2><p>去创作篮选择一些灵感或热点，让一个想法从素材开始，慢慢长成完整作品。</p><button class="btn primary" id="space-to-basket">去创作篮选择素材 →</button></div></section></div>';
+const title=s.plan?.title||s.confirmed?.plan?.title||s.sources?.[0]?.title||'未命名创作';const sourceCount=(s.sources||[]).length;const xhs=s.drafts.xhs,wechat=s.drafts.wechat;return '<div class="space-wrap"><div class="space-head"><div><p class="space-kicker">NEBULA · CREATION SPACE</p><h1 class="space-title">创作空间</h1><p class="space-sub">从上次停下的位置继续，不必重新选择素材。</p></div><button class="btn ghost" id="space-to-basket">返回创作篮</button></div><section class="space-project"><div class="space-project-head"><div><span class="pill violet">正在创作</span><h2>'+esc(title)+'</h2><p class="desc">'+esc(creationStage())+'</p></div><span class="small muted">'+sourceCount+' 项素材</span></div><div class="space-progress" aria-hidden="true"><span></span></div><div class="space-project-meta"><span class="pill">'+(s.confirmed?'选题与大纲已确认':s.plan?'选题与大纲草稿':'等待生成选题')+'</span><div class="space-platforms">'+(xhs?'<span class="pill" style="color:var(--nebula-rose)">小红书 · 已生成</span>':'<span class="pill muted">小红书 · 未生成</span>')+(wechat?'<span class="pill" style="color:var(--nebula-mint)">微信公众号 · 已生成</span>':'<span class="pill muted">微信公众号 · 未生成</span>')+'</div></div><div class="space-project-actions"><span class="small muted">'+(s.error?'上次操作未完成，内容仍已保留':'草稿自动保存在此浏览器')+'</span><button class="btn primary" id="space-resume">继续创作 →</button></div></section></div>'}
+function basket(){const ns=s.items.filter(i=>i.origin==='inspiration').length,nh=s.items.length-ns;return '<div class="page-head"><div><h1 class="page-title">创作篮</h1><p class="page-sub">点击素材卡片多选 · 选定后可开始创作</p></div>'+(s.plan?'<button class="btn ghost small" id="resume">继续上次创作 →</button>':'')+'</div><div class="basket-headbar '+(s.items.length?'has-items':'')+'"><div class="h-title">当前创作篮 <b>'+s.items.length+'</b> 项素材</div><div class="h-counters"><span class="h-pill" data-col="i"><span class="b-dot">●</span>灵感 <b>'+ns+'</b></span><span class="h-pill" data-col="h"><span class="b-dot">●</span>热点 <b>'+nh+'</b></span><button class="h-clear" id="clear-all">清空全部</button></div></div><div class="basket-grid">'+['inspiration','hotspot'].map(o=>{const insp=o==='inspiration',items=s.items.filter(i=>i.origin===o),name=insp?'灵感':'热点';return '<div class="basket-col"><div class="basket-col-head"><h3><span class="ico" data-col="'+(insp?'i':'h')+'">'+(insp?'💡':'📡')+'</span>'+name+'区 <span class="count">'+items.length+'</span></h3><div class="col-actions"><button class="col-btn ghost" data-add="'+o+'">＋ 添加'+name+'</button><button class="col-btn text" data-clear="'+o+'" '+(!items.length?'disabled':'')+'>取消本次</button></div></div><div class="basket-list">'+(items.length?items.map(card).join(''):'<div class="empty"><span class="big">'+(insp?'💡':'📡')+'</span><div class="ttl">'+name+'区还是空的</div><div class="desc">去'+name+'库选择素材加入创作篮。</div><button class="btn primary" data-add="'+o+'">添加'+name+' →</button></div>')+'</div><div class="basket-tips"><h4>'+(insp?'灵感类型 <small>支持 6 种类别</small>':'热度趋势 <small>仅展示等级，不展示数值</small>')+'</h4><ul>'+(insp?'<li><b style="color:var(--nebula-violet)">● 想法</b></li><li><b style="color:var(--nebula-blue)">● 引用</b></li><li><b style="color:var(--nebula-rose)">● 随感</b></li><li><b style="color:var(--nebula-mint)">● 待办</b></li><li><b style="color:var(--nebula-amber)">● 案例</b></li><li><b style="color:var(--danger)">● 问题</b></li>':'<li><b style="color:var(--nebula-rose)">● 飙升</b></li><li><b style="color:var(--danger)">● 高热</b></li><li><b style="color:var(--nebula-amber)">● 升温</b></li><li><b>● 平稳</b></li>')+'</ul></div></div>'}).join('')+'</div>'}
+function briefModal(){if(!s.selected.length)return toast('请先选择至少 1 项灵感或热点');openModal('brief','<p class="eyebrow">开始创作</p><h2 id="modal-title">这次想怎么写</h2><p class="modal-intro">已选 '+s.selected.length+' 项素材。先补充必要要求，系统会整理一个选题与大纲。</p><details class="brief-optional" open><summary>补充创作目的与表达风格（选填）</summary><label class="label" for="purpose">创作目的</label><textarea class="field" id="purpose" maxlength="500" placeholder="例如：分享方法，让读者愿意开始行动。">'+esc(s.brief.purpose)+'</textarea><label class="label" for="style">表达风格</label><textarea class="field" id="style" maxlength="1000" placeholder="例如：自然直接、少术语，不夸张。">'+esc(s.brief.style)+'</textarea><div class="row between" style="margin-top:10px"><span class="small muted">只对本次生效</span><button class="btn small ghost" id="save-style">设为默认风格</button></div></details><label class="label" for="supplement">补充说明 <small>选填</small></label><textarea id="supplement" class="field brief-thought" maxlength="2000" placeholder="例如：希望从普通人的真实使用场景切入，保留自己的判断。">'+esc(s.brief.supplement)+'</textarea><div class="actions"><button class="btn ghost" id="cancel-modal">返回选择</button><button class="btn primary" id="generate-plan">生成选题与大纲 →</button></div><p class="small muted" style="margin:14px 0 0">不填写时，直接根据已选素材生成。平台在大纲确认后选择。</p>')}
+function context(){return '<aside class="panel context-box"><h2>本次创作</h2><h3>所选素材 · '+s.sources.length+' 项</h3><ul>'+s.sources.map(i=>'<li>'+esc(i.title)+'</li>').join('')+'</ul><h3>补充说明</h3><p class="muted">'+esc(s.brief.supplement||'依据所选素材自然展开')+'</p><h3>创作目的</h3><p class="muted">'+esc(s.brief.purpose||'自然表达观点')+'</p><h3>表达风格</h3><p class="muted">'+esc(s.brief.style||'自然清楚，避免空话')+'</p><p class="small muted" style="margin-top:25px">先把方向定下来，再选择小红书或微信公众号。</p></aside>'}
+function validPlan(){return s.plan&&['title','point','outline'].every(k=>s.plan[k].trim())}
+function planPage(){const top=head('先确定这次想表达什么','标题、核心观点和大纲都可以直接修改。确认满意后，再选择创作平台。','<button class="btn ghost" id="back-basket">← 返回创作篮</button>');if(s.busy?.kind==='plan')return top+'<div class="panel loading" role="status"><div class="spinner"></div><h2>正在整理选题与大纲…</h2><p class="muted">根据已选素材和你的想法生成一个推荐方案</p></div>';if(!s.plan)return top+banner()+'<div class="panel"><button class="btn primary" id="retry-plan">重新生成选题</button></div>';return top+banner()+'<div class="plan-layout"><section class="panel"><div class="row between"><h2>推荐方案</h2><button class="btn small ghost" id="regenerate-plan">换个方向</button></div><label class="label" for="plan-title">标题</label><textarea class="field title-field" id="plan-title" rows="1" maxlength="120">'+esc(s.plan.title)+'</textarea><label class="label" for="plan-point">核心观点</label><textarea class="field point-field" id="plan-point" maxlength="2000">'+esc(s.plan.point)+'</textarea><label class="label" for="plan-outline">简短大纲 <small>在一个文本框内自由编辑</small></label><textarea class="field outline-field" id="plan-outline" maxlength="12000">'+esc(s.plan.outline)+'</textarea><div class="actions">'+status()+'<button class="btn primary" id="confirm-plan" '+(validPlan()?'':'disabled')+'>确认大纲，选择平台 →</button></div></section>'+context()+'</div>'}
+function platformPage(){return head('选择要创作的平台','方向已经确认。可以选择一个或两个平台，分别生成对应的完整内容。','<button class="btn ghost" id="back-plan">← 修改选题与大纲</button>')+'<div class="panel"><div class="row between"><h2>'+esc(s.confirmed?.plan.title||'已确认选题')+'</h2><span class="pill violet">选题与大纲已确认</span></div><p class="muted">'+esc(s.confirmed?.plan.point||'')+'</p><p class="small muted" style="margin-top:18px">可同时选择两个平台；每个平台会独立生成、保存和修改。</p><div class="platform-grid">'+['xhs','wechat'].map(p=>'<button class="platform-choice" data-choose="'+p+'" aria-pressed="'+(s.chosen.includes(p))+'"><span class="platform-icon '+(p==='wechat'?'wx':'')+'">'+(p==='xhs'?'小红书':'微信')+'</span><strong>'+name(p)+'</strong><p>'+(p==='xhs'?'场景切入、短段落和具体建议，形成适合分享的图文笔记文案。':'完整论述、分节展开和连贯表达，形成适合阅读的公众号文章。')+'</p><span class="small" style="color:var(--nebula-violet)">'+(s.chosen.includes(p)?'✓ 已选择':'选择这个平台')+'</span></button>').join('')+'</div><div class="actions"><span class="small muted">已选择 '+s.chosen.length+' 个平台</span><button class="btn primary" id="generate-draft" '+(!s.chosen.length?'disabled':'')+'>开始'+(s.chosen.length===2?'双平台':s.chosen.length===1?name(s.chosen[0]):'平台')+'创作 →</button></div></div>'}
+function name(p){return p==='xhs'?'小红书':'微信公众号'}
+function writePage(){const p=s.platform,d=s.drafts[p],working=s.busy?.kind==='drafts' ? s.busy.platforms?.includes(p) : s.busy?.platform===p;s.completed=!!d?.completed;let text=head(s.completed?'这篇作品已完成':'让内容，更像你想说的话','当前平台独立保存。你可以直接编辑，或让创作助手帮你修改。','<div class="row"><button class="btn ghost" id="back-plan" '+(s.busy?'disabled':'')+'>查看 / 修改大纲</button><button class="btn primary" id="finish" '+(!d||s.busy?'disabled':'')+'>'+(s.completed?'✓ 已完成':'完成创作')+'</button></div>');text+='<div class="tabs" role="tablist" aria-label="稿件平台">'+['xhs','wechat'].map(k=>'<button role="tab" id="tab-'+k+'" aria-controls="draft-content" class="btn" aria-selected="'+(p===k)+'" data-tab="'+k+'" '+(s.busy?'disabled':'')+'>'+name(k)+' <small>'+(s.drafts[k]?'已生成':(s.busy?.kind==='drafts' ? s.busy.platforms?.includes(k) : s.busy?.platform===k)?'生成中':'未生成')+'</small></button>').join('')+'</div>'+banner();if(d&&s.confirmed&&d.planVersion!==s.confirmed.version)text+='<div class="notice info">此稿基于上次确认的大纲；当前新大纲不会自动覆盖这篇内容。</div>';if(s.busy?.kind==='draft'||s.busy?.kind==='drafts')text+='<div class="notice info" role="status">正在创作'+(s.busy?.kind==='drafts'?s.busy.platforms.map(name).join('、'):name(p))+'版本… 已有稿件会保留至新版本生成成功。</div>';text+='<div class="draft-layout"><section id="draft-content" role="tabpanel" aria-labelledby="tab-'+p+'">';if(!d)text+='<div class="panel loading">'+(working?'<div class="spinner"></div><h2>正在创作'+name(p)+'内容</h2>':'<h2>'+name(p)+'版本尚未生成</h2><p class="muted">使用已确认的大纲，为这个平台单独创作一篇内容。</p><button class="btn primary" id="create-this">开始'+name(p)+'创作 →</button>')+'</div>';else text+='<div class="paper-shell"><div class="paper-tools"><span>'+name(p)+' · '+(s.preview?'预览':'直接编辑')+'</span><div class="row"><button class="btn small" id="preview">'+(s.preview?'返回编辑':'预览')+'</button><button class="btn small" id="copy">复制</button><button class="btn small" id="download">下载</button></div></div><div class="paper">'+(s.preview?'<h2 class="preview-title">'+esc(d.title)+'</h2><div class="preview-body">'+esc(d.body)+'</div><p class="details-text" style="color:#69566f">'+esc(d.extra)+'</p>':'<label class="label" for="draft-title">'+(p==='xhs'?'笔记标题':'文章标题')+'</label><textarea id="draft-title" class="field title-field" rows="1" maxlength="160" '+(working?'disabled':'')+'>'+esc(d.title)+'</textarea><label class="label" for="draft-body">正文</label><textarea id="draft-body" class="field body-field" maxlength="50000" '+(working?'disabled':'')+'>'+esc(d.body)+'</textarea><label class="label" for="draft-extra">'+(p==='xhs'?'话题标签':'摘要')+'</label><textarea id="draft-extra" class="field extra-field" maxlength="1000" '+(working?'disabled':'')+'>'+esc(d.extra)+'</textarea>')+'</div></div><div class="actions">'+status()+'<button class="btn small ghost" id="undo" '+(!s.undo[p].length||working?'disabled':'')+'>↶ 撤销上次修改</button></div>';text+='</section><aside class="panel chat"><div class="row between"><h2>✦ 创作助手</h2><span class="pill violet">'+name(p)+'</span></div><p class="small muted">只修改当前平台的成稿，不会自动改动另一篇。</p><div class="chat-history" aria-live="polite"><div class="message"><small>NEBULA</small>可以让我调整语气、开头或篇幅，也可以直接编辑正文。<br><span class="muted small">原型使用固定示例改写，未连接真实 LLM。</span></div>'+s.messages[p].map(m=>'<div class="message '+(m.role==='user'?'user':'')+'"><small>'+(m.role==='user'?'你':'NEBULA')+'</small>'+esc(m.text)+'</div>').join('')+(s.busy?.kind==='rewrite'?'<div class="message" role="status">正在调整当前稿件…</div>':'')+'</div><div class="chat-compose"><div class="chips"><button class="btn small ghost" data-prompt="语气更自然，像和朋友聊天">更自然</button><button class="btn small ghost" data-prompt="精简一些，保留核心观点">精简一些</button><button class="btn small ghost" data-prompt="开头更直接，先抛出观点">改写开头</button></div><label class="label" for="chat-prompt">修改要求</label><textarea class="field" id="chat-prompt" rows="3" maxlength="2000" placeholder="例如：少一点说教，开头更直接。" '+(!d||working?'disabled':'')+'></textarea><button class="btn primary" id="send-chat" '+(!d||s.busy?'disabled':'')+'>修改当前稿件 ↑</button><p class="small muted">Ctrl / ⌘ + Enter 发送 · 修改后可撤销</p></div></aside></div>';return text}
+function resize(){document.querySelectorAll('.title-field,.body-field').forEach(el=>{el.style.height='auto';el.style.height=el.scrollHeight+4+'px'})}
+function toggle(id){s.selected=s.selected.includes(id)?s.selected.filter(x=>x!==id):[...s.selected,id];save();render()}
+function selectedSources(){return clone(s.items.filter(i=>s.selected.includes(i.id)))}
+function makePlan(){const text=s.brief.supplement.trim(),first=s.sources[0];return {title:text?text.replace(/[。！？].*$/,'').slice(0,40):first.title,point:text||first.text,outline:'一、从读者熟悉的问题切入\n结合「'+first.title+'」，说明这次想讨论的现象。\n\n二、表达这篇内容的核心观点\n'+(text||first.text)+'\n\n三、把观点落到具体做法\n用一个范围明确的小任务举例，先做出第一版，再根据实际反馈调整。\n\n四、回到读者自己的节奏\n用一个今天就能开始的行动建议收尾，不夸张，不制造焦虑。'}}
+function run(kind,platform,callback){if(s.busy)return;s.busy={kind,platform,platforms:kind==='drafts'?platform:undefined};s.error=null;const fail=$('#fail-next').checked;$('#fail-next').checked=false;save();render();setTimeout(()=>{s.busy=null;if(fail)s.error={kind,message:(kind==='plan'?'选题生成':kind==='draft'?name(platform)+'内容生成':kind==='drafts'?platform.map(name).join('、')+'内容生成':'对话改写')+'未完成，输入和已有内容已保留，请重试。'};else callback();save();render()},1100)}
+function generatePlan(){s.step='plan';run('plan',null,()=>{s.plan=makePlan();s.planVersion++;s.completed=false});scrollTo(0,0)}
+function confirmPlan(){if(!validPlan())return;s.confirmed={version:s.planVersion,plan:clone(s.plan),brief:clone(s.brief),sources:clone(s.sources)};s.chosen=[];s.targets=[];s.step='platform';s.error=null;save();render();scrollTo(0,0)}
+function generateDraft(p){if(!s.confirmed)return toast('请先确认选题与大纲');if(s.planVersion!==s.confirmed.version){s.step='plan';save();render();return toast('大纲已有修改，请先确认新大纲')}const perform=()=>{s.platform=p;s.step='write';s.preview=false;const confirmed=clone(s.confirmed);run('draft',p,()=>{if(s.drafts[p])s.undo[p].push(clone(s.drafts[p]));const q=confirmed.plan;s.drafts[p]={title:q.title,body:q.point+'\n\n'+q.outline+(p==='wechat'?'\n\n把注意力放回真正需要完成的事情，我们就能更清楚地判断工具有没有帮助。先写下自己的想法，再让工具协助整理结构；完成第一版后，保留自己认可的内容，删掉那些并不认同的表达。\n\n不必等全部准备好才动手。先完成一件小事，从作品和反馈中形成自己的判断。':'\n\n先从今天能完成的一小步开始。你想先试哪一件事？'),extra:p==='xhs'?'#学习方法 #个人成长':q.point.slice(0,110),planVersion:confirmed.version,completed:false};s.messages[p]=[];s.completed=false});scrollTo(0,0)};if(s.drafts[p])confirmBox('重新创作'+name(p)+'版本？','将使用已确认的大纲重新生成当前平台的内容。现有稿件保留到生成成功，之后仍可以撤销恢复。',perform,'重新创作');else perform()}
+function generateDrafts(platforms){if(!s.confirmed||!platforms.length)return toast('请至少选择一个平台');if(s.planVersion!==s.confirmed.version){s.step='plan';save();render();return toast('大纲已有修改，请先确认新大纲')}const perform=()=>{s.targets=platforms.slice();s.platform=platforms[0];s.step='write';s.preview=false;const confirmed=clone(s.confirmed);run('drafts',platforms,()=>{platforms.forEach(p=>{if(s.drafts[p])s.undo[p].push(clone(s.drafts[p]));const q=confirmed.plan;s.drafts[p]={title:q.title,body:q.point+'\n\n'+q.outline+(p==='wechat'?'\n\n把注意力放回真正需要完成的事情，我们就能更清楚地判断工具有没有帮助。先写下自己的想法，再让工具协助整理结构；完成第一版后，保留自己认可的内容，删掉那些并不认同的表达。\n\n不必等全部准备好才动手。先完成一件小事，从作品和反馈中形成自己的判断。':'\n\n先从今天能完成的一小步开始。你想先试哪一件事？'),extra:p==='xhs'?'#学习方法 #个人成长':q.point.slice(0,110),planVersion:confirmed.version,completed:false};s.messages[p]=[]});s.completed=false})};if(platforms.some(p=>s.drafts[p]))confirmBox('重新创作已选平台版本？','将使用已确认的大纲重新生成已选平台的内容。现有稿件保留到生成成功，之后仍可以撤销恢复。',perform,'重新创作');else perform()}
+function sendChat(){const t=$('#chat-prompt')?.value.trim(),p=s.platform;if(!t||!s.drafts[p]||s.busy)return toast('请填写修改要求');s.messages[p].push({role:'user',text:t});run('rewrite',p,()=>{const d=s.drafts[p];s.undo[p].push(clone(d));if(/精简|短|压缩/.test(t))d.body=d.body.split('\n\n').filter((_,i)=>i%3!==2).join('\n\n');else if(/开头|直接/.test(t))d.body='先说结论：'+s.confirmed.plan.point+'\n\n'+d.body;else d.body='我们可以先把目标放小一点，从眼前这件事开始。\n\n'+d.body;d.completed=false;s.messages[p].push({role:'assistant',text:'已应用示例改写，可在正文中查看或撤销。正式版本将由 LLM 根据你的要求修改。'});s.completed=false})}
+function removeItem(id){s.items=s.items.filter(i=>i.id!==id);s.selected=s.selected.filter(i=>i!==id);save();render();toast('已移除并退回（原型示例）')}
+function bindModal(){const on=(id,fn)=>{if($('#'+id))$('#'+id).onclick=fn};on('cancel-modal',closeModal);on('confirm-modal',()=>{const fn=confirmFn;closeModal();fn?.()});for(const [id,key] of [['supplement','supplement'],['purpose','purpose'],['style','style']])if($('#'+id))$('#'+id).oninput=e=>{s.brief[key]=e.target.value;saveSoon()};on('save-style',()=>{try{if(!s.brief.style.trim())return toast('先填写表达风格');localStorage.setItem(STYLE,s.brief.style);toast('默认风格已保存')}catch{toast('默认风格保存失败')}});on('generate-plan',()=>{const start=()=>{s.sources=selectedSources();s.plan=null;s.confirmed=null;s.drafts={xhs:null,wechat:null};s.undo={xhs:[],wechat:[]};s.messages={xhs:[],wechat:[]};generatePlan()};closeModal();if(s.plan)confirmBox('以所选素材开始新创作？','这会替换原型中的当前创作。需要保留旧稿时，请先返回上次创作下载正文。',start,'开始新创作');else start()});document.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{const i=sample.find(i=>i.id===b.dataset.pick);if(!s.items.some(x=>x.id===i.id))s.items.push(clone(i));save();closeModal();render();toast('已加入创作篮')});on('detail-remove',()=>{const id=$('#detail-remove').dataset.id;closeModal();removeItem(id)})}
+function bind(){const on=(id,fn)=>{if($('#'+id))$('#'+id).onclick=fn};document.querySelectorAll('[data-card]').forEach(el=>{el.onclick=e=>{if(!e.target.closest('button'))toggle(el.dataset.card)};el.onkeydown=e=>{if(e.target===el&&(e.key==='Enter'||e.key===' ')){e.preventDefault();toggle(el.dataset.card)}}});document.querySelectorAll('[data-view]').forEach(b=>b.onclick=e=>{e.stopPropagation();const i=s.items.find(i=>i.id===b.dataset.view);openModal('detail','<span class="pill violet">'+(i.origin==='inspiration'?'灵感':'热点')+'</span><h2 id="modal-title">'+esc(i.title)+'</h2><p class="details-text">'+esc(i.text)+'</p><p class="small muted">'+esc(i.meta)+'</p><div class="actions"><button class="btn ghost" id="cancel-modal">关闭</button><button class="btn danger" id="detail-remove" data-id="'+i.id+'">移除并退回</button></div>')});document.querySelectorAll('[data-remove]').forEach(b=>b.onclick=e=>{e.stopPropagation();removeItem(b.dataset.remove)});document.querySelectorAll('[data-clear]').forEach(b=>b.onclick=()=>confirmBox('清空'+(b.dataset.clear==='inspiration'?'灵感':'热点')+'区？','这会将该区域素材移出创作篮，不会删除灵感原记录。',()=>{s.items=s.items.filter(i=>i.origin!==b.dataset.clear);s.selected=s.selected.filter(id=>s.items.some(i=>i.id===id));save();render()},'清空该区'));
+document.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{const o=b.dataset.add,available=sample.filter(i=>i.origin===o&&!s.items.some(x=>x.id===i.id));openModal('picker','<h2 id="modal-title">添加'+(o==='inspiration'?'灵感':'热点')+'</h2><p class="modal-intro">正式产品前往现有'+(o==='inspiration'?'灵感库':'热点页')+'添加；这里仅演示素材回到创作篮。</p>'+(available.length?available.map(i=>'<button class="btn" style="margin:8px 0;width:100%" data-pick="'+i.id+'">'+esc(i.title)+' ＋</button>').join(''):'<p class="muted">本组示例素材均已在创作篮中。</p>')+'<div class="actions"><button class="btn ghost" id="cancel-modal">返回创作篮</button></div>')});on('clear-all',()=>confirmBox('清空整个创作篮？','所有示例素材都会移出创作篮；已创建的稿件仍保留。',()=>{s.items=[];s.selected=[];save();render()},'清空全部'));on('clear-selection',()=>{s.selected=[];save();render()});on('start-create',briefModal);on('resume',resumeCreation);on('space-resume',resumeCreation);on('space-to-basket',()=>{s.step='basket';save();render();scrollTo(0,0)});on('back-basket',()=>{s.step='basket';save();render()});on('retry-plan',generatePlan);on('regenerate-plan',()=>confirmBox('重新生成选题与大纲？','会替换当前选题草稿。已有成稿仍保留，生成失败也会保留当前选题。',generatePlan,'重新生成'));
+for(const [id,k] of [['plan-title','title'],['plan-point','point'],['plan-outline','outline']])if($('#'+id))$('#'+id).oninput=e=>{s.plan[k]=e.target.value;s.planVersion++;s.completed=false;$('#confirm-plan').disabled=!validPlan();e.target.setAttribute('aria-invalid',!e.target.value.trim());saveSoon()};on('confirm-plan',confirmPlan);on('back-plan',()=>{s.step='plan';s.error=null;save();render();scrollTo(0,0)});document.querySelectorAll('[data-choose]').forEach(b=>b.onclick=()=>{const p=b.dataset.choose;s.chosen=s.chosen.includes(p)?s.chosen.filter(x=>x!==p):[...s.chosen,p];save();render()});on('generate-draft',()=>{if(s.chosen.length)generateDrafts(s.chosen)});on('create-this',()=>generateDraft(s.platform));on('retry-draft',()=>s.error.kind==='drafts'?generateDrafts(s.targets.length?s.targets:[s.platform]):generateDraft(s.platform));document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{s.platform=b.dataset.tab;s.preview=false;s.error=null;save();render()});for(const [id,k] of [['draft-title','title'],['draft-body','body'],['draft-extra','extra']])if($('#'+id)){const el=$('#'+id);let backed=false;el.oninput=e=>{if(!backed){s.undo[s.platform].push(clone(s.drafts[s.platform]));backed=true}s.drafts[s.platform][k]=e.target.value;s.drafts[s.platform].completed=false;s.completed=false;$('#finish').textContent='完成创作';$('#undo').disabled=false;saveSoon()}}on('preview',()=>{s.preview=!s.preview;save();render()});on('undo',()=>{s.drafts[s.platform]=s.undo[s.platform].pop();s.drafts[s.platform].completed=false;s.completed=false;save();render();toast('已恢复修改前的版本')});on('download',()=>download());on('copy',async()=>{try{await navigator.clipboard.writeText(draftText());toast('已复制当前稿件')}catch{download();toast('浏览器不允许复制，已改为下载')}});on('finish',()=>{const d=s.drafts[s.platform];if(!d?.title.trim()||!d.body.trim())return toast('请补全当前稿件的标题与正文');save();if(saveFailed)return toast('保存失败，请先下载备份');d.completed=true;s.completed=true;save();render();toast('当前平台作品已完成')});on('send-chat',sendChat);document.querySelectorAll('[data-prompt]').forEach(b=>b.onclick=()=>{const el=$('#chat-prompt');if(el&&!el.disabled){el.value=b.dataset.prompt;el.focus()}});if($('#chat-prompt'))$('#chat-prompt').onkeydown=e=>{if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();sendChat()}}}
+function draftText(){const d=s.drafts[s.platform];return '# '+d.title+'\n\n'+d.body+'\n\n'+d.extra}
+function download(){const a=document.createElement('a'),u=URL.createObjectURL(new Blob([draftText()],{type:'text/markdown;charset=utf-8'}));a.href=u;a.download=name(s.platform)+'-作品.md';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)}
+$('#nav-basket').onclick=()=>{if(s.busy)return toast('当前模拟生成正在进行，请稍候');s.step='basket';save();render()};$('#nav-space').onclick=()=>{s.step='space';save();render();scrollTo(0,0)};$('#reset').onclick=()=>{if(s.busy)return toast('请等待生成完成');confirmBox('重置原型示例？','清除原型中的选择、输入和稿件，默认风格继续保留。',()=>{s=fresh();save();render()},'重置')};document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#modal').open&&s.step==='basket'){s.selected=[];save();render()}if(e.target.matches('[data-tab]')&&['ArrowLeft','ArrowRight'].includes(e.key)&&!s.busy){e.preventDefault();const id=e.target.id==='tab-xhs'?'tab-wechat':'tab-xhs';$('#'+id).click();$('#'+id).focus()}});document.addEventListener('input',e=>{if(e.target.matches('.title-field,.body-field'))resize()});window.addEventListener('resize',resize);window.addEventListener('pagehide',save);render();
+</script></body></html>

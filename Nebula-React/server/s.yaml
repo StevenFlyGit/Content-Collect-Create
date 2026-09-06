@@ -1,0 +1,80 @@
+# ============================================================
+# Nebula 后端 · 阿里云函数计算 FC 3.0 部署配置（Serverless Devs）
+# ------------------------------------------------------------
+# 使用方式（在 server/ 目录下）：
+#   1. npm install -g @serverless-devs/s
+#   2. s config add --AccessKeyID <AK> --AccessKeySecret <SK> --AccountID <账号ID>   # 别名存为 default 或改下方 access
+#   3. 部署机 shell 注入 .env.local（密钥不写入本文件，经 ${env(...)} 读取）：
+#        set -a; source .env.local; set +a
+#   4. 另需导出两个部署变量：
+#        export FC_REGION=cn-hangzhou          # 函数地域
+#        export WORKSPACE_ID=<与本地一致的工作区 UUID>
+#   5. s deploy
+#
+# 说明：
+#   · Web 函数模式：FC 把 HTTP 触发器的请求原样转发到实例内 customRuntimeConfig.port 监听端口
+#   · API_PORT=9000 由 server/src/config.js 读取，覆盖本地默认的 3210
+#   · 内存/vCPU 配比要求 1:1 ~ 1:4，512MB 是安全下限
+# ============================================================
+edition: 3.0.0
+name: nebula-inspiration-api
+access: default
+
+vars:
+  # 注意：不要用 ${env('FC_REGION')} —— fc3 组件见进程环境有 FC_REGION 时会改走 OSS 内网
+  # endpoint 上传代码包，本地部署机会 ETIMEDOUT。写死 region 即走公网加速上传。
+  region: cn-hangzhou
+
+resources:
+  nebula-api:
+    component: fc3
+    props:
+      region: ${vars.region}
+      functionName: nebula-inspiration-api
+      description: Nebula 灵感工作台 API（Express · 无状态创作 LLM 代理）
+      runtime: custom.debian10     # 内置 Node.js 20（/var/fc/lang/nodejs20），支持自定义启动命令
+      handler: index.handler        # custom runtime 占位必填
+      memorySize: 512
+      cpu: 0.25                     # FC3.0 必填；内存/CPU 配比须在 1:1~1:4
+      timeout: 120                  # LLM 代理请求可能较慢
+      diskSize: 512
+      instanceConcurrency: 5
+      internetAccess: true
+      code: ./
+      customRuntimeConfig:
+        command:
+          - /var/fc/lang/nodejs20/bin/node
+          - src/index.js
+        port: 9000
+      environmentVariables:
+        API_PORT: "9000"
+        NODE_ENV: production
+        APP_TIMEZONE: Asia/Shanghai
+        CORS_ORIGIN: ${env('CORS_ORIGIN', 'https://null.example.com')}
+        DATABASE_URL: ${env('DATABASE_URL')}
+        DATABASE_SSL: ${env('DATABASE_SSL', 'true')}
+        DATABASE_SSL_REJECT_UNAUTHORIZED: ${env('DATABASE_SSL_REJECT_UNAUTHORIZED', 'false')}
+        WORKSPACE_ID: ${env('WORKSPACE_ID')}
+        OSS_REGION: ${env('OSS_REGION')}
+        OSS_ENDPOINT: ${env('OSS_ENDPOINT')}
+        OSS_BUCKET: ${env('OSS_BUCKET')}
+        OSS_ACCESS_KEY_ID: ${env('OSS_ACCESS_KEY_ID')}
+        OSS_ACCESS_KEY_SECRET: ${env('OSS_ACCESS_KEY_SECRET')}
+        OSS_CORS_ORIGINS: ${env('OSS_CORS_ORIGINS', 'https://null.example.com')}
+        LLM_BASE_URL: ${env('LLM_BASE_URL', 'https://api.openai.com/v1')}
+        LLM_API_KEY: ${env('LLM_API_KEY', '')}
+        LLM_MODEL: ${env('LLM_MODEL', 'gpt-4o-mini')}
+      triggers:
+        - triggerName: default
+          triggerType: http
+          triggerConfig:
+            authType: anonymous     # 公网匿名访问；鉴权由业务层（workspace 头）承担
+            disableURLInternet: false
+            methods:
+              - GET
+              - POST
+              - PUT
+              - PATCH
+              - DELETE
+              - HEAD
+              - OPTIONS

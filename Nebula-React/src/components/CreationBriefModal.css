@@ -1,0 +1,36 @@
+/* ============================================================
+   CreationBriefModal —— 「这次想怎么写」弹窗（创作篮 / 创作流程共用）
+   视觉对照 prototype.html dialog 样式
+   ============================================================ */
+@keyframes cfm-in { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: none; } }
+.cfm-mask { position: fixed; inset: 0; z-index: 70; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(7, 6, 15, .66); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); }
+.cfm-card { position: relative; width: min(600px, 100%); max-height: 90dvh; overflow: auto; padding: 28px; border: 1px solid #514463; border-radius: 20px; background: var(--cosmos-2); color: var(--ink); box-shadow: var(--shadow-lift); animation: cfm-in .25s var(--ease); }
+.cfm-card h2 { font-size: 24px; margin: 4px 35px 8px 0; }
+.cfm-close { position: absolute; top: 18px; right: 18px; width: 30px; height: 30px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface); color: var(--ink-muted); font-size: 16px; line-height: 1; cursor: pointer; }
+.cfm-close:hover { color: var(--danger); }
+.cfm-eyebrow { font-size: 11px; letter-spacing: 2px; color: var(--nebula-violet); margin: 0 0 10px; }
+.cfm-intro { font-size: 13px; color: var(--ink-muted); margin: 0 0 16px; }
+.cfm-label { display: block; font-size: 14px; font-weight: 600; margin: 22px 0 9px; }
+.cfm-label small { font-weight: 400; color: var(--ink-muted); margin-left: 7px; }
+.cfm-field { display: block; width: 100%; color: var(--ink); background: #100e20; border: 1px solid var(--line); padding: 13px 15px; border-radius: 12px; line-height: 1.8; resize: vertical; font-size: 14px; font-family: inherit; }
+.cfm-field::placeholder { color: #96909f; }
+.cfm-field:focus-visible { outline: 3px solid var(--nebula-violet); outline-offset: 0; }
+.cfm-thought { min-height: 130px; }
+.cfm-optional { margin-top: 18px; color: var(--ink-soft); font-size: 13px; }
+.cfm-optional summary { cursor: pointer; }
+.cfm-optional .cfm-field { min-height: 70px; }
+.cfm-actions { display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 22px; }
+.cfm-btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 9px 17px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface-glass); font-size: 14px; min-height: 40px; cursor: pointer; color: var(--ink); transition: all .2s var(--ease); }
+.cfm-btn.primary { background: linear-gradient(135deg, var(--nebula-violet), var(--nebula-rose)); color: var(--cosmos-deep); font-weight: 600; border-color: transparent; }
+.cfm-btn.ghost { background: transparent; }
+.cfm-btn.small { padding: 5px 12px; font-size: 12px; min-height: 32px; }
+.cfm-btn:hover { filter: brightness(1.12); }
+.cfm-btn:disabled { opacity: .4; cursor: not-allowed; filter: none; }
+.cfm-footnote { font-size: 12px; color: var(--ink-muted); margin: 14px 0 0; }
+@media (max-width: 600px) {
+  .cfm-card { padding: 23px 20px; }
+  .cfm-card h2 { font-size: 22px; }
+  .cfm-field { font-size: 16px; }
+  .cfm-actions { flex-direction: column-reverse; align-items: stretch; }
+  .cfm-actions .cfm-btn { width: 100%; }
+}

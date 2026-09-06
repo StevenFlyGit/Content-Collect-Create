@@ -2,12 +2,18 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import CosmosBackground from '../components/CosmosBackground.jsx'
 import TopNav from '../components/TopNav.jsx'
+import SelectionBar from '../components/SelectionBar.jsx'
+import CreationBriefModal from '../components/CreationBriefModal.jsx'
 import {
   clearBasket,
   getBasket,
   removeBasketItem,
 } from '../lib/hotspots.js'
 import { showToast } from '../lib/toast.js'
+import {
+  createCreation, getBrief, saveBrief, updateCreation, listInProgressCreations,
+} from '../storage/creationRepository.js'
+import { requestStoragePersist } from '../storage/creationDb.js'
 import './CreationBasketPage.css'
 
 // 热点原生 category slug → 中文标签（与后端 aihot.categoryInfo 对齐）
@@ -40,6 +46,11 @@ export default function CreationBasketPage() {
   const [busy, setBusy] = useState(false)
   const [detail, setDetail] = useState(null)
   const [inspDetail, setInspDetail] = useState(null)
+  // 选择模式：点击卡片切换选中（与灵感库交互对齐），键为 basket_item_id（全表唯一，无需前缀）
+  const [selected, setSelected] = useState(() => new Set())
+  // 本地创作会话（点击「开始创作」后建立）与可恢复的进行中创作
+  const [briefSession, setBriefSession] = useState(null)
+  const [resumable, setResumable] = useState(null)
 
   const load = useCallback(async () => {
     const seq = ++requestSeq.current
@@ -48,9 +59,20 @@ export default function CreationBasketPage() {
     try {
       const result = await getBasket()
       if (seq !== requestSeq.current) return
-      setInspirations(result.data?.inspirations || [])
-      setHotspots(result.data?.hotspots || [])
+      const nextInspirations = result.data?.inspirations || []
+      const nextHotspots = result.data?.hotspots || []
+      setInspirations(nextInspirations)
+      setHotspots(nextHotspots)
       setState('ready')
+      // 同步修剪选中集：列表里已不存在的素材自动取消选中
+      setSelected((previous) => {
+        if (previous.size === 0) return previous
+        const aliveIds = new Set(
+          [...nextInspirations, ...nextHotspots].map((item) => item.basket_item_id)
+        )
+        const next = new Set([...previous].filter((id) => aliveIds.has(id)))
+        return next.size === previous.size ? previous : next
+      })
     } catch (err) {
       if (seq !== requestSeq.current) return
       setErrorMsg(err.message || '加载失败')
@@ -61,6 +83,93 @@ export default function CreationBasketPage() {
   useEffect(() => {
     load()
   }, [load])
+
+  // 查询本地进行中创作：存在时显示「继续上次创作」入口（backend-design.md §7）
+  useEffect(() => {
+    let active = true
+    listInProgressCreations()
+      .then((creations) => { if (active) setResumable(creations[0] || null) })
+      .catch(() => {})
+    return () => { active = false }
+  }, [])
+
+  // Escape 清空选中（与灵感库一致）
+  useEffect(() => {
+    const handler = (event) => { if (event.key === 'Escape') setSelected(new Set()) }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [])
+
+  const toggle = (id) => setSelected((previous) => {
+    const next = new Set(previous)
+    next.has(id) ? next.delete(id) : next.add(id)
+    return next
+  })
+
+  // 「开始创作」：建立本地创作会话 + 素材快照 → 打开「这次想怎么写」弹窗
+  // 前置校验：至少选中 1 条灵感（热点不能替代灵感）
+  const handleStartCreate = async () => {
+    const inspIds = new Set(inspirations.map((item) => item.basket_item_id))
+    const hasInspiration = [...selected].some((id) => inspIds.has(id))
+    if (!hasInspiration) {
+      showToast('请至少选择 1 条灵感')
+      return
+    }
+    // 素材快照：把必要文字复制进 IndexedDB，后续不依赖原素材是否仍在创作篮（backend-design.md §3）
+    const selectedItems = [...inspirations, ...hotspots].filter((item) => selected.has(item.basket_item_id))
+    const materials = selectedItems.map((item) => (item.inspiration_id
+      ? {
+        item_id: item.basket_item_id,
+        origin: 'inspiration',
+        source_id: item.inspiration_id,
+        title: item.title || item.text || '（无标题）',
+        text: item.text || '',
+        source_name: '',
+        source_url: '',
+        captured_at: item.recorded_at || item.added_at || '',
+      }
+      : {
+        item_id: item.basket_item_id,
+        origin: 'hotspot',
+        source_id: item.snapshot_id,
+        title: item.title,
+        text: item.summary || '',
+        source_name: item.source_name || '',
+        source_url: item.source_url || item.ai_hot_url || '',
+        captured_at: item.captured_at || item.added_at || '',
+      }))
+    try {
+      const record = await createCreation({ materials })
+      requestStoragePersist()
+      const briefRecord = await getBrief(record.id)
+      setResumable(record)
+      setBriefSession({ id: record.id, brief: briefRecord, materialsCount: materials.length })
+    } catch (err) {
+      showToast(`创作会话创建失败：${err.message}`)
+    }
+  }
+
+  // brief 弹窗：输入停止 400ms 后由弹窗回调落盘
+  const handleBriefPersist = async (patch) => {
+    const session = briefSession
+    if (!session) return
+    try {
+      const next = await saveBrief(session.id, patch)
+      setBriefSession((prev) => (prev && prev.id === session.id ? { ...prev, brief: next } : prev))
+    } catch { /* 保存失败保留内存值，不误报成功 */ }
+  }
+
+  const handleBriefGenerate = async () => {
+    const session = briefSession
+    if (!session) return
+    try {
+      await updateCreation(session.id, { stage: 'plan' })
+      setBriefSession(null)
+      navigate(`/creation/${session.id}`)
+    } catch (err) {
+      showToast(`会话更新失败：${err.message}`)
+    }
+  }
 
   const handleRemove = async (id) => {
     if (busy) return
@@ -118,8 +227,13 @@ export default function CreationBasketPage() {
         <div className="page-head reveal">
           <div>
             <h1 className="page-title">创作篮</h1>
-            <p className="page-sub">灵感区与热点区统一装配 · 后续可一键生成选题卡</p>
+            <p className="page-sub">点击素材卡片多选 · 选定后可开始创作</p>
           </div>
+          {resumable && (
+            <button type="button" className="resume-btn" onClick={() => navigate(`/creation/${resumable.id}`)}>
+              继续上次创作 →
+            </button>
+          )}
         </div>
 
         {/* 顶部状态条：常驻可见 · items>0 时显示「清空全部」 */}
@@ -156,38 +270,51 @@ export default function CreationBasketPage() {
                     <div className="desc">去灵感库勾选已收集的灵感，或先添加热点话题。</div>
                     <button type="button" className="btn primary cta" onClick={() => navigate('/timeline')}>前往灵感库 →</button>
                   </div>
-                ) : inspirations.map((item) => (
-                  <div
-                    className="basket-item basket-item--clickable"
-                    key={item.basket_item_id}
-                    role="button"
-                    tabIndex={0}
-                    aria-label={`查看灵感详情：${item.title || item.text || '（无标题）'}`}
-                    onClick={() => setInspDetail(item)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault()
-                        setInspDetail(item)
-                      }
-                    }}
-                  >
-                    <span className="bi-ico"><span className="dot" style={{ '--d': `var(${item.color_token})` }} /></span>
-                    <div className="bi-body">
-                      <p className="bi-title">{item.title || item.text || '（无标题）'}</p>
-                      <div className="bi-meta">灵感 · {item.type}{item.time ? ` · ${item.time}` : ''}</div>
-                    </div>
-                    <button
-                      type="button"
-                      className="bi-remove"
-                      title="移除并退回"
-                      aria-label="移除"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handleRemove(item.basket_item_id)
+                ) : inspirations.map((item) => {
+                  const isSelected = selected.has(item.basket_item_id)
+                  return (
+                    <div
+                      className={`basket-item basket-item--clickable${isSelected ? ' selected' : ''}`}
+                      key={item.basket_item_id}
+                      role="button"
+                      tabIndex={0}
+                      aria-pressed={isSelected}
+                      aria-label={`选择灵感：${item.title || item.text || '（无标题）'}`}
+                      onClick={() => toggle(item.basket_item_id)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          toggle(item.basket_item_id)
+                        }
                       }}
-                    >×</button>
-                  </div>
-                ))}
+                    >
+                      <span className="bi-ico"><span className="dot" style={{ '--d': `var(${item.color_token})` }} /></span>
+                      <div className="bi-body">
+                        <p className="bi-title">{item.title || item.text || '（无标题）'}</p>
+                        <div className="bi-meta">灵感 · {item.type}{item.time ? ` · ${item.time}` : ''}</div>
+                      </div>
+                      <button
+                        type="button"
+                        className="bi-view"
+                        title="查看详情"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setInspDetail(item)
+                        }}
+                      >查看</button>
+                      <button
+                        type="button"
+                        className="bi-remove"
+                        title="移除并退回"
+                        aria-label="移除"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleRemove(item.basket_item_id)
+                        }}
+                      >×</button>
+                    </div>
+                  )
+                })}
               </div>
               <div className="basket-tips">
                 <h4>灵感类型 <small>支持 6 种类别</small></h4>
@@ -222,18 +349,20 @@ export default function CreationBasketPage() {
                 ) : hotspots.map((item) => {
                   const catLabel = HS_CAT_LABEL[item.category_source_raw] || HS_CAT_LABEL[item.category] || '其他'
                   const fresh = FRESHNESS_LABEL[item.freshness]
+                  const isSelected = selected.has(item.basket_item_id)
                   return (
                     <div
-                      className="basket-item basket-item--clickable"
+                      className={`basket-item basket-item--clickable${isSelected ? ' selected' : ''}`}
                       key={item.basket_item_id}
                       role="button"
                       tabIndex={0}
-                      aria-label={`查看热点详情：${item.title}`}
-                      onClick={() => setDetail(item)}
+                      aria-pressed={isSelected}
+                      aria-label={`选择热点：${item.title}`}
+                      onClick={() => toggle(item.basket_item_id)}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
                           e.preventDefault()
-                          setDetail(item)
+                          toggle(item.basket_item_id)
                         }
                       }}
                     >
@@ -244,6 +373,15 @@ export default function CreationBasketPage() {
                           热点 · {catLabel}{fresh && fresh !== '未知时间' ? ` · ${fresh}` : ''} · 数据来源 AIHOT
                         </div>
                       </div>
+                      <button
+                        type="button"
+                        className="bi-view"
+                        title="查看详情"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setDetail(item)
+                        }}
+                      >查看</button>
                       <button
                         type="button"
                         className="bi-remove"
@@ -369,6 +507,30 @@ export default function CreationBasketPage() {
           </div>
         )
       })()}
+
+      {/* 底部多选操作栏：与灵感库 SelectionBar 同一组件与视觉，选中 ≥1 项时滑入 */}
+      <SelectionBar
+        count={selected.size}
+        selected={selected}
+        onClear={() => setSelected(new Set())}
+        onAdd={handleStartCreate}
+        unitLabel="项素材"
+        actionLabel="开始创作 →"
+        showFeedback={false}
+        regionLabel="已选素材操作栏"
+      />
+
+      {/* 「这次想怎么写」弹窗：点击「开始创作」建立本地会话后弹出（brief 阶段） */}
+      {briefSession && (
+        <CreationBriefModal
+          open
+          materialsCount={briefSession.materialsCount}
+          brief={briefSession.brief}
+          onPersist={handleBriefPersist}
+          onGenerate={handleBriefGenerate}
+          onCancel={() => setBriefSession(null)}
+        />
+      )}
     </>
   )
 }

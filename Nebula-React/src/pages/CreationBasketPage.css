@@ -7,6 +7,9 @@
 .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 22px; flex-wrap: wrap; }
 .page-title { font-size: 26px; font-weight: 750; margin: 0; letter-spacing: .3px; }
 .page-sub { color: var(--ink-muted); font-size: 14px; margin-top: 6px; }
+/* 继续上次创作：本地 IndexedDB 中存在进行中创作时显示 */
+.resume-btn { padding: 8px 16px; border-radius: var(--radius-pill); font-size: 12.5px; font-weight: 600; cursor: pointer; background: var(--surface-glass); border: 1px solid var(--line); color: var(--ink-soft); transition: all .2s var(--ease); }
+.resume-btn:hover { background: var(--surface-strong); color: var(--ink); border-color: rgba(167, 139, 250, .4); }
 
 /* ---------- 顶部状态条 ---------- */
 .basket-headbar { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 14px 20px; border-radius: var(--radius-panel); background: linear-gradient(135deg, rgba(167, 139, 250, .10), rgba(125, 211, 252, .06)); border: 1px solid var(--line); margin-bottom: 22px; flex-wrap: wrap; }
@@ -54,15 +57,23 @@
 .basket-tips li b .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--d, var(--nebula-violet)); box-shadow: 0 0 8px var(--d, var(--nebula-violet)); flex: none; }
 
 /* ---------- 缩略卡 ---------- */
-.basket-item { display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; border-radius: var(--radius-card); background: var(--surface-glass); border: 1px solid var(--line); box-shadow: var(--shadow-soft); transition: all .25s var(--ease); }
-.basket-item:hover { border-color: var(--line); transform: translateX(-2px); }
+/* 卡片改为「选择」模式：整卡点击切换选中；× 与「查看」按钮绝对定位，不占 flex 流 */
+.basket-item { position: relative; display: flex; gap: 12px; align-items: flex-start; padding: 14px 40px 40px 16px; border-radius: var(--radius-card); background: var(--surface-glass); border: 1px solid var(--line); box-shadow: var(--shadow-soft); transition: all .25s var(--ease); }
+.basket-item:hover { border-color: rgba(167, 139, 250, .4); transform: translateX(-2px); }
 .bi-ico { width: 36px; height: 36px; border-radius: 10px; flex: none; display: inline-flex; align-items: center; justify-content: center; font-size: 17px; background: var(--surface-strong); border: 1px solid var(--line); }
 .bi-ico .dot { width: 14px; height: 14px; border-radius: 50%; background: var(--d, var(--nebula-violet)); box-shadow: 0 0 12px var(--d, var(--nebula-violet)); }
 .bi-body { flex: 1; min-width: 0; }
 .bi-title { font-size: 14.5px; font-weight: 650; margin: 0 0 4px; color: var(--ink); line-height: 1.45; }
 .bi-meta { font-size: 12px; color: var(--ink-muted); }
-.bi-remove { flex: none; width: 30px; height: 30px; border-radius: 8px; color: var(--ink-muted); background: var(--surface); border: 1px solid var(--line-soft); font-size: 16px; line-height: 1; transition: all .2s var(--ease); cursor: pointer; }
-.bi-remove:hover { color: var(--danger); background: rgba(252, 165, 165, .12); border-color: rgba(252, 165, 165, .4); }
+/* × 移除按钮：缩小尺寸并贴向右上角 */
+.bi-remove { position: absolute; top: 7px; right: 7px; width: 20px; height: 20px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; color: var(--ink-muted); background: transparent; border: none; font-size: 12px; line-height: 1; transition: all .2s var(--ease); cursor: pointer; }
+.bi-remove:hover { color: var(--danger); background: rgba(252, 165, 165, .12); }
+/* 「查看」按钮：右下角，点击打开详情弹窗（与灵感库 edit-btn 同款胶囊视觉） */
+.bi-view { position: absolute; right: 10px; bottom: 10px; padding: 3px 12px; border-radius: 999px; border: 1px solid var(--line-soft); background: var(--surface-strong); color: var(--ink-soft); font-size: 11.5px; line-height: 1.5; cursor: pointer; transition: color .2s var(--ease), border-color .2s var(--ease), background-color .2s var(--ease), box-shadow .2s var(--ease); }
+.bi-view:hover { color: var(--nebula-violet); border-color: rgba(167, 139, 250, .5); background: var(--surface); box-shadow: 0 0 12px -4px rgba(167, 139, 250, .6); }
+
+/* 选中态：与灵感库 .sticky.selected 完全同值 */
+.basket-item.selected { border-color: var(--nebula-violet); box-shadow: 0 0 0 1px var(--nebula-violet), 0 0 24px -4px var(--nebula-violet), var(--shadow-lift); }
 
 .empty { grid-column: 1 / -1; text-align: center; padding: 56px 20px; color: var(--ink-muted); font-size: 14px; line-height: 1.7; border: 1px dashed var(--line); border-radius: var(--radius-card); background: rgba(255, 255, 255, .015); }
 .empty button { margin-left: 8px; color: var(--nebula-violet); text-decoration: underline; }
@@ -74,10 +85,11 @@
   .basket-tips { min-height: 0; }
 }
 
-/* ---------- 热点卡片可点击反馈（仅作用于 hotspot 项） ---------- */
+/* ---------- 卡片可交互反馈（选择模式：整卡点击 = 切换选中） ---------- */
 .basket-item--clickable { cursor: pointer; outline: none; }
-.basket-item--clickable:hover { border-color: var(--line); transform: translateX(-2px); }
+.basket-item--clickable:hover { border-color: rgba(167, 139, 250, .4); transform: translateX(-2px); }
 .basket-item--clickable:focus-visible { border-color: var(--nebula-violet); box-shadow: 0 0 0 3px rgba(167, 139, 250, .28); }
+.basket-item--clickable.selected:focus-visible { box-shadow: 0 0 0 1px var(--nebula-violet), 0 0 24px -4px var(--nebula-violet), 0 0 0 3px rgba(167, 139, 250, .28); }
 
 /* ---------- 热点详情弹窗 ---------- */
 @keyframes bsk-detail-in { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: none; } }

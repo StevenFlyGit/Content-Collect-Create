@@ -1,0 +1,6 @@
+# 部署打包排除：密钥文件绝不进入 FC 代码包（环境变量经 s.yaml ${env(...)} 注入）
+.env
+.env.local
+.env.*.local
+s.yaml
+*.md
