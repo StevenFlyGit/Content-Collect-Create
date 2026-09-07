@@ -122,6 +122,126 @@
   .topbar-title { font-size: 15px; letter-spacing: 1px; }
   .status-chip { font-size: 11px; padding: 3px 8px; }
   .nav-tools .nav-btn { display: none; }
+  /* 首页窄屏：隐藏横向链接，显示汉堡按钮 */
+  .nav:not(.timeline-nav) .nav-links { display: none; }
+  .nav:not(.timeline-nav) .nav-burger { display: inline-flex; }
 }
+
+/* ---------- 移动端汉堡按钮（桌面隐藏） ---------- */
+.nav-burger {
+  display: none;
+  width: 40px; height: 40px;
+  align-items: center; justify-content: center;
+  border: 1px solid var(--line);
+  background: var(--surface-glass);
+  border-radius: 12px;
+  color: var(--ink-soft);
+  margin-left: auto;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: all .2s var(--ease);
+}
+.nav-burger:hover { color: var(--ink); background: var(--surface-strong); border-color: rgba(167, 139, 250, .4); }
+.nav-burger-bars {
+  position: relative;
+  width: 18px; height: 14px;
+  display: inline-block;
+}
+.nav-burger-bars span {
+  position: absolute; left: 0; width: 100%; height: 2px;
+  background: currentColor; border-radius: 2px;
+  transition: transform .25s var(--ease), top .2s var(--ease), opacity .2s var(--ease);
+}
+.nav-burger-bars span:nth-child(1) { top: 0; }
+.nav-burger-bars span:nth-child(2) { top: 6px; }
+.nav-burger-bars span:nth-child(3) { top: 12px; }
+.nav-burger-bars.is-open span:nth-child(1) { top: 6px; transform: rotate(45deg); }
+.nav-burger-bars.is-open span:nth-child(2) { opacity: 0; }
+.nav-burger-bars.is-open span:nth-child(3) { top: 6px; transform: rotate(-45deg); }
+
+/* ---------- 移动端抽屉菜单 ---------- */
+.nav-mobile {
+  position: fixed; inset: 0; z-index: 35;
+  pointer-events: none;
+}
+.nav-mobile-mask {
+  position: absolute; inset: 0;
+  background: rgba(7, 6, 15, .55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  opacity: 0;
+  transition: opacity .25s var(--ease);
+}
+.nav-mobile-panel {
+  position: absolute; top: 0; right: 0; bottom: 0;
+  width: min(320px, 86vw);
+  padding: 18px 18px 22px;
+  display: flex; flex-direction: column; gap: 16px;
+  background: var(--cosmos-2);
+  border-left: 1px solid var(--line);
+  box-shadow: -16px 0 40px -12px rgba(0, 0, 0, .6);
+  transform: translateX(100%);
+  transition: transform .28s var(--ease);
+}
+.nav-mobile.open { pointer-events: auto; }
+.nav-mobile.open .nav-mobile-mask { opacity: 1; }
+.nav-mobile.open .nav-mobile-panel { transform: translateX(0); }
+
+.nav-mobile-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.nav-mobile-close {
+  width: 36px; height: 36px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink-muted);
+  border-radius: 10px;
+  font-size: 20px; line-height: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.nav-mobile-close:hover { color: var(--danger); border-color: rgba(252, 165, 165, .4); }
+
+.nav-mobile-links { display: flex; flex-direction: column; gap: 4px; flex: 1; min-height: 0; overflow-y: auto; }
+.nav-mobile-link {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 14px 14px;
+  border-radius: 12px;
+  color: var(--ink-soft);
+  font-size: 16px;
+  border: 1px solid transparent;
+  transition: all .2s var(--ease);
+  -webkit-tap-highlight-color: transparent;
+}
+.nav-mobile-link:hover { color: var(--ink); background: var(--surface); }
+.nav-mobile-link.active {
+  color: var(--ink);
+  background: rgba(167, 139, 250, .12);
+  border-color: rgba(167, 139, 250, .35);
+  font-weight: 600;
+}
+.nav-mobile-link .badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 20px; height: 20px; padding: 0 6px;
+  border-radius: var(--radius-pill);
+  background: var(--nebula-violet); color: #1a1430;
+  font-size: 11px; font-weight: 700;
+}
+
+.nav-mobile-foot {
+  display: flex; align-items: center; gap: 12px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line-soft);
+}
+.nav-mobile-foot .avatar { margin-left: 0; }
+.nav-mobile-user { font-size: 13px; color: var(--ink-muted); }
+
+/* 抽屉面板在大屏上保持隐藏（与 CSS 控制一致） */
+@media (min-width: 721px) {
+  .nav-mobile { display: none; }
+}
+
 
 
