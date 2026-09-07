@@ -96,20 +96,22 @@
   color: var(--ink-muted); font-size: 14px; padding: 6px 12px;
   border-radius: var(--radius-pill);
   transition: all .2s var(--ease);
-  flex-shrink: 0;
+  /* 左右两槽等宽（flex:1），保证中间标题真正居中 */
+  flex: 1; justify-content: flex-start;
 }
 .back img.icon { width: 14px; height: 14px; flex-shrink: 0; transition: transform .2s var(--ease); }
 .back .back-arrow { font-style: normal; display: inline-block; transition: transform .2s var(--ease); }
-.back:hover { color: var(--ink); background: var(--surface); border-color: var(--line); }
+.back:hover { color: var(--ink); background: transparent; }
 .back:hover .back-arrow, .back:hover img.icon { transform: translateX(-3px); }
 /* 标题：竖向 wrap（渐变字 + 底部短光条），替代原「flex:1 + text-align:center」横排 */
 .nav-title-wrap {
-  flex: 1; min-width: 0;
+  flex: 0 0 auto; min-width: 0;
   display: flex; flex-direction: column; align-items: center; gap: 5px;
 }
 .nav-title-text, .topbar-title {
   font-family: "Songti SC", "STSong", "Noto Serif SC", Georgia, serif;
   font-size: 17px; letter-spacing: 5px; font-weight: 600;
+  white-space: nowrap;
   background: linear-gradient(120deg, var(--nebula-violet), var(--ink) 45%, var(--nebula-rose));
   -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -119,7 +121,11 @@
   background: linear-gradient(90deg, transparent, var(--nebula-violet), transparent);
   box-shadow: 0 0 10px rgba(167, 139, 250, .8);
 }
-.nav-tools { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+.nav-tools {
+  display: flex; gap: 8px; align-items: center;
+  /* 与 .back 对称的右侧等宽槽，内容靠右对齐 */
+  flex: 1; justify-content: flex-end;
+}
 .nav-btn {
   padding: 8px 14px; border-radius: var(--radius-pill);
   color: var(--ink-soft); font-size: 13px;
