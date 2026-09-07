@@ -143,11 +143,15 @@ export default function TopNav({ variant = 'home', title, backTo = '/', backLabe
   if (variant === 'timeline') {
     return (
       <nav className="nav timeline-nav">
+        <span className="nav-stars" aria-hidden="true" />
         <div className="nav-inner timeline-nav-inner">
           <Link to={backTo} className="back" aria-label={`${backLabel}工作台`}>
-            ← {backLabel}
+            <i className="back-arrow">←</i> {backLabel}
           </Link>
-          <div className="nav-title">{title}</div>
+          <div className="nav-title-wrap">
+            <div className="nav-title-text">{title}</div>
+            <span className="nav-title-glow" aria-hidden="true" />
+          </div>
           <div className="nav-tools">{right}</div>
         </div>
       </nav>
@@ -156,12 +160,16 @@ export default function TopNav({ variant = 'home', title, backTo = '/', backLabe
 
   return (
     <header className="topbar">
+      <span className="nav-stars" aria-hidden="true" />
       <div className="topbar-inner">
         <Link to={backTo} className="back" aria-label={`${backLabel}工作台`}>
           <Icon name="nav/back" alt="" width={14} height={14} />
           {backLabel}
         </Link>
-        <div className="topbar-title">{title}</div>
+        <div className="nav-title-wrap">
+          <div className="nav-title-text">{title}</div>
+          <span className="nav-title-glow" aria-hidden="true" />
+        </div>
         <div className="nav-tools">{right}</div>
       </div>
     </header>
