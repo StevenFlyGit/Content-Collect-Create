@@ -92,6 +92,53 @@
 .cfw .preview-title { font-size: 25px; line-height: 1.5; margin: 0 0 20px; overflow-wrap: anywhere; }
 .cfw .cfw-preview-extra { color: #69566f; margin: 20px 0 0; white-space: pre-wrap; font-size: 13px; overflow-wrap: anywhere; }
 
+/* ---------- 预览 Markdown 排版（纸面浅色适配） ---------- */
+.cfw .preview-md { font-size: 15.5px; line-height: 1.95; color: #272132; overflow-wrap: anywhere; }
+.cfw .preview-md > :first-child { margin-top: 0; }
+.cfw .preview-md h1, .cfw .preview-md h2, .cfw .preview-md h3, .cfw .preview-md h4 {
+  font-family: "Songti SC", "STSong", "Noto Serif SC", Georgia, serif;
+  font-weight: 650; line-height: 1.5; margin: 30px 0 14px; color: #1c1626;
+}
+.cfw .preview-md h1 { font-size: 22px; }
+.cfw .preview-md h2 { font-size: 20px; padding-bottom: 6px; border-bottom: 1px solid #ddd4cf; }
+.cfw .preview-md h3 { font-size: 17.5px; }
+.cfw .preview-md h4 { font-size: 16px; }
+.cfw .preview-md p { margin: 14px 0; }
+.cfw .preview-md strong { font-weight: 700; }
+.cfw .preview-md a { color: #6d4fc4; text-underline-offset: 3px; }
+.cfw .preview-md ul, .cfw .preview-md ol { margin: 14px 0; padding-left: 26px; }
+.cfw .preview-md li { margin: 6px 0; }
+.cfw .preview-md li::marker { color: #8b6fc9; }
+.cfw .preview-md blockquote {
+  margin: 18px 0; padding: 10px 18px;
+  border-left: 3px solid #b9a5ec; background: rgba(167, 139, 250, .07);
+  border-radius: 0 10px 10px 0; color: #4a4256;
+}
+.cfw .preview-md hr { border: none; height: 1px; background: #ddd4cf; margin: 26px 0; }
+.cfw .preview-md table { border-collapse: collapse; margin: 18px 0; width: 100%; font-size: 14px; }
+.cfw .preview-md th, .cfw .preview-md td { border: 1px solid #d8cfc9; padding: 8px 12px; text-align: left; }
+.cfw .preview-md th { background: #efeae2; font-weight: 650; }
+.cfw .preview-md tr:nth-child(even) td { background: rgba(239, 234, 226, .5); }
+/* 行内代码与代码块：浅色纸面配色（与 highlight.js github 主题叠加） */
+.cfw .preview-md :not(pre) > code {
+  background: rgba(167, 139, 250, .1); color: #5b3fa8;
+  padding: 2px 7px; border-radius: 6px; font-size: .88em;
+  font-family: Consolas, "JetBrains Mono", Menlo, monospace;
+}
+.cfw .preview-md pre {
+  margin: 18px 0; padding: 16px 18px;
+  background: #f2efe8; border: 1px solid #e0d9cf; border-radius: 12px;
+  overflow-x: auto; line-height: 1.7;
+}
+.cfw .preview-md pre code {
+  background: transparent; padding: 0; border-radius: 0;
+  font-family: Consolas, "JetBrains Mono", Menlo, monospace; font-size: 13.5px; color: #24292e;
+}
+/* KaTeX 公式：行内允许换行，块级横向滚动防溢出 */
+.cfw .preview-md .katex { font-size: 1.05em; }
+.cfw .preview-md .katex-display { margin: 20px 0; overflow-x: auto; overflow-y: hidden; padding: 6px 2px; }
+.cfw .preview-md img { max-width: 100%; border-radius: 10px; }
+
 /* ---------- 创作助手 ---------- */
 .cfw .chat { min-height: 640px; display: flex; flex-direction: column; }
 .cfw .chat-history { display: flex; flex-direction: column; gap: 12px; flex: 1; margin-top: 20px; }

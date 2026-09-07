@@ -1,5 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
+import remarkMath from 'remark-math'
+import rehypeKatex from 'rehype-katex'
+import rehypeHighlight from 'rehype-highlight'
+import 'katex/dist/katex.min.css'
+import 'highlight.js/styles/github.css'
 import CosmosBackground from '../components/CosmosBackground.jsx'
 import TopNav from '../components/TopNav.jsx'
 import CreationBriefModal from '../components/CreationBriefModal.jsx'
@@ -762,7 +769,16 @@ export default function CreationFlowPage() {
                     {preview ? (
                       <>
                         <h2 className="preview-title">{draft.content.title}</h2>
-                        <div className="preview-body">{draft.content.body}</div>
+                        {/* Markdown 渲染：GFM 表格/任务列表 + 代码高亮 + KaTeX 公式；默认不渲染原始 HTML（安全白名单策略 §9） */}
+                        <div className="preview-md">
+                          <ReactMarkdown
+                            remarkPlugins={[remarkGfm, remarkMath]}
+                            rehypePlugins={[rehypeKatex, [rehypeHighlight, { detect: true, ignoreMissing: true }]]
+                            }
+                          >
+                            {draft.content.body}
+                          </ReactMarkdown>
+                        </div>
                         {draft.content[extraKey] && <p className="cfw-preview-extra">{draft.content[extraKey]}</p>}
                       </>
                     ) : (
