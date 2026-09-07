@@ -49,10 +49,15 @@ export default function TopNav({ variant = 'home', title, backTo = '/', backLabe
       { to: '/capture', label: '记录' },
       { to: '/timeline', label: '灵感库' },
       { to: '/hotspots', label: '热点' },
-      { to: '/creation-space', label: '创作空间', prefixMatch: '/creation' },
+      // 创作空间：精确路径前缀且不包含 creation-basket（避免被篮子路由误吞）
+      { to: '/creation-space', label: '创作空间', match: (p) => p === '/creation-space' || p.startsWith('/creation/') },
       { to: '/creation-basket', label: '创作篮', badge: true },
     ]
-    const isActive = (l) => l.to !== '#' && (pathname === l.to || (l.prefixMatch && pathname.startsWith(l.prefixMatch)))
+    const isActive = (l) => {
+      if (l.to === '#' || l.to === pathname) return l.to !== '#'
+      if (l.match) return l.match(pathname)
+      return false
+    }
     return (
       <>
         <nav className="nav">
