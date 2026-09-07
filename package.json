@@ -3,6 +3,6 @@
   "private": true,
   "description": "Monorepo 根引导：仅供 ESA Pages 在仓库根执行构建，转发到 Nebula-React 子项目",
   "scripts": {
-    "build": "cd Content-Collect-Create/Nebula-React && npm install && npm run build"
+    "build": "cd Nebula-React && npm install && npm run build"
   }
 }
