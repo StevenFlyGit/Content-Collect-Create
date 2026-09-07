@@ -5,7 +5,7 @@ import { getBasket } from '../lib/hotspots.js'
 import './TopNav.css'
 
 /**
- * 统一导航：工作台使用完整导航；记录页使用状态栏；灵感库使用方案 B 的返回/工具栏。
+ * 统一导航：首页使用完整导航；记录页使用状态栏；灵感库使用返回/工具栏。
  * 窄屏（≤720px）：横向链接隐藏，右侧显示汉堡按钮，点击展开抽屉式菜单。
  */
 export default function TopNav({ variant = 'home', title, backTo = '/', backLabel = '返回', right = null }) {
@@ -45,7 +45,7 @@ export default function TopNav({ variant = 'home', title, backTo = '/', backLabe
 
   if (variant === 'home') {
     const links = [
-      { to: '/', label: '工作台' },
+      { to: '/', label: '首页' },
       { to: '/capture', label: '记录' },
       { to: '/timeline', label: '灵感库' },
       { to: '/hotspots', label: '热点' },
@@ -145,7 +145,7 @@ export default function TopNav({ variant = 'home', title, backTo = '/', backLabe
       <nav className="nav timeline-nav">
         <span className="nav-stars" aria-hidden="true" />
         <div className="nav-inner timeline-nav-inner">
-          <Link to={backTo} className="back" aria-label={`${backLabel}工作台`}>
+          <Link to={backTo} className="back" aria-label={`${backLabel}首页`}>
             <i className="back-arrow">←</i> {backLabel}
           </Link>
           <div className="nav-title-wrap">
@@ -162,7 +162,7 @@ export default function TopNav({ variant = 'home', title, backTo = '/', backLabe
     <header className="topbar">
       <span className="nav-stars" aria-hidden="true" />
       <div className="topbar-inner">
-        <Link to={backTo} className="back" aria-label={`${backLabel}工作台`}>
+        <Link to={backTo} className="back" aria-label={`${backLabel}首页`}>
           <Icon name="nav/back" alt="" width={14} height={14} />
           {backLabel}
         </Link>
