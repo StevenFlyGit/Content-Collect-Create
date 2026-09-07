@@ -13,7 +13,7 @@
   -webkit-backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--line);
 }
-.timeline-nav .nav-inner { position: relative; }
+.timeline-nav .nav-inner { position: static; }
 /* scheme-B 时间线返回控件保留透明边框，保证其占位高度与原型一致；记录页原型没有该边框。 */
 .timeline-nav .back { border: 1px solid transparent; }
 .nav-inner {
@@ -71,7 +71,6 @@
   border-bottom: 1px solid var(--line);
 }
 .topbar-inner {
-  position: relative;
   max-width: 1280px; margin: 0 auto;
   padding: 16px 24px;
   display: flex; align-items: center; gap: 16px;
@@ -103,11 +102,16 @@
 .back .back-arrow { font-style: normal; display: inline-block; transition: transform .2s var(--ease); }
 .back:hover { color: var(--ink); background: transparent; }
 .back:hover .back-arrow, .back:hover img.icon { transform: translateX(-3px); }
-/* 标题：竖向 wrap（渐变字 + 底部短光条），替代原「flex:1 + text-align:center」横排 */
+/* 标题：绝对定位锚定窗口正中（50vw 含滚动条区域，与用户直觉一致；
+   定位基准为最外层 .nav/.topbar（全宽），故 inner 不再设 relative） */
 .nav-title-wrap {
-  flex: 0 0 auto; min-width: 0;
+  position: absolute; left: 50vw; top: 50%;
+  transform: translate(-50%, -50%);
   display: flex; flex-direction: column; align-items: center; gap: 5px;
+  pointer-events: none;
+  max-width: 60vw;
 }
+.nav-title-wrap > * { pointer-events: auto; }
 .nav-title-text, .topbar-title {
   font-family: "Songti SC", "STSong", "Noto Serif SC", Georgia, serif;
   font-size: 17px; letter-spacing: 5px; font-weight: 600;
